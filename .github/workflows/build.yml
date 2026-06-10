@@ -20,15 +20,12 @@ jobs:
       - name: Install Conan
         run: pip install conan
 
-      # IMPORTANT: create Conan profile
       - name: Detect Conan profile
         run: conan profile detect --force
 
-      # IMPORTANT: install deps FIRST (this generates toolchain files)
       - name: Conan install
         run: conan install . --output-folder=build --build=missing -s build_type=Release
 
-      # IMPORTANT: NOW configure CMake using preset
       - name: Configure
         run: cmake --preset release
 
