@@ -31,5 +31,4 @@ Next stage:
 		clang-tidy libs/Solvers/src/JacobiMethod.cpp -p build
 
 4. Add a README.md file in the root directory
-5. Add a .gitignore file in the root directory
 

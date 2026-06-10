@@ -1,0 +1,43 @@
+Up to this point we created:
+	apps/
+	libs/
+	tests/
+	CMakeLists.txt
+	conanfile.txt
+	CMakePresets.json (Optional)
+
+	.clang-format
+	.clang-tidy
+	README.md
+
+Now we add CI. Do the following:
+
+
+1. Create GitHub account, if not done
+2. Set up config locally:
+
+	git config --global user.name <git-hub username>
+	git config --global user.email <git-hub linked email>
+
+3. Add a .gitignore file in the root directory
+4. Initialise and add initial commit
+
+	git init
+	git add .
+	git commit -m "Initial commit"
+
+5. Create local and remote main branches, and push everything 
+
+git remote add origin https://github.com/zzzSleepyManzzz/HeatTransfer.git
+git branch -M main
+git push -u origin main
+
+Additional - can change GitHub repo setting:
+
+	a) Add protection rules to main branch (Optional - costs money)
+	b) Allow squash merging on PRs only
+	c) etc.
+ 	
+6. Create CI checks by creating .GitHub/workflows/build.yml
+   Look at project, for example
+
