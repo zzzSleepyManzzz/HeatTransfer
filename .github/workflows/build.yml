@@ -32,7 +32,6 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    # Added a dependency so build only runs if lint passes
     needs: lint 
 
     steps:
