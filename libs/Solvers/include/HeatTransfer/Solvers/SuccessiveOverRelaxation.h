@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Eigen/dense>
+#include <Eigen/Dense>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
