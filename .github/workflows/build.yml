@@ -9,17 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Run clang-format
         uses: cpp-linter/cpp-linter-action@v2
-        id: linter
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          style: 'file'  # Uses your .clang-format file
-          tidy-checks: '' # Set this if you want clang-tidy later
-          version: 17
-          thread-comments: true
+          style: file       # Use your .clang-format file
+          version: 17       # Matches your local clang-format
+          tidy-checks: ""   # Disable clang-tidy
           files-changed-only: false
+          thread-comments: true
 
   build:
     runs-on: ubuntu-latest
