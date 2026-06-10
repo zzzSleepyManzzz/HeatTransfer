@@ -9,35 +9,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️- Checkout code
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # 2️- Install Python for Conan
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
-      # 3️- Install Conan
       - name: Install Conan
         run: pip install conan
-      
-      - name: Detect default Conan profile
+
+      # IMPORTANT: create Conan profile
+      - name: Detect Conan profile
         run: conan profile detect --force
 
-      # 4️- Install dependencies with Conan
+      # IMPORTANT: install deps FIRST (this generates toolchain files)
       - name: Conan install
         run: conan install . --output-folder=build --build=missing -s build_type=Release
 
-      # 5️- Configure with CMake preset
-      - name: CMake configure
+      # IMPORTANT: NOW configure CMake using preset
+      - name: Configure
         run: cmake --preset release
 
-      # 6️- Build with CMake preset
-      - name: CMake build
+      - name: Build
         run: cmake --build --preset release
 
-      # 7️- Run tests
-      - name: Run tests
+      - name: Test
         run: ctest --test-dir build --output-on-failure
