@@ -34,7 +34,7 @@ git push -u origin main
 
 Additional - can change GitHub repo setting:
 
-	a) Add protection rules to main branch (Optional - costs money)
+	a) Add protection rules to main branch
 	b) Allow squash merging on PRs only
 	c) etc.
  	
