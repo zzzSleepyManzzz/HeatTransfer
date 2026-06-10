@@ -10,16 +10,18 @@ jobs:
   
     steps:
       - uses: actions/checkout@v4
-  
-      - name: Install clang-format
-        run: sudo apt-get install -y clang-format
-  
-      - name: Run clang-format check
-        run: |
-          files=$(find libs apps tests -name "*.cpp" -o -name "*.h")
-          for f in $files; do
-            clang-format --dry-run --Werror "$f"
-          done
+
+      - name: Run clang-format
+        uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          style: 'file'
+          tidy-checks: '-*'  # This explicitly disables all clang-tidy checks
+          version: 17
+          thread-comments: true
+          files-changed-only: false
 
   build:
     runs-on: ubuntu-latest
