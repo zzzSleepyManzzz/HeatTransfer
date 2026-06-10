@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-#include <Eigen/dense>
+#include <Eigen/Dense>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/IterationAndError.h"
