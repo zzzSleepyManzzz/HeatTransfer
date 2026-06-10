@@ -7,17 +7,19 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+  
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Run clang-format
-        uses: cpp-linter/cpp-linter-action@v2
-        with:
-          style: file       # Use your .clang-format file
-          version: 17       # Matches your local clang-format
-          tidy-checks: ""   # Disable clang-tidy
-          files-changed-only: false
-          thread-comments: true
+  
+      - name: Install clang-format
+        run: sudo apt-get install -y clang-format
+  
+      - name: Run clang-format check
+        run: |
+          files=$(find libs apps tests -name "*.cpp" -o -name "*.h")
+          for f in $files; do
+            clang-format --dry-run --Werror "$f"
+          done
 
   build:
     runs-on: ubuntu-latest
