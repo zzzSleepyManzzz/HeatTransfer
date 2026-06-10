@@ -1,0 +1,40 @@
+name: Build & Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️- Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️- Install Python for Conan
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # 3️- Install Conan
+      - name: Install Conan
+        run: pip install conan
+
+      # 4️- Install dependencies with Conan
+      - name: Conan install
+        run: conan install . --output-folder=build --build=missing -s build_type=Release
+
+      # 5️- Configure with CMake preset
+      - name: CMake configure
+        run: cmake --preset release
+
+      # 6️- Build with CMake preset
+      - name: CMake build
+        run: cmake --build --preset release
+
+      # 7️- Run tests
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
