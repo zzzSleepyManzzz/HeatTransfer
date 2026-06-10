@@ -12,13 +12,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Install and Setup Conan
+        uses: conan-io/setup-conan@v1
         with:
-          python-version: "3.x"
-
-      - name: Install Conan
-        run: pip install conan
+            cache_packages: true
 
       - name: Detect Conan profile
         run: conan profile detect --force
