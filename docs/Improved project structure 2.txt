@@ -1,0 +1,35 @@
+Next stage:
+
+1. First steps were to add:
+	apps/
+	libs/
+	tests/
+	CMakeLists.txt
+	conanfile.txt
+	CMakePresets.json (Optional)
+
+2. Now add a .clang-format file in root directory (look at the example for ideas).
+   This will maintain consistent formatting in the project.
+
+	- In .vscode/settings.json, set:
+
+		"editor.formatOnSave": true,
+    		"C_Cpp.formatting": "clangFormat"
+
+3. Now add a .clang-tidy file in root directory (look at the example for ideas).
+   This will perform static analysis when running clang-tidy on a file.
+
+	a) Make sure to have the following in "configurePresets" in CMakePresets.json
+
+      		"cacheVariables": {
+        		"CMAKE_BUILD_TYPE": "Release",
+        		"CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      		}
+
+	b) Run something like:
+
+		clang-tidy libs/Solvers/src/JacobiMethod.cpp -p build
+
+4. Add a README.md file in the root directory
+5. Add a .gitignore file in the root directory
+

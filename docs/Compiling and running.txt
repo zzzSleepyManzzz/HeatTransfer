@@ -1,0 +1,20 @@
+
+Compile:
+
+conan install . --output-folder=build --build=missing -s build_type=Release
+
+cmake --preset release
+cmake --build --preset release
+
+Run app:
+
+./build/apps/HeatTransferApp/HeatTransferApp.exe
+
+Run tests:
+
+./build/tests/unit_tests.exe
+./build/tests/integration_tests.exe
+
+Run all test:
+
+ctest --preset conan-releas

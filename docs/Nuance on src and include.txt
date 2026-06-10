@@ -1,0 +1,20 @@
+
+Nuance on src/ and include/:
+___________________________
+
+For small to medium sized projects it's fine to have:
+
+	1) include/ -> ProjectName/ folder -> module/
+	2) src/ -> module/
+
+
+For large enterprise projects think in terms of libraries or components:
+
+	1) libs/ at root folder -> multiple module/ folders
+	2) Each module/ has:
+
+		- src/ (contains .cpp)
+		- include/ (contains .h)
+		- CMakeLists.txt
+
+	3) We create apps/ -> HeatTransferApp/ -> main.cpp + CMakeLists.txt

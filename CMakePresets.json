@@ -1,0 +1,24 @@
+{
+  "version": 4,
+  "include": [
+    "build/CMakePresets.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "release",
+      "generator": "Ninja",
+      "inherits": "conan-release",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "release",
+      "configurePreset": "release"
+    }
+  ]
+}

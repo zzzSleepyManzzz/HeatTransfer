@@ -1,0 +1,19 @@
+
+This version of the project has a more professional structure over flat .cpp and .h files. In order to replicate, first make sure: Conan, CMake and Ninja are installed on the machine.
+
+1) Create an apps/ folder. Each app folder should go here (main.cpp and CMakeLists.txt)
+2) Create a libs/ folder. Each module folder should go here (src/, include/ and CMakeLists.txt)
+
+	a) Make sure .cpp files are in src folder
+	b) Make sure .h files are in include folder
+	c) Create CMakeLists.txt, which has CMake create a dependency graph
+
+3) Create a tests/ folder with integration/, unit/ and CMakeLists.txt. Both test folders have .cpp files only.
+
+4) Create conanfile.txt at root, which determines which third party libraries are needed
+5) Create CMakeLists.txt at root
+6) Create CMakePresets.json (optional) at root, which passes build details to CMake
+
+Finally call conan, give presets to CMake and then build. Ninja should generate the files, and the executable should be in the build folder.
+
+In this process, a lot of folders and files should be generated i.e. .vs, .vscode, build, CMakeUserPresets.json, etc.

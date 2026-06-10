@@ -1,0 +1,35 @@
+# Build artifacts
+build/
+*.o
+*.obj
+*.exe
+*.a
+*.lib
+*.so
+*.dll
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+*.cmake
+
+# Conan
+conanbuildinfo.*
+conan_toolchain.cmake
+conanbuild.bat
+conanrun.bat
+
+# VS Code
+.vscode/
+
+# Visual Studio
+.vs/
+*.VC.db
+*.VC.VC.opendb
+
+# Misc
+*.log
+*.swp
+.DS_Store
