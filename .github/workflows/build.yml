@@ -5,6 +5,22 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run clang-format
+        uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          style: 'file'  # Uses your .clang-format file
+          tidy-checks: '' # Set this if you want clang-tidy later
+      - name: Fail if styling is wrong
+        if: steps.linter.outputs.checks-failed > 0
+        run: exit 1
+
   build:
     runs-on: ubuntu-latest
 
