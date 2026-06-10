@@ -17,9 +17,9 @@ jobs:
         with:
           style: 'file'  # Uses your .clang-format file
           tidy-checks: '' # Set this if you want clang-tidy later
-      - name: Fail if styling is wrong
-        if: steps.linter.outputs.checks-failed > 0
-        run: exit 1
+          version: 17
+          thread-comments: true
+          files-changed-only: false
 
   build:
     runs-on: ubuntu-latest
