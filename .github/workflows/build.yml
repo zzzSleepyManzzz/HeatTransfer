@@ -7,6 +7,9 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
   
     steps:
       - uses: actions/checkout@v4
@@ -18,13 +21,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: 'file'
-          tidy-checks: '-*'  # This explicitly disables all clang-tidy checks
+          tidy-checks: '-*'
           version: 22
           thread-comments: true
           files-changed-only: false
 
   build:
     runs-on: ubuntu-latest
+    # Added a dependency so build only runs if lint passes
+    needs: lint 
 
     steps:
       - name: Checkout
