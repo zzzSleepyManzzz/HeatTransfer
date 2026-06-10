@@ -22,6 +22,9 @@ jobs:
       # 3️- Install Conan
       - name: Install Conan
         run: pip install conan
+      
+      - name: Detect default Conan profile
+        run: conan profile detect --force
 
       # 4️- Install dependencies with Conan
       - name: Conan install
