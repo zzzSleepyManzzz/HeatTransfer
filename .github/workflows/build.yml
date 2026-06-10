@@ -26,6 +26,10 @@ jobs:
           thread-comments: true
           files-changed-only: false
 
+      - name: Fail if styling is wrong
+        if: steps.linter.outputs.checks-failed > 0
+        run: exit 1
+
   build:
     runs-on: ubuntu-latest
     # Added a dependency so build only runs if lint passes
