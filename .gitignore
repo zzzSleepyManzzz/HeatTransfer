@@ -7,10 +7,12 @@ build/
 *.lib
 *.so
 *.dll
+0
 
 # CMake files
 CMakeCache.txt
 CMakeFiles/
+CMakeUserPresets.json
 cmake_install.cmake
 CTestTestfile.cmake
 *.cmake
