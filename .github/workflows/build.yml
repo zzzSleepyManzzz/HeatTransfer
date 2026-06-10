@@ -19,7 +19,7 @@ jobs:
         with:
           style: 'file'
           tidy-checks: '-*'  # This explicitly disables all clang-tidy checks
-          version: 17
+          version: 18
           thread-comments: true
           files-changed-only: false
 
