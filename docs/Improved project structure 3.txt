@@ -36,7 +36,8 @@ Additional - can change GitHub repo setting:
 
 	a) Add protection rules to main branch
 	b) Allow squash merging on PRs only
-	c) etc.
+	c) Add Bypass list: Repository Admin
+	d) etc.
  	
 6. Create CI checks by creating .GitHub/workflows/build.yml
    Look at project, for example
