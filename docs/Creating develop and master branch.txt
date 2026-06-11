@@ -1,0 +1,18 @@
+
+To go from having a main branch to develop and master branches, do the following:
+
+1. Change main to develop: 
+
+	Settings -> General -> Default -> Rename the base branch from main to develop
+
+2. Perform local changes:
+
+	git branch -m main develop
+	git fetch origin
+	git branch -u origin/develop develop
+	git remote set-head origin -a
+
+3. Create master branch:
+
+	git checkout -b master
+	git push -u origin master
