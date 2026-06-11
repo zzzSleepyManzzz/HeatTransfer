@@ -37,7 +37,7 @@ Additional - can change GitHub repo setting:
 	a) Add protection rules to main branch
 	b) Allow squash merging on PRs only
 	c) Add Bypass list: Repository Admin
-	d) Automatically delete head branches
+	d) Automatically delete head branches 
 	e) etc.
  	
 6. Create CI checks by creating .GitHub/workflows/build.yml
