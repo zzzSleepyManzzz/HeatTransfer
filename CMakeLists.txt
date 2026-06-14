@@ -10,9 +10,10 @@ find_package(Eigen3 REQUIRED)
 add_subdirectory(libs/Core)
 add_subdirectory(libs/SimulationRunner)
 add_subdirectory(libs/Solvers)
+add_subdirectory(libs/Visualisation)
 
 add_subdirectory(apps/HeatTransferApp)
-#add_subdirectory(apps/HeatTransferRender)
+add_subdirectory(apps/HeatTransferRender)
 
 enable_testing()
 add_subdirectory(tests)

@@ -4,9 +4,9 @@ namespace HeatTransfer::SimulationRunner
 {
     Simulations::Simulations(const Core::SimulationParameters& parameters,
                              const Core::BoundaryConditions& boundaryCondition)
-        : _parameters(parameters), _boundaryCondition(boundaryCondition) {
-
-        };
+        : _parameters(parameters), _boundaryCondition(boundaryCondition)
+    {
+    }
 
     void Simulations::Run(Method method)
     {
@@ -18,5 +18,10 @@ namespace HeatTransfer::SimulationRunner
     void Simulations::Print()
     {
         _solver->PrintError();
+    }
+
+    SimulationState Simulations::GetState()
+    {
+        return SimulationState{.TemperatureMatrix = _solver->GetTemperatureMatrix()};
     }
 }
