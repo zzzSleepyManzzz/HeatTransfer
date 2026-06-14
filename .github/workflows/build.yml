@@ -45,10 +45,18 @@ jobs:
           sudo apt-get install -y \
             libgl1-mesa-dev \
             libx11-dev \
+            libx11-xcb-dev \
+            libxcb1-dev \
+            libxext-dev \
             libxrandr-dev \
             libxinerama-dev \
             libxcursor-dev \
-            libxi-dev
+            libxi-dev \
+            libxrender-dev \
+            libxfixes-dev \
+            libxdamage-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev
 
       - name: Install and Setup Conan
         uses: conan-io/setup-conan@v1
