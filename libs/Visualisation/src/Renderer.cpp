@@ -28,10 +28,23 @@ namespace HeatTransfer::Visualisation
     // -------------------------
     void Renderer::InitGLFW()
     {
+        // BOILERPLATE CODE
+
+        // 1. Initialise GLFW
+        // 2. Provide GLFW hints, otherwise will fallback to default config
+        //      - Need to use CORE_PROFILE, so deprecated methods are disabled
+        // 3. Create pointer to GLFW window
+        //      - GLFWwindow* glfwCreateWindow(int width, int height, const char* title,
+        //                                     GLFWmonitor* monitor, GLFWwindow* share)
+        //      - Width, height and title are self-explainatory
+        //      - Monitor: indicates whether we are windowed or full-screen, we want windowed
+        //      - Share: Can pass another window pointer, so they share context
+        // 4. Terminate if we fail to create window
+        // 5. Make the window the current context, i.e. the current focus
+
         if (!glfwInit())
         {
-            std::cerr << "Failed to init GLFW\n";
-            return;
+            throw std::runtime_error("Failed to init GLFW");
         }
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -43,9 +56,8 @@ namespace HeatTransfer::Visualisation
 
         if (!_window)
         {
-            std::cerr << "Failed to create window\n";
             glfwTerminate();
-            return;
+            throw std::runtime_error("Failed to create window");
         }
 
         glfwMakeContextCurrent(_window);
