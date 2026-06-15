@@ -35,7 +35,13 @@ int main()
 
     auto renderer = std::make_shared<Renderer>();
     renderer->Init();
-    renderer->Render(simulationState);
+
+    while (!renderer->ShouldClose())
+    {
+        renderer->Render(simulationState);
+        renderer->PollEvents();
+    }
+
     renderer->Shutdown();
 
     return 0;

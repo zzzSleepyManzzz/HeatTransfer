@@ -22,6 +22,22 @@ namespace HeatTransfer::SimulationRunner
 
     SimulationState Simulations::GetState()
     {
-        return SimulationState{.TemperatureMatrix = _solver->GetTemperatureMatrix()};
+        auto temperatureMatrix = _solver->GetTemperatureMatrix();
+        size_t rows = temperatureMatrix.rows();
+        size_t cols = temperatureMatrix.cols();
+
+        auto field = std::vector<double>{};
+        field.reserve(rows * cols);
+
+        for (auto i = 0u; i < rows; i++)
+        {
+            for (auto j = 0u; j < cols; j++)
+            {
+                field.push_back(temperatureMatrix(i, j));
+            }
+        }
+
+        return SimulationState{
+            .TemperatureMatrix = temperatureMatrix, .field = field, .rows = rows, .cols = cols};
     }
 }
