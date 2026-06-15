@@ -68,6 +68,11 @@ namespace HeatTransfer::Visualisation
     // -------------------------
     void Renderer::InitGLAD()
     {
+        // ALMOST-BOILERPLATE
+
+        // 1. Initialise GLAD loader
+        // 2. Create viewport i.e. rectangular area of scene - [x, y, width, height]
+
         if (!gladLoaderLoadGL())
         {
             throw std::runtime_error("Failed to initialize GLAD");
