@@ -12,6 +12,15 @@ namespace HeatTransfer::Visualisation
         InitTexture();
         InitQuad();
         InitShader();
+
+        // 1. Setup Dear ImGui context
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui::StyleColorsDark();
+
+        // 2. Setup Platform/Renderer backends
+        ImGui_ImplGlfw_InitForOpenGL(_window, true);
+        ImGui_ImplOpenGL3_Init("#version 330");
     }
 
     // -------------------------
@@ -195,6 +204,28 @@ namespace HeatTransfer::Visualisation
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
+        // 1. Start ImGui Frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // 2. Define the Overlay
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Simulation Controls");
+        ImGui::Text("Grid: %d x %d", state.cols, state.rows);
+        ImGui::Text("Avg FPS: %.1f", ImGui::GetIO().Framerate);
+
+        static float conductivity = 1.0f;
+        if (ImGui::SliderFloat("Conductivity", &conductivity, 0.1f, 10.0f))
+        {
+            // Here you would send 'conductivity' back to your solver
+        }
+        ImGui::End();
+
+        // 3. Render ImGui
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(_window);
     }
 
@@ -216,6 +247,10 @@ namespace HeatTransfer::Visualisation
     // -------------------------
     void Renderer::Shutdown()
     {
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+
         glDeleteTextures(1, &_texture);
         glDeleteBuffers(1, &_vbo);
         glDeleteVertexArrays(1, &_vao);
