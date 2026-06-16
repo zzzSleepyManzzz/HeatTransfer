@@ -86,6 +86,12 @@ namespace HeatTransfer::Visualisation
     // -------------------------
     void Renderer::InitTexture()
     {
+        // ALMOST-BOILERPLATE
+
+        // 1. Generate n texture ids (usually 1) and store it in _texture
+        // 2. Bind a 2D texture to the texture id
+        // 3. Configure the bound texture e.g linear shrinking and magnifacation
+
         glGenTextures(1, &_texture);
         glBindTexture(GL_TEXTURE_2D, _texture);
 
