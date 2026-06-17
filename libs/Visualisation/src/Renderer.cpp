@@ -110,8 +110,11 @@ namespace HeatTransfer::Visualisation
         //  - Vertex data : flat array of interleaving [x,y,u,v]
         //    (x,y) is the vertex position on a normalised device coordinate i.e. (-1,-1) to (1,1)
         //    (u,v) is the texture coordinates stretching from (0,0) to (1,1)
-        //  - Vertex array object (vao): Record configuration
         //  - Vertex buff object (vbo): Chooses memory buffer in GPU for vertex data
+        //  - Vertex array object (vao): Record configuration
+        //  - Pipeline: Vbo takes the vertex data, places it in a memory buffer. Vao then sets a
+        //    configuration on how the GPU should read the bytes in the memory buffer. This read
+        //    information is then passed to the shader!
 
         // 1. First we must create a vertices array, which is composed of interleaving [x,y,u,v]
         //    If we want to create a quad, we essentially interleave 2 triangles, as given:
