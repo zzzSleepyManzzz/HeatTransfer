@@ -104,6 +104,8 @@ namespace HeatTransfer::Visualisation
     // -------------------------
     void Renderer::InitQuad()
     {
+        // SEMI-BOILERPLATE
+
         // Important concepts:
         //  - Vertex data : flat array of interleaving [x,y,u,v]
         //    (x,y) is the vertex position on a normalised device coordinate i.e. (-1,-1) to (1,1)
