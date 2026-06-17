@@ -104,22 +104,57 @@ namespace HeatTransfer::Visualisation
     // -------------------------
     void Renderer::InitQuad()
     {
-        float vertices[] = {// pos      // uv
-                            -1.f, -1.f, 0.f, 0.f, 1.f, -1.f, 1.f, 0.f, 1.f,  1.f, 1.f, 1.f,
+        // Important concepts:
+        //  - Vertex data : flat array of interleaving [x,y,u,v]
+        //    (x,y) is the vertex position on a normalised device coordinate i.e. (-1,-1) to (1,1)
+        //    (u,v) is the texture coordinates stretching from (0,0) to (1,1)
+        //  - Vertex array object (vao): Record configuration
+        //  - Vertex buff object (vbo): Chooses memory buffer in GPU for vertex data
 
+        // 1. First we must create a vertices array, which is composed of interleaving [x,y,u,v]
+        //    If we want to create a quad, we essentially interleave 2 triangles, as given:
+        //
+        //      float vertices[] = {
+        //          // === TRIANGLE 1 ===
+        //          -1.f, -1.f,   0.f, 0.f,  // Bottom-Left  (Pos: -1, -1 | UV: 0, 0)
+        //          1.f, -1.f,   1.f, 0.f,   // Bottom-Right (Pos:  1, -1 | UV: 1, 0)
+        //          1.f,  1.f,   1.f, 1.f,   // Top-Right    (Pos:  1,  1 | UV: 1, 1)
+        //
+        //          // === TRIANGLE 2 ===
+        //          -1.f, -1.f,   0.f, 0.f,  // Bottom-Left  (Pos: -1, -1 | UV: 0, 0)
+        //          1.f,  1.f,   1.f, 1.f,   // Top-Right    (Pos:  1,  1 | UV: 1, 1)
+        //          -1.f,  1.f,   0.f, 1.f   // Top-Left     (Pos: -1,  1 | UV: 0, 1)
+        //      };
+
+        // 2. Generate n vao (vertex array object) ids (usually 1) and store it in _vao
+        // 3. Generate n vbo (vertex buffer object) ids (usually 1) and store it in _vbo
+
+        // 4. Activate (bind) your vao - it starts recording
+        // 5. Activate (bind) your vbo - chooses memory buffer on GPU
+        // 6. glBufferData - Allocates GPU memory and copies your quad vertex data into it
+
+        // 7. glVertexAttribPointer - Tell OpenGl how to read the vertex layout (x,y) and (u,v)
+        // 8. glEnableVertexAttribArray - Enable the layout i.e the vao records this
+
+        float vertices[] = {-1.f, -1.f, 0.f, 0.f, 1.f, -1.f, 1.f, 0.f, 1.f,  1.f, 1.f, 1.f,
                             -1.f, -1.f, 0.f, 0.f, 1.f, 1.f,  1.f, 1.f, -1.f, 1.f, 0.f, 1.f};
 
+        // Generate ids
         glGenVertexArrays(1, &_vao);
         glGenBuffers(1, &_vbo);
 
+        // Activate/bind
         glBindVertexArray(_vao);
-
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+
+        // Copy buffer data
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+        // Set position layout config
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
 
+        // Set texture layout config
         glVertexAttribPointer(
             1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
         glEnableVertexAttribArray(1);
