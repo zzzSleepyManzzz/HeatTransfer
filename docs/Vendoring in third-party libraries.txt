@@ -1,0 +1,15 @@
+
+If library does not exist in conan-center, then we can vendor in a repo.
+This means we clone the repo directly into third-part directory.
+
+Instructions:
+
+1. Create thirdparty/ in relevant module
+2. Clone the repo i.e.
+
+	git clone <repo url>
+
+3. Modify module CMakeLists.txt
+
+	- Add in vendored sources
+	- Add in vendored include
