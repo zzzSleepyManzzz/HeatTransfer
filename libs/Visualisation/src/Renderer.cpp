@@ -171,57 +171,72 @@ namespace HeatTransfer::Visualisation
 
     void Renderer::InitShader()
     {
-        const char* vertexShaderSource = R"(
-        #version 330 core
-        layout (location = 0) in vec2 aPos;
-        layout (location = 1) in vec2 aTexCoord;
-        out vec2 TexCoord;
-        void main() {
-            gl_Position = vec4(aPos, 0.0, 1.0);
-            TexCoord = aTexCoord;
-        }
-    )";
-        ;
+        // SEMI-BOILERPLATE
 
-        const char* fragmentShaderSource = R"(
-    #version 330 core
-    out vec4 FragColor;
-    in vec2 TexCoord;
-    uniform sampler2D heatmap;
+        // Important concepts:
+        //  - First vbo places vertex data on memory buffer of GPU and the vao passes configurations
+        //    to the GPU. Next, the GPU interprets the byte data and passes it to the shader
+        //    program. The shader program (composed of vertex and fragment shader) takes the inputs
+        //    and then gives outputs e.g. Vertex Position, Texture Position, FragColor. After this,
+        //    OpenGL can draw the triangles/quads.
 
-    void main() {
-        float t = texture(heatmap, TexCoord).r;
-        
-        // Classic "Jet" or "Thermal" color ramp
-        // Low (0.0) = Blue, Mid (0.5) = Green, High (1.0) = Red
-        vec3 color;
-        color.r = clamp(4.0 * t - 1.5, 0.0, 1.0);
-        color.g = clamp(4.0 * t - 0.5, 0.0, 1.0) - clamp(4.0 * t - 3.5, 0.0, 1.0);
-        color.b = clamp(1.5 - 4.0 * t, 0.0, 1.0);
+        // 1. Obtain vertex and fragment shader sources
+        // 2. Compile vertex shader
+        // 3. Compile fragment shader
+        // 4. Create shader program
+        // 5. Clean-up
 
-        FragColor = vec4(color, 1.0);
-    }
-)";
+        // Obtain vertex and fragment sources as char*
+        std::string vertexShaderSourceString = ShaderFileSource::LoadVertexShaderSource();
+        std::string fragmentShaderSourceString = ShaderFileSource::LoadFragmentShaderSource();
 
-        // Helper to compile shaders
-        auto compileShader = [](GLenum type, const char* source)
+        const char* vertexShaderSource = vertexShaderSourceString.c_str();
+        const char* fragmentShaderSource = fragmentShaderSourceString.c_str();
+
+        GLint success;
+        GLchar infoLog[512];
+
+        // Compile vertex shader
+        GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+        glCompileShader(vertexShader);
+
+        glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+        if (!success)
         {
-            GLuint s = glCreateShader(type);
-            glShaderSource(s, 1, &source, NULL);
-            glCompileShader(s);
-            return s;
-        };
+            glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+            throw std::runtime_error("Vertex shader compilation failed: \n" + std::string(infoLog));
+        }
 
-        GLuint vs = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
-        GLuint fs = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+        // Compile fragment shader
+        GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+        glCompileShader(fragmentShader);
 
-        _shader = glCreateProgram();
-        glAttachShader(_shader, vs);
-        glAttachShader(_shader, fs);
-        glLinkProgram(_shader);
+        glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+            throw std::runtime_error("Fragment shader compilation failed: \n" +
+                                     std::string(infoLog));
+        }
 
-        glDeleteShader(vs);
-        glDeleteShader(fs);
+        // Create shader program
+        _shaderProgram = glCreateProgram();
+        glAttachShader(_shaderProgram, vertexShader);
+        glAttachShader(_shaderProgram, fragmentShader);
+        glLinkProgram(_shaderProgram);
+
+        glGetProgramiv(_shaderProgram, GL_LINK_STATUS, &success);
+        if (!success)
+        {
+            glGetProgramInfoLog(_shaderProgram, 512, NULL, infoLog);
+            throw std::runtime_error("Shader program linking failed: \n" + std::string(infoLog));
+        }
+
+        // Clean up
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
     }
 
     // -------------------------
@@ -262,7 +277,7 @@ namespace HeatTransfer::Visualisation
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(_shader);
+        glUseProgram(_shaderProgram);
         glBindVertexArray(_vao);
 
         glDrawArrays(GL_TRIANGLES, 0, 6);

@@ -1,4 +1,7 @@
-add_library(Visualisation src/Renderer.cpp)
+add_library(Visualisation 
+    src/Renderer.cpp
+    src/ShaderFileSource.cpp
+)
 
 # Get ImGui's base path and store it
 get_target_property(IMGUI_BASE_DIR imgui::imgui INTERFACE_INCLUDE_DIRECTORIES)
@@ -20,6 +23,10 @@ target_link_libraries(Visualisation
     PUBLIC glad::glad
     PUBLIC imgui::imgui
     PUBLIC opengl::opengl
+)
+
+target_compile_definitions(Visualisation
+    PRIVATE VISUALISATION_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 add_library(HeatTransfer::Visualisation ALIAS Visualisation)

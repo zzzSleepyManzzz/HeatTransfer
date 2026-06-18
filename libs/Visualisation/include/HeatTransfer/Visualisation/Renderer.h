@@ -13,6 +13,7 @@
 #include <imgui_impl_opengl3.h>
 
 #include "HeatTransfer/SimulationRunner/SimulationState.h"
+#include "HeatTransfer/Visualisation/ShaderFileSource.h"
 
 namespace HeatTransfer::Visualisation
 {
@@ -35,7 +36,7 @@ namespace HeatTransfer::Visualisation
         unsigned int _texture = 0;
         unsigned int _vao = 0;
         unsigned int _vbo = 0;
-        unsigned int _shader = 0;
+        unsigned int _shaderProgram = 0;
 
         int _width;
         int _height;
