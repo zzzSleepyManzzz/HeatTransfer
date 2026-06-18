@@ -13,14 +13,7 @@ namespace HeatTransfer::Visualisation
         InitQuad();
         InitShader();
 
-        // 1. Setup Dear ImGui context
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGui::StyleColorsDark();
-
-        // 2. Setup Platform/Renderer backends
-        ImGui_ImplGlfw_InitForOpenGL(_window, true);
-        ImGui_ImplOpenGL3_Init("#version 330");
+        InitImGui();
     }
 
     // -------------------------
@@ -237,6 +230,20 @@ namespace HeatTransfer::Visualisation
         // Clean up
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
+    }
+
+    void Renderer::InitImGui()
+    {
+        // BOILERPLATE
+
+        // 1. Setup Dear ImGui context
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui::StyleColorsDark();
+
+        // 2. Setup Platform/Renderer backends
+        ImGui_ImplGlfw_InitForOpenGL(_window, true);
+        ImGui_ImplOpenGL3_Init("#version 330");
     }
 
     // -------------------------

@@ -46,6 +46,7 @@ namespace HeatTransfer::Visualisation
         void InitTexture();
         void InitQuad();
         void InitShader();
+        void InitImGui();
 
         std::vector<float> Normalize(const SimulationRunner::SimulationState& state);
     };
