@@ -9,6 +9,7 @@ find_package(Eigen3 REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glad REQUIRED)
 find_package(imgui REQUIRED)
+find_package(implot REQUIRED)
 
 
 add_subdirectory(libs/Core)

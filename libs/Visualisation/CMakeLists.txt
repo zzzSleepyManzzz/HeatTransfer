@@ -21,8 +21,9 @@ target_link_libraries(Visualisation
     PUBLIC SimulationRunner
     PUBLIC glfw
     PUBLIC glad::glad
-    PUBLIC imgui::imgui
     PUBLIC opengl::opengl
+    PUBLIC imgui::imgui
+    PUBLIC implot::implot
 )
 
 target_compile_definitions(Visualisation
