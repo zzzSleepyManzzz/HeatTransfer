@@ -22,7 +22,7 @@ namespace HeatTransfer::Visualisation
     class Renderer
     {
     public:
-        Renderer(int width = 1280, int height = 720);
+        Renderer();
         ~Renderer() = default;
 
         void Init();
@@ -34,8 +34,5 @@ namespace HeatTransfer::Visualisation
 
     private:
         GLFWwindow* _window = nullptr;
-
-        int _width;
-        int _height;
     };
 }

@@ -2,7 +2,7 @@
 
 namespace HeatTransfer::Visualisation
 {
-    Renderer::Renderer(int width, int height) : _width(width), _height(height) {}
+    Renderer::Renderer() {}
 
     void Renderer::Init()
     {
@@ -29,8 +29,9 @@ namespace HeatTransfer::Visualisation
 #endif
 
         // Create window
-        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-        _window = glfwCreateWindow(_width, _height, "Heat Transfer", nullptr, nullptr);
+        _window = glfwCreateWindow(1280, 720, "Heat Transfer", nullptr, nullptr);
+        glfwMaximizeWindow(_window);
+
         if (!_window)
         {
             std::cerr << "Failed to create GLFW window" << std::endl;
