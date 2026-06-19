@@ -16,9 +16,6 @@ namespace HeatTransfer::Visualisation
         InitImGui();
     }
 
-    // -------------------------
-    // GLFW + window
-    // -------------------------
     void Renderer::InitGLFW()
     {
         // BOILERPLATE CODE
@@ -56,9 +53,6 @@ namespace HeatTransfer::Visualisation
         glfwMakeContextCurrent(_window);
     }
 
-    // -------------------------
-    // GLAD
-    // -------------------------
     void Renderer::InitGLAD()
     {
         // ALMOST-BOILERPLATE
@@ -74,9 +68,6 @@ namespace HeatTransfer::Visualisation
         glViewport(0, 0, _width, _height);
     }
 
-    // -------------------------
-    // Texture (heatmap storage)
-    // -------------------------
     void Renderer::InitTexture()
     {
         // ALMOST-BOILERPLATE
@@ -92,9 +83,6 @@ namespace HeatTransfer::Visualisation
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 
-    // -------------------------
-    // Fullscreen quad
-    // -------------------------
     void Renderer::InitQuad()
     {
         // SEMI-BOILERPLATE
@@ -157,10 +145,6 @@ namespace HeatTransfer::Visualisation
             1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
         glEnableVertexAttribArray(1);
     }
-
-    // -------------------------
-    // Shader (placeholder)
-    // -------------------------
 
     void Renderer::InitShader()
     {
@@ -248,11 +232,10 @@ namespace HeatTransfer::Visualisation
         ImGui_ImplOpenGL3_Init("#version 330");
     }
 
-    // -------------------------
-    // Normalize simulation data
-    // -------------------------
     std::vector<float> Renderer::Normalize(const SimulationRunner::SimulationState& state)
     {
+        // Helper function - Flatten and normalise each value from [0,1]
+
         const auto& f = state.field;
 
         auto [minIt, maxIt] = std::minmax_element(f.begin(), f.end());
@@ -272,9 +255,6 @@ namespace HeatTransfer::Visualisation
         return out;
     }
 
-    // -------------------------
-    // Render heatmap
-    // -------------------------
     void Renderer::Render(const SimulationRunner::SimulationState& state)
     {
         auto texData = Normalize(state);
@@ -301,12 +281,6 @@ namespace HeatTransfer::Visualisation
         ImGui::Begin("Simulation Controls");
         ImGui::Text("Grid: %d x %d", state.cols, state.rows);
         ImGui::Text("Avg FPS: %.1f", ImGui::GetIO().Framerate);
-
-        static float conductivity = 1.0f;
-        if (ImGui::SliderFloat("Conductivity", &conductivity, 0.1f, 10.0f))
-        {
-            // Here you would send 'conductivity' back to your solver
-        }
         ImGui::End();
 
         // 3. Render ImGui
@@ -316,9 +290,6 @@ namespace HeatTransfer::Visualisation
         glfwSwapBuffers(_window);
     }
 
-    // -------------------------
-    // Loop control
-    // -------------------------
     bool Renderer::ShouldClose() const
     {
         return glfwWindowShouldClose(_window);
@@ -329,9 +300,6 @@ namespace HeatTransfer::Visualisation
         glfwPollEvents();
     }
 
-    // -------------------------
-    // Cleanup
-    // -------------------------
     void Renderer::Shutdown()
     {
         ImPlot3D::DestroyContext();
