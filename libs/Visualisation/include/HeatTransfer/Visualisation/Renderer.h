@@ -8,22 +8,21 @@
 
 #include <GLFW/glfw3.h>
 
-#include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include <imgui.h>
 #include <implot.h>
 #include <implot3d.h>
 
 #include "HeatTransfer/SimulationRunner/SimulationState.h"
-#include "HeatTransfer/Visualisation/ShaderFileSource.h"
 
 namespace HeatTransfer::Visualisation
 {
     class Renderer
     {
     public:
-        Renderer(int width = 1200, int height = 800);
+        Renderer(int width = 1280, int height = 720);
         ~Renderer() = default;
 
         void Init();
@@ -36,21 +35,7 @@ namespace HeatTransfer::Visualisation
     private:
         GLFWwindow* _window = nullptr;
 
-        unsigned int _texture = 0;
-        unsigned int _vao = 0;
-        unsigned int _vbo = 0;
-        unsigned int _shaderProgram = 0;
-
         int _width;
         int _height;
-
-        void InitGLFW();
-        void InitGLAD();
-        void InitTexture();
-        void InitQuad();
-        void InitShader();
-        void InitImGui();
-
-        std::vector<float> Normalize(const SimulationRunner::SimulationState& state);
     };
 }
