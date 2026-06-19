@@ -22,6 +22,7 @@ namespace HeatTransfer::Solvers
         virtual void PrintError();
 
         virtual const std::vector<Core::IterationAndError>& GetErrors();
+        const Eigen::MatrixXd& GetTemperatureMatrix();
 
     protected:
         Core::SimulationParameters _parameters;

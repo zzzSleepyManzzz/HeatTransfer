@@ -25,6 +25,11 @@ namespace HeatTransfer::Solvers
         return _errors;
     }
 
+    const Eigen::MatrixXd& ISolver::GetTemperatureMatrix()
+    {
+        return T;
+    }
+
     void ISolver::ApplyBoundaryConditions()
     {
         const Eigen::Index rows = T.rows();

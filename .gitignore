@@ -1,5 +1,6 @@
 # Build artifacts
 build/
+imgui.ini
 *.o
 *.obj
 *.exe

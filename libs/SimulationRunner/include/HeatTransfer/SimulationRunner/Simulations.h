@@ -8,6 +8,7 @@
 #include "HeatTransfer/Solvers/SuccessiveOverRelaxation.h"
 
 #include "HeatTransfer/SimulationRunner/Method.h"
+#include "HeatTransfer/SimulationRunner/SimulationState.h"
 #include "HeatTransfer/SimulationRunner/SolverFactory.h"
 
 namespace HeatTransfer::SimulationRunner
@@ -19,6 +20,8 @@ namespace HeatTransfer::SimulationRunner
                     const Core::BoundaryConditions& boundaryCondition);
         void Run(Method method);
         void Print();
+
+        SimulationState GetState();
 
     private:
         Core::SimulationParameters _parameters;

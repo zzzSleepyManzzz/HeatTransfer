@@ -4,9 +4,9 @@ namespace HeatTransfer::SimulationRunner
 {
     SolverFactory::SolverFactory(const Core::SimulationParameters& parameters,
                                  const Core::BoundaryConditions& boundaryCondition)
-        : _parameters(parameters), _boundaryCondition(boundaryCondition) {
-
-        };
+        : _parameters(parameters), _boundaryCondition(boundaryCondition)
+    {
+    }
 
     std::shared_ptr<Solvers::ISolver> SolverFactory::Create(Method method)
     {
