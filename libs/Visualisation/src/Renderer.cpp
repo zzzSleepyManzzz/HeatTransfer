@@ -2,7 +2,15 @@
 
 namespace HeatTransfer::Visualisation
 {
-    Renderer::Renderer() {}
+    Renderer::Renderer()
+    {
+        Init();
+    }
+
+    Renderer::~Renderer()
+    {
+        Shutdown();
+    }
 
     void Renderer::Init()
     {

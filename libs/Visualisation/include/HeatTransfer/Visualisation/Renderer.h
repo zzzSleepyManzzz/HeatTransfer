@@ -23,16 +23,17 @@ namespace HeatTransfer::Visualisation
     {
     public:
         Renderer();
-        ~Renderer() = default;
+        ~Renderer();
 
-        void Init();
         void Render(const SimulationRunner::SimulationState& state);
-        void Shutdown();
 
         bool ShouldClose() const;
         void PollEvents();
 
     private:
         GLFWwindow* _window = nullptr;
+
+        void Init();
+        void Shutdown();
     };
 }
