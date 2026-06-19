@@ -17,4 +17,6 @@ Instructions:
 4. We must delete .git and .github files. Use for example:
 
 	rm -r -fo libs\Visualisation\thirdparty\implot3d\.git
-	rm -r -fo libs\Visualisation\thirdparty\implot3d\.github 
+	rm -r -fo libs\Visualisation\thirdparty\implot3d\.github
+
+	NB : Make sure not to delete the .git/ folder in the root directory!
