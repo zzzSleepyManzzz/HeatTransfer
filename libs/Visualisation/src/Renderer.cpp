@@ -241,6 +241,7 @@ namespace HeatTransfer::Visualisation
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
         ImPlot::CreateContext();
+        ImPlot3D::CreateContext();
 
         // 2. Setup Platform/Renderer backends
         ImGui_ImplGlfw_InitForOpenGL(_window, true);
@@ -333,6 +334,7 @@ namespace HeatTransfer::Visualisation
     // -------------------------
     void Renderer::Shutdown()
     {
+        ImPlot3D::DestroyContext();
         ImPlot::DestroyContext();
 
         ImGui_ImplOpenGL3_Shutdown();

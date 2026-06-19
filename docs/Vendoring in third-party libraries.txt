@@ -13,3 +13,8 @@ Instructions:
 
 	- Add in vendored sources
 	- Add in vendored include
+
+4. We must delete .git and .github files. Use for example:
+
+	rm -r -fo libs\Visualisation\thirdparty\implot3d\.git
+	rm -r -fo libs\Visualisation\thirdparty\implot3d\.github 

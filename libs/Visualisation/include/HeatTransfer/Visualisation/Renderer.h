@@ -13,6 +13,7 @@
 #include <imgui_impl_opengl3.h>
 
 #include <implot.h>
+#include <implot3d.h>
 
 #include "HeatTransfer/SimulationRunner/SimulationState.h"
 #include "HeatTransfer/Visualisation/ShaderFileSource.h"

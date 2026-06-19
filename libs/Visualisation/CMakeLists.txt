@@ -1,6 +1,11 @@
 add_library(Visualisation 
     src/Renderer.cpp
     src/ShaderFileSource.cpp
+
+    thirdparty/implot3d/implot3d.cpp         # Vendored source
+    thirdparty/implot3d/implot3d_demo.cpp    # Vendored source
+    thirdparty/implot3d/implot3d_items.cpp   # Vendored source
+    thirdparty/implot3d/implot3d_meshes.cpp  # Vendored source
 )
 
 # Get ImGui's base path and store it
@@ -15,6 +20,8 @@ target_sources(Visualisation PRIVATE
 target_include_directories(Visualisation
     PUBLIC include
     PUBLIC "${IMGUI_BINDINGS}"
+
+    PUBLIC thirdparty/implot3d # Vendored include
 )
 
 target_link_libraries(Visualisation
