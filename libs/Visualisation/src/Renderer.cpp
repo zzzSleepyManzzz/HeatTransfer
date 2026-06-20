@@ -37,7 +37,10 @@ namespace HeatTransfer::Visualisation
 #endif
 
         // Create window
-        _window = glfwCreateWindow(1280, 720, "Heat Transfer", nullptr, nullptr);
+        auto fullScrenWidth = GetSystemMetrics(SM_CXSCREEN);
+        auto fullScreenHeight = GetSystemMetrics(SM_CYSCREEN);
+        _window =
+            glfwCreateWindow(fullScrenWidth, fullScreenHeight, "Heat Transfer", nullptr, nullptr);
         glfwMaximizeWindow(_window);
 
         if (!_window)
@@ -64,6 +67,13 @@ namespace HeatTransfer::Visualisation
         // Setup style
         ImGui::StyleColorsDark();
 
+        // Enlarge font
+        ImGuiIO& io = ImGui::GetIO();
+        ImFontConfig config;
+
+        config.SizePixels = 13.0f * 1.2f; // ~15.6 pixels crisp rasterization
+        io.Fonts->AddFontDefault(&config);
+
         // Setup backend
         ImGui_ImplGlfw_InitForOpenGL(_window, true);
         ImGui_ImplOpenGL3_Init(glsl_version);
@@ -81,6 +91,8 @@ namespace HeatTransfer::Visualisation
         ImPlot::ShowDemoWindow();
         ImPlot3D::ShowDemoWindow();
 
+        ShowExplorer();
+
         // Render
         ImGui::Render();
         int display_w, display_h;
@@ -92,6 +104,44 @@ namespace HeatTransfer::Visualisation
 
         // Swap buffers
         glfwSwapBuffers(_window);
+    }
+
+    void Renderer::ShowExplorer()
+    {
+        static bool lightModeOn = false;
+
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
+
+        int fullScreenWidth = GetSystemMetrics(SM_CXSCREEN);
+        int fullScreenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+        ImGui::SetNextWindowSize(ImVec2(fullScreenWidth / 5, fullScreenHeight));
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+
+        ImGui::Begin("Explorer", nullptr, windowFlags);
+        {
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::SeparatorText("Configurations");
+            if (ImGui::Checkbox("Turn light mode on", &lightModeOn))
+            {
+                if (lightModeOn)
+                {
+                    ImGui::StyleColorsLight();
+                }
+                else
+                {
+                    ImGui::StyleColorsDark();
+                }
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 20.0f));
+            ImGui::SeparatorText("Statistics");
+            ImGui::Indent(10.0f);
+            ImGui::Text("Max Temperature: %.2f", 100.0f);
+            ImGui::Text("Min Temperature: %.2f", 0.0f);
+            ImGui::Unindent(10.0f);
+        }
+        ImGui::End();
     }
 
     bool Renderer::ShouldClose() const
