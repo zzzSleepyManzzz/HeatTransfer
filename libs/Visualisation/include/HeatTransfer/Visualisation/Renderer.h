@@ -35,6 +35,6 @@ namespace HeatTransfer::Visualisation
 
         void Init();
         void Shutdown();
-        void ShowExplorer();
+        void ShowSideBar();
     };
 }

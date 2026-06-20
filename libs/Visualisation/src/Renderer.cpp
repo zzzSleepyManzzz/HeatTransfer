@@ -59,7 +59,7 @@ namespace HeatTransfer::Visualisation
             std::cerr << "Failed to init GLAD" << std::endl;
             return;
         }
-        glfwSwapInterval(0); // Disable vsync
+        glfwSwapInterval(1); // Enable vsync - easier CPU load
 
         // Setup context
         IMGUI_CHECKVERSION();
@@ -94,7 +94,7 @@ namespace HeatTransfer::Visualisation
         ImPlot::ShowDemoWindow();
         ImPlot3D::ShowDemoWindow();
 
-        ShowExplorer();
+        ShowSideBar();
 
         // Render
         ImGui::Render();
@@ -109,7 +109,7 @@ namespace HeatTransfer::Visualisation
         glfwSwapBuffers(_window);
     }
 
-    void Renderer::ShowExplorer()
+    void Renderer::ShowSideBar()
     {
         static bool lightModeOn = false;
 
@@ -119,33 +119,33 @@ namespace HeatTransfer::Visualisation
         ImGui::SetNextWindowSize(ImVec2(displaySize.x / 5, displaySize.y));
         ImGui::SetNextWindowPos(ImVec2(0, 0));
 
-        ImGui::Begin("Explorer", nullptr, windowFlags);
+        ImGui::Begin("Side Bar", nullptr, windowFlags);
         {
-            ImGui::Dummy(ImVec2(0.0f, 5.0f));
-            ImGui::SeparatorText("Configurations");
-            if (ImGui::Checkbox("Turn light mode on", &lightModeOn))
+            // SECTION 1: Settings
+            if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                if (lightModeOn)
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
+                if (ImGui::Checkbox("Turn light mode on", &lightModeOn))
                 {
-                    ImGui::StyleColorsLight();
+                    if (lightModeOn)
+                        ImGui::StyleColorsLight();
+                    else
+                        ImGui::StyleColorsDark();
                 }
-                else
-                {
-                    ImGui::StyleColorsDark();
-                }
+                // Add surface plot checkboxes here later
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
             }
 
-            // Add more check boxes - probably for surface plot
-
-            ImGui::Dummy(ImVec2(0.0f, 20.0f));
-            ImGui::SeparatorText("Statistics");
-            ImGui::Indent(10.0f);
-            ImGui::Text("Max Temperature: %.2f", 100.0f);
-            ImGui::Text("Min Temperature: %.2f", 0.0f);
-
-            // Add more statistics here
-
-            ImGui::Unindent(10.0f);
+            // SECTION 2: Statistics
+            if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
+                ImGui::Text("FPS: %.1f FPS", ImGui::GetIO().Framerate);
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
+                ImGui::Text("Max Temperature: %.2f °C", 100.0f);
+                ImGui::Text("Min Temperature: %.2f °C", 0.0f);
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            }
         }
         ImGui::End();
     }
