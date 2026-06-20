@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <vector>
 
@@ -36,5 +37,7 @@ namespace HeatTransfer::Visualisation
         void Init();
         void Shutdown();
         void ShowSideBar();
+        void ShowPlotsWindow(const SimulationRunner::SimulationState& state);
+        void ShowConsole();
     };
 }

@@ -23,15 +23,18 @@ namespace HeatTransfer::SimulationRunner
     SimulationState Simulations::GetState()
     {
         auto temperatureMatrix = _solver->GetTemperatureMatrix();
-        size_t rows = temperatureMatrix.rows();
-        size_t cols = temperatureMatrix.cols();
+
+        int stride = 20;
+
+        size_t rows = (temperatureMatrix.rows() + stride - 1) / stride;
+        size_t cols = (temperatureMatrix.cols() + stride - 1) / stride;
 
         auto field = std::vector<double>{};
         field.reserve(rows * cols);
 
-        for (auto i = 0u; i < rows; i++)
+        for (auto i = 0u; i < temperatureMatrix.rows(); i += stride)
         {
-            for (auto j = 0u; j < cols; j++)
+            for (auto j = 0u; j < temperatureMatrix.cols(); j += stride)
             {
                 field.push_back(temperatureMatrix(i, j));
             }

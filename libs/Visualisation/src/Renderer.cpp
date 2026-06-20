@@ -89,12 +89,14 @@ namespace HeatTransfer::Visualisation
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // Demo windows
-        ImGui::ShowDemoWindow();
-        ImPlot::ShowDemoWindow();
-        ImPlot3D::ShowDemoWindow();
+        // Show windows
+        // ImGui::ShowDemoWindow();
+        // ImPlot::ShowDemoWindow();
+        // ImPlot3D::ShowDemoWindow();
 
         ShowSideBar();
+        ShowPlotsWindow(state);
+        ShowConsole();
 
         // Render
         ImGui::Render();
@@ -116,7 +118,7 @@ namespace HeatTransfer::Visualisation
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
-        ImGui::SetNextWindowSize(ImVec2(displaySize.x / 5, displaySize.y));
+        ImGui::SetNextWindowSize(ImVec2(displaySize.x / 5.0f, displaySize.y));
         ImGui::SetNextWindowPos(ImVec2(0, 0));
 
         ImGui::Begin("Side Bar", nullptr, windowFlags);
@@ -148,6 +150,97 @@ namespace HeatTransfer::Visualisation
                 ImGui::Unindent(10.0f);
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
             }
+        }
+        ImGui::End();
+    }
+
+    void Renderer::ShowPlotsWindow(const SimulationRunner::SimulationState& state)
+    {
+        const auto& data = state.field;
+
+        int cols = state.cols;
+        int rows = state.rows;
+        int N = cols * rows;
+
+        std::vector<float> xs(N, 0);
+        std::vector<float> ys(N, 0);
+        std::vector<float> zs(data.begin(), data.end());
+
+        float x_min = 0;
+        float x_max = cols;
+        float y_min = 0;
+        float y_max = rows;
+        float z_min = *std::min_element(zs.begin(), zs.end());
+        float z_max = *std::max_element(zs.begin(), zs.end());
+
+        float x_step = (x_max - x_min) / (cols - 1);
+        float y_step = (y_max - y_min) / (rows - 1);
+
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                int idx = i * cols + j;
+                xs[idx] = x_min + j * x_step;
+                ys[idx] = y_min + i * y_step;
+            }
+        }
+
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+        ImGui::SetNextWindowSize(ImVec2(displaySize.x * 4.0f / 5.0f, displaySize.y * 3.0f / 4.0f));
+        ImGui::SetNextWindowPos(ImVec2(displaySize.x / 5.0f, 0));
+
+        ImGui::Begin("Plots", nullptr, windowFlags);
+        {
+            ImPlot3D::PushColormap(ImPlot3DColormap_Viridis);
+
+            if (ImPlot3D::BeginPlot("Surface Plots", ImVec2(-1, 0), ImPlot3DFlags_NoClip))
+            {
+                ImPlot3D::SetupAxesLimits(x_min, x_max, y_min, y_max, z_min, z_max);
+
+                ImPlot3DSpec spec;
+                spec.FillAlpha = 1.0f;
+                spec.Flags = ImPlot3DSurfaceFlags_NoMarkers;
+                spec.LineColor = ImPlot3D::GetColormapColor(1);
+
+                ImPlot3D::PlotSurface("Sin Wave Surface",
+                                      xs.data(),
+                                      ys.data(),
+                                      zs.data(),
+                                      cols,
+                                      rows,
+                                      0.0,
+                                      0.0,
+                                      spec);
+
+                ImPlot3D::EndPlot();
+            }
+
+            ImPlot3D::PopColormap();
+        }
+        ImGui::End();
+    }
+
+    void Renderer::ShowConsole()
+    {
+        static bool checkbox1 = false;
+
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+        ImGui::SetNextWindowSize(ImVec2(displaySize.x * 4.0f / 5.0f, displaySize.y * 1.0f / 4.0f));
+        ImGui::SetNextWindowPos(ImVec2(displaySize.x / 5.0f, displaySize.y * 3.0f / 4.0f));
+
+        ImGui::Begin("Console", nullptr, windowFlags);
+        {
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            if (ImGui::Checkbox("Checkbox 1", &checkbox1))
+            {
+            }
+            // Add surface plot checkboxes here later
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
         }
         ImGui::End();
     }
