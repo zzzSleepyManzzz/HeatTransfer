@@ -135,11 +135,16 @@ namespace HeatTransfer::Visualisation
                 }
             }
 
+            // Add more check boxes - probably for surface plot
+
             ImGui::Dummy(ImVec2(0.0f, 20.0f));
             ImGui::SeparatorText("Statistics");
             ImGui::Indent(10.0f);
             ImGui::Text("Max Temperature: %.2f", 100.0f);
             ImGui::Text("Min Temperature: %.2f", 0.0f);
+
+            // Add more statistics here
+
             ImGui::Unindent(10.0f);
         }
         ImGui::End();
