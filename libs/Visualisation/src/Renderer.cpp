@@ -140,10 +140,12 @@ namespace HeatTransfer::Visualisation
             if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
+                ImGui::Indent(10.0f);
                 ImGui::Text("FPS: %.1f FPS", ImGui::GetIO().Framerate);
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
                 ImGui::Text("Max Temperature: %.2f °C", 100.0f);
                 ImGui::Text("Min Temperature: %.2f °C", 0.0f);
+                ImGui::Unindent(10.0f);
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
             }
         }
