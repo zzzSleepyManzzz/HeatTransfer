@@ -114,12 +114,9 @@ namespace HeatTransfer::Visualisation
         static bool lightModeOn = false;
 
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
-
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-        float fullScreenWidth = displaySize.x;
-        float fullScreenHeight = displaySize.y;
 
-        ImGui::SetNextWindowSize(ImVec2(fullScreenWidth / 5, fullScreenHeight));
+        ImGui::SetNextWindowSize(ImVec2(displaySize.x / 5, displaySize.y));
         ImGui::SetNextWindowPos(ImVec2(0, 0));
 
         ImGui::Begin("Explorer", nullptr, windowFlags);
