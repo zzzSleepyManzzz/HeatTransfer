@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
-#include <windows.h>
 
 #include <glad/gl.h> // Must be before glfw include
 

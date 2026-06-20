@@ -37,10 +37,13 @@ namespace HeatTransfer::Visualisation
 #endif
 
         // Create window
-        auto fullScrenWidth = GetSystemMetrics(SM_CXSCREEN);
-        auto fullScreenHeight = GetSystemMetrics(SM_CYSCREEN);
-        _window =
-            glfwCreateWindow(fullScrenWidth, fullScreenHeight, "Heat Transfer", nullptr, nullptr);
+        GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+
+        int screenWidth = mode->width;
+        int screenHeight = mode->height;
+
+        _window = glfwCreateWindow(screenWidth, screenHeight, "Heat Transfer", nullptr, nullptr);
         glfwMaximizeWindow(_window);
 
         if (!_window)
@@ -112,8 +115,9 @@ namespace HeatTransfer::Visualisation
 
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
 
-        int fullScreenWidth = GetSystemMetrics(SM_CXSCREEN);
-        int fullScreenHeight = GetSystemMetrics(SM_CYSCREEN);
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+        float fullScreenWidth = displaySize.x;
+        float fullScreenHeight = displaySize.y;
 
         ImGui::SetNextWindowSize(ImVec2(fullScreenWidth / 5, fullScreenHeight));
         ImGui::SetNextWindowPos(ImVec2(0, 0));
