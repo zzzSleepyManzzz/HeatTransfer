@@ -34,15 +34,12 @@ int main()
     const auto& simulationState = simulations->GetState();
 
     auto renderer = std::make_shared<Renderer>();
-    renderer->Init();
 
     while (!renderer->ShouldClose())
     {
         renderer->Render(simulationState);
         renderer->PollEvents();
     }
-
-    renderer->Shutdown();
 
     return 0;
 }
