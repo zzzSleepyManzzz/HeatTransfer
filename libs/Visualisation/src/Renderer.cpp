@@ -167,9 +167,9 @@ namespace HeatTransfer::Visualisation
         std::vector<float> zs(data.begin(), data.end());
 
         float x_min = 0;
-        float x_max = cols;
+        float x_max = state.TemperatureMatrix.cols();
         float y_min = 0;
-        float y_max = rows;
+        float y_max = state.TemperatureMatrix.rows();
         float z_min = *std::min_element(zs.begin(), zs.end());
         float z_max = *std::max_element(zs.begin(), zs.end());
 
@@ -194,31 +194,40 @@ namespace HeatTransfer::Visualisation
 
         ImGui::Begin("Plots", nullptr, windowFlags);
         {
-            ImPlot3D::PushColormap(ImPlot3DColormap_Viridis);
-
-            if (ImPlot3D::BeginPlot("Surface Plots", ImVec2(-1, 0), ImPlot3DFlags_NoClip))
+            ImGui::Dummy(ImVec2(0.0f, 10.0f));
+            if (ImGui::BeginTabBar("Plot Tabs"))
             {
-                ImPlot3D::SetupAxesLimits(x_min, x_max, y_min, y_max, z_min, z_max);
+                if (ImGui::BeginTabItem("Surface Plot"))
+                {
+                    ImPlot3D::PushColormap(ImPlot3DColormap_Viridis);
 
-                ImPlot3DSpec spec;
-                spec.FillAlpha = 1.0f;
-                spec.Flags = ImPlot3DSurfaceFlags_NoMarkers;
-                spec.LineColor = ImPlot3D::GetColormapColor(1);
+                    if (ImPlot3D::BeginPlot("Temperature", ImVec2(-1, -1), ImPlot3DFlags_NoClip))
+                    {
+                        ImPlot3D::SetupAxesLimits(x_min, x_max, y_min, y_max, z_min, z_max);
 
-                ImPlot3D::PlotSurface("Sin Wave Surface",
-                                      xs.data(),
-                                      ys.data(),
-                                      zs.data(),
-                                      cols,
-                                      rows,
-                                      0.0,
-                                      0.0,
-                                      spec);
+                        ImPlot3DSpec spec;
+                        spec.FillAlpha = 1.0f;
+                        spec.Flags = ImPlot3DSurfaceFlags_NoMarkers;
+                        spec.LineColor = ImPlot3D::GetColormapColor(1);
 
-                ImPlot3D::EndPlot();
+                        ImPlot3D::PlotSurface("## Temperature Surface Plot",
+                                              xs.data(),
+                                              ys.data(),
+                                              zs.data(),
+                                              cols,
+                                              rows,
+                                              0.0,
+                                              0.0,
+                                              spec);
+
+                        ImPlot3D::EndPlot();
+                    }
+
+                    ImPlot3D::PopColormap();
+                    ImGui::EndTabItem();
+                }
+                ImGui::EndTabBar();
             }
-
-            ImPlot3D::PopColormap();
         }
         ImGui::End();
     }
