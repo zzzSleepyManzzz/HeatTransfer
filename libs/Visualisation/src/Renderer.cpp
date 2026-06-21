@@ -311,7 +311,33 @@ namespace HeatTransfer::Visualisation
 
                 if (ImGui::BeginTabItem("Heat Map"))
                 {
-                    ImPlot::PushColormap(ImPlotColormap_Viridis);
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
+                    static int selectedColorMap = 6; // Hot by default
+
+                    const char* colorMapOptions[] = {
+                        "Deep",
+                        "Dark",
+                        "Pastel",
+                        "Paired",
+                        "Viridis",
+                        "Plasma",
+                        "Hot",
+                        "Cool",
+                        "Pink",
+                        "Jet",
+                        "Twilight",
+                        "RdBu",
+                        "BrBG",
+                        "PiYG",
+                        "Spectral",
+                        "Greys",
+                    };
+                    ImGui::Combo("Color map type",
+                                 &selectedColorMap,
+                                 colorMapOptions,
+                                 IM_ARRAYSIZE(colorMapOptions));
+
+                    ImPlot::PushColormap(selectedColorMap);
 
                     auto plotWindowWidth = ImGui::GetWindowSize().x;
 
@@ -321,8 +347,8 @@ namespace HeatTransfer::Visualisation
                     {
                         ImPlot::SetupAxes("Length [pixels]",
                                           "Width [pixels]",
-                                          ImPlot3DAxisFlags_None,
-                                          ImPlot3DAxisFlags_None);
+                                          ImPlotAxisFlags_None,
+                                          ImPlotAxisFlags_None);
                         ImPlot::SetupAxesLimits(0,
                                                 state.TemperatureMatrix.cols(),
                                                 0,
