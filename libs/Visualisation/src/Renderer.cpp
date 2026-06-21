@@ -93,9 +93,6 @@ namespace HeatTransfer::Visualisation
         ImGui::NewFrame();
 
         // Show windows
-        // ImGui::ShowDemoWindow();
-        // ImPlot::ShowDemoWindow();
-        // ImPlot3D::ShowDemoWindow();
 
         ShowSideBar();
         ShowPlotsWindow(state);
@@ -140,6 +137,8 @@ namespace HeatTransfer::Visualisation
                         ImGui::StyleColorsDark();
                 }
                 // Add surface plot checkboxes here later
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
+                ImGui::ShowFontSelector("Font");
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
             }
 
