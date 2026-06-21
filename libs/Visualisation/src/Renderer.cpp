@@ -457,8 +457,6 @@ namespace HeatTransfer::Visualisation
 
     void Renderer::ShowConsole()
     {
-        static bool autoScroll = true;
-
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
@@ -472,12 +470,6 @@ namespace HeatTransfer::Visualisation
                 _console->Clear();
             }
 
-            ImGui::SameLine();
-
-            ImGui::Checkbox("Auto-scroll", &autoScroll);
-
-            ImGui::Separator();
-
             ImGui::BeginChild(
                 "ConsoleScroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
@@ -485,9 +477,6 @@ namespace HeatTransfer::Visualisation
             {
                 ImGui::TextUnformatted(line.c_str());
             }
-
-            if (autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
-                ImGui::SetScrollHereY(1.0f);
 
             ImGui::EndChild();
         }
