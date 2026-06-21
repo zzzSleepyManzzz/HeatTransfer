@@ -127,7 +127,9 @@ namespace HeatTransfer::Visualisation
             if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                if (ImGui::Checkbox("Turn light mode on", &lightModeOn))
+                ImGui::Text("Turn light mode on");
+                ImGui::SameLine();
+                if (ImGui::Checkbox("##Turn light mode on", &lightModeOn))
                 {
                     if (lightModeOn)
                         ImGui::StyleColorsLight();
@@ -200,13 +202,39 @@ namespace HeatTransfer::Visualisation
                 if (ImGui::BeginTabItem("Surface Plot"))
                 {
                     static bool resetZoom = false;
+                    static int selectedColorMap = 4; // Viridis by default
 
                     if (ImGui::Button("Reset zoom"))
                     {
                         resetZoom = true;
                     }
 
-                    ImPlot3D::PushColormap(ImPlot3DColormap_Viridis);
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
+                    const char* colorMapOptions[] = {
+                        "Deep",
+                        "Dark",
+                        "Pastel",
+                        "Paired",
+                        "Viridis",
+                        "Plasma",
+                        "Hot",
+                        "Cool",
+                        "Pink",
+                        "Jet",
+                        "Twilight",
+                        "RdBu",
+                        "BrBG",
+                        "PiYG",
+                        "Spectral",
+                        "Greys",
+                    };
+                    ImGui::Combo("Color map type",
+                                 &selectedColorMap,
+                                 colorMapOptions,
+                                 IM_ARRAYSIZE(colorMapOptions));
+
+                    ImPlot3D::PushColormap(selectedColorMap);
+
                     ImPlot3DFlags plot3DFlags = ImPlot3DFlags_NoPan;
 
                     if (ImPlot3D::BeginPlot("## Temperature", ImVec2(-1, -1), plot3DFlags))
@@ -218,11 +246,13 @@ namespace HeatTransfer::Visualisation
                             ImPlot3D::SetupAxesLimits(
                                 x_min, x_max, y_min, y_max, z_min, z_max, ImPlot3DCond_Always);
                             resetZoom = false;
+                            ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Always);
                         }
                         else
                         {
                             ImPlot3D::SetupAxesLimits(
                                 x_min, x_max, y_min, y_max, z_min, z_max, ImPlot3DCond_Once);
+                            ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Once);
                         }
 
                         ImPlot3DSpec spec;

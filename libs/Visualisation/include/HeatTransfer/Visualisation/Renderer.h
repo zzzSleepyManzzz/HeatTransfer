@@ -15,6 +15,7 @@
 #include <imgui.h>
 #include <implot.h>
 #include <implot3d.h>
+#include <implot3d_internal.h>
 
 #include "HeatTransfer/SimulationRunner/SimulationState.h"
 
