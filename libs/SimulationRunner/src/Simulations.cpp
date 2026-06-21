@@ -22,7 +22,8 @@ namespace HeatTransfer::SimulationRunner
 
     SimulationState Simulations::GetState()
     {
-        auto temperatureMatrix = _solver->GetTemperatureMatrix();
+        const auto& temperatureMatrix = _solver->GetTemperatureMatrix();
+        const auto& errors = _solver->GetErrors();
 
         // ImGui by default uses 16-bit indexing, which limits vertex indices to 65,535
         // Target ~5,000 max vertices instead of 65,535 to account for the index multiplier
@@ -45,7 +46,10 @@ namespace HeatTransfer::SimulationRunner
             }
         }
 
-        return SimulationState{
-            .TemperatureMatrix = temperatureMatrix, .field = field, .rows = rows, .cols = cols};
+        return SimulationState{.TemperatureMatrix = temperatureMatrix,
+                               .errors = errors,
+                               .field = field,
+                               .rows = rows,
+                               .cols = cols};
     }
 }

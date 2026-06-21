@@ -375,6 +375,56 @@ namespace HeatTransfer::Visualisation
 
                     ImGui::EndTabItem();
                 }
+
+                if (ImGui::BeginTabItem("Error plot"))
+                {
+                    const auto& errors = state.errors;
+
+                    std::vector<float> iterations = {};
+                    std::vector<float> maxErrors = {};
+                    std::vector<float> meanErrors = {};
+                    std::vector<float> rmsErrors = {};
+
+                    for (const auto& error : errors)
+                    {
+                        iterations.push_back(error.iteration);
+                        maxErrors.push_back(error.errorMax);
+                        meanErrors.push_back(error.errorMean);
+                        rmsErrors.push_back(error.errorRMS);
+                    }
+
+                    ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 3.0f);
+
+                    if (ImPlot::BeginPlot("Max errors against iterations"))
+                    {
+                        ImPlot::SetupAxes("Iterations", "Max error");
+                        ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
+                        ImPlot::PlotLine(
+                            "## Max Error", iterations.data(), maxErrors.data(), iterations.size());
+                        ImPlot::EndPlot();
+                    }
+                    if (ImPlot::BeginPlot("Mean errors against iteration"))
+                    {
+                        ImPlot::SetupAxes("Iterations", "Mean error");
+                        ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
+                        ImPlot::PlotLine("## Max Error",
+                                         iterations.data(),
+                                         meanErrors.data(),
+                                         iterations.size());
+                        ImPlot::EndPlot();
+                    }
+                    if (ImPlot::BeginPlot("RMS errors against iteration"))
+                    {
+                        ImPlot::SetupAxes("Iterations", "RMS error");
+                        ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
+                        ImPlot::PlotLine(
+                            "## Max Error", iterations.data(), rmsErrors.data(), iterations.size());
+                        ImPlot::EndPlot();
+                    }
+
+                    ImPlot::PopStyleVar();
+                    ImGui::EndTabItem();
+                }
                 ImGui::EndTabBar();
             }
         }
