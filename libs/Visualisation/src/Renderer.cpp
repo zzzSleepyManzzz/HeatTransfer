@@ -94,7 +94,7 @@ namespace HeatTransfer::Visualisation
 
         // Show windows
 
-        ShowSideBar();
+        ShowSideBar(state);
         ShowPlotsWindow(state);
         ShowConsole();
 
@@ -111,7 +111,7 @@ namespace HeatTransfer::Visualisation
         glfwSwapBuffers(_window);
     }
 
-    void Renderer::ShowSideBar()
+    void Renderer::ShowSideBar(const SimulationRunner::SimulationState& state)
     {
         static bool lightModeOn = false;
 
@@ -142,12 +142,20 @@ namespace HeatTransfer::Visualisation
             // SECTION 2: Statistics
             if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen))
             {
+                // For now, statistics will use big Temperature matrix, not small field vector
+
+                auto minTemperature = state.TemperatureMatrix.minCoeff();
+                auto maxTemperature = state.TemperatureMatrix.maxCoeff();
+                auto meanTemperature = state.TemperatureMatrix.mean();
+
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
                 ImGui::Indent(10.0f);
                 ImGui::Text("FPS: %.1f FPS", ImGui::GetIO().Framerate);
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                ImGui::Text("Max Temperature: %.2f °C", 100.0f);
-                ImGui::Text("Min Temperature: %.2f °C", 0.0f);
+                ImGui::Text("Max Temperature: %.2f °C", maxTemperature);
+                ImGui::Text("Min Temperature: %.2f °C", minTemperature);
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
+                ImGui::Text("Average Temperature: %.2f °C", meanTemperature);
                 ImGui::Unindent(10.0f);
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
             }
