@@ -205,8 +205,8 @@ namespace HeatTransfer::Visualisation
                     static int selectedColorMap = 4; // Viridis by default
 
                     ImPlot3DSurfaceFlags surfacePlotFlags = ImPlot3DSurfaceFlags_None;
-                    static bool NoLinesOn = false;
-                    static bool NoFillOn = false;
+                    static bool hideLinesOn = false;
+                    static bool removeFillOn = false;
 
                     if (ImGui::Button("Reset zoom"))
                     {
@@ -239,20 +239,20 @@ namespace HeatTransfer::Visualisation
 
                     ImGui::SameLine();
 
-                    if (ImGui::Checkbox("Hide lines", &NoLinesOn))
+                    if (ImGui::Checkbox("Hide lines", &hideLinesOn))
                     {
                     }
-                    if (NoLinesOn)
+                    if (hideLinesOn)
                     {
                         surfacePlotFlags |= ImPlot3DSurfaceFlags_NoLines;
                     }
 
                     ImGui::SameLine();
 
-                    if (ImGui::Checkbox("Remove fill", &NoFillOn))
+                    if (ImGui::Checkbox("Remove fill", &removeFillOn))
                     {
                     }
-                    if (NoFillOn)
+                    if (removeFillOn)
                     {
                         surfacePlotFlags |= ImPlot3DSurfaceFlags_NoFill;
                     }
