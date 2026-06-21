@@ -80,6 +80,9 @@ namespace HeatTransfer::Visualisation
         // Setup backend
         ImGui_ImplGlfw_InitForOpenGL(_window, true);
         ImGui_ImplOpenGL3_Init(glsl_version);
+
+        // Initialise renderer members
+        _console = std::make_shared<Console>();
     }
 
     void Renderer::Render(const SimulationRunner::SimulationState& state)
@@ -202,7 +205,7 @@ namespace HeatTransfer::Visualisation
                 if (ImGui::BeginTabItem("Surface Plot"))
                 {
                     static bool resetZoom = false;
-                    static int selectedColorMap = 4; // Viridis by default
+                    static int selectedColorMap = 6; // Hot by default
 
                     ImPlot3DSurfaceFlags surfacePlotFlags = ImPlot3DSurfaceFlags_None;
                     static bool hideLinesOn = false;
@@ -393,6 +396,27 @@ namespace HeatTransfer::Visualisation
                         rmsErrors.push_back(error.errorRMS);
                     }
 
+                    if (ImGui::Button("Print error history"))
+                    {
+                        _console->AddSpace();
+                        _console->Add("================ Errors ================");
+                        _console->AddSpace();
+
+                        for (const auto& e : state.errors)
+                        {
+                            _console->Add(std::format(
+                                "Iter {:4}  |  Max {:.4e}  |  Mean {:.4e}  |  RMS {:.4e}",
+                                e.iteration,
+                                e.errorMax,
+                                e.errorMean,
+                                e.errorRMS));
+                        }
+
+                        _console->AddSpace();
+                        _console->Add("========================================");
+                        _console->AddSpace();
+                    }
+
                     ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 3.0f);
 
                     if (ImPlot::BeginPlot("Max errors against iterations"))
@@ -433,8 +457,6 @@ namespace HeatTransfer::Visualisation
 
     void Renderer::ShowConsole()
     {
-        static bool checkbox1 = false;
-
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
@@ -443,12 +465,20 @@ namespace HeatTransfer::Visualisation
 
         ImGui::Begin("Console", nullptr, windowFlags);
         {
-            ImGui::Dummy(ImVec2(0.0f, 5.0f));
-            if (ImGui::Checkbox("Checkbox 1", &checkbox1))
+            if (ImGui::Button("Clear"))
             {
+                _console->Clear();
             }
-            // Add surface plot checkboxes here later
-            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::BeginChild(
+                "ConsoleScroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+            for (const auto& line : _console->GetLines())
+            {
+                ImGui::TextUnformatted(line.c_str());
+            }
+
+            ImGui::EndChild();
         }
         ImGui::End();
     }

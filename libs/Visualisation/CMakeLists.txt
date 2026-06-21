@@ -1,4 +1,5 @@
 add_library(Visualisation 
+    src/Console.cpp
     src/Renderer.cpp
 
     thirdparty/implot3d/implot3d.cpp         # Vendored source
