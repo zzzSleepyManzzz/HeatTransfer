@@ -263,7 +263,7 @@ namespace HeatTransfer::Visualisation
                     auto plotWindowWidth = ImGui::GetWindowSize().x;
 
                     if (ImPlot3D::BeginPlot(
-                            "## Temperature", ImVec2(plotWindowWidth * 0.95, -1), plot3DFlags))
+                            "## Temperature", ImVec2(plotWindowWidth * 0.93, -1), plot3DFlags))
                     {
                         ImPlot3D::SetupAxes("Width [pixels]", "Length [pixels]", "Temperature [K]");
 
@@ -303,7 +303,7 @@ namespace HeatTransfer::Visualisation
 
                     ImGui::SameLine();
                     ImPlot::PushColormap(selectedColorMap);
-                    ImPlot::ColormapScale("##HeatScale", z_min, z_max, ImVec2(-1, -1));
+                    ImPlot::ColormapScale("Temperature [K]", z_min, z_max, ImVec2(-1, -1));
                     ImPlot::PopColormap();
 
                     ImGui::EndTabItem();
