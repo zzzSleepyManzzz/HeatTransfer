@@ -74,7 +74,7 @@ namespace HeatTransfer::Visualisation
         ImGuiIO& io = ImGui::GetIO();
         ImFontConfig config;
 
-        config.SizePixels = 13.0f * 1.2f; // ~15.6 pixels crisp rasterization
+        config.SizePixels = 16.0f; // 13 (default) -> 16 pixels
         io.Fonts->AddFontDefault(&config);
 
         // Setup backend
@@ -136,9 +136,6 @@ namespace HeatTransfer::Visualisation
                     else
                         ImGui::StyleColorsDark();
                 }
-                // Add surface plot checkboxes here later
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                ImGui::ShowFontSelector("Font");
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
             }
 
