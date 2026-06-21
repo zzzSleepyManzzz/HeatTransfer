@@ -308,6 +308,47 @@ namespace HeatTransfer::Visualisation
 
                     ImGui::EndTabItem();
                 }
+
+                if (ImGui::BeginTabItem("Heat Map"))
+                {
+                    ImPlot::PushColormap(ImPlotColormap_Viridis);
+
+                    auto plotWindowWidth = ImGui::GetWindowSize().x;
+
+                    if (ImPlot::BeginPlot("Temperature Heat Map",
+                                          ImVec2(plotWindowWidth * 0.93, -1),
+                                          ImPlotFlags_NoLegend))
+                    {
+                        ImPlot::SetupAxes("Length [pixels]",
+                                          "Width [pixels]",
+                                          ImPlot3DAxisFlags_None,
+                                          ImPlot3DAxisFlags_None);
+                        ImPlot::SetupAxesLimits(0,
+                                                state.TemperatureMatrix.cols(),
+                                                0,
+                                                state.TemperatureMatrix.rows(),
+                                                ImPlotCond_Always);
+
+                        ImPlot::PlotHeatmap("Plotted Heat Map",
+                                            zs.data(),
+                                            rows,
+                                            cols,
+                                            z_min,
+                                            z_max,
+                                            nullptr,
+                                            ImPlotPoint(0, 0),
+                                            ImPlotPoint(state.TemperatureMatrix.cols(),
+                                                        state.TemperatureMatrix.rows()));
+
+                        ImPlot::EndPlot();
+                    }
+
+                    ImGui::SameLine();
+                    ImPlot::ColormapScale("Temperature [K]", z_min, z_max, ImVec2(-1, -1));
+                    ImPlot::PopColormap();
+
+                    ImGui::EndTabItem();
+                }
                 ImGui::EndTabBar();
             }
         }
