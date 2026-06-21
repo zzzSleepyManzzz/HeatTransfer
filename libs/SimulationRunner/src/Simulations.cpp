@@ -24,7 +24,12 @@ namespace HeatTransfer::SimulationRunner
     {
         auto temperatureMatrix = _solver->GetTemperatureMatrix();
 
-        int stride = 20;
+        // ImGui by default uses 16-bit indexing, which limits vertex indices to 65,535
+        // Target ~5,000 max vertices instead of 65,535 to account for the index multiplier
+        int total_elements = (int)temperatureMatrix.rows() * (int)temperatureMatrix.cols();
+        int target_num_elements = 5000;
+        int stride = std::max(
+            1, (int)std::ceil(std::sqrt((double)total_elements / (double)target_num_elements)));
 
         size_t rows = (temperatureMatrix.rows() + stride - 1) / stride;
         size_t cols = (temperatureMatrix.cols() + stride - 1) / stride;
