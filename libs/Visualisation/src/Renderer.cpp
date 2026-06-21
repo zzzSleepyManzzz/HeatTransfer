@@ -205,7 +205,7 @@ namespace HeatTransfer::Visualisation
                 if (ImGui::BeginTabItem("Surface Plot"))
                 {
                     static bool resetZoom = false;
-                    static int selectedColorMap = 4; // Viridis by default
+                    static int selectedColorMap = 6; // Hot by default
 
                     ImPlot3DSurfaceFlags surfacePlotFlags = ImPlot3DSurfaceFlags_None;
                     static bool hideLinesOn = false;
