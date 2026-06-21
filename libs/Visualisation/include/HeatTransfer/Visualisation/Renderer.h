@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 #include <glad/gl.h> // Must be before glfw include
@@ -19,6 +20,8 @@
 
 #include "HeatTransfer/SimulationRunner/SimulationState.h"
 
+#include "HeatTransfer/Visualisation/Console.h"
+
 namespace HeatTransfer::Visualisation
 {
     class Renderer
@@ -34,6 +37,8 @@ namespace HeatTransfer::Visualisation
 
     private:
         GLFWwindow* _window = nullptr;
+
+        std::shared_ptr<Console> _console;
 
         void Init();
         void Shutdown();
