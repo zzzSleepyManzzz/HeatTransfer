@@ -204,6 +204,10 @@ namespace HeatTransfer::Visualisation
                     static bool resetZoom = false;
                     static int selectedColorMap = 4; // Viridis by default
 
+                    ImPlot3DSurfaceFlags surfacePlotFlags = ImPlot3DSurfaceFlags_None;
+                    static bool NoLinesOn = false;
+                    static bool NoFillOn = false;
+
                     if (ImGui::Button("Reset zoom"))
                     {
                         resetZoom = true;
@@ -233,13 +237,33 @@ namespace HeatTransfer::Visualisation
                                  colorMapOptions,
                                  IM_ARRAYSIZE(colorMapOptions));
 
+                    ImGui::SameLine();
+
+                    if (ImGui::Checkbox("Hide lines", &NoLinesOn))
+                    {
+                    }
+                    if (NoLinesOn)
+                    {
+                        surfacePlotFlags |= ImPlot3DSurfaceFlags_NoLines;
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Checkbox("Remove fill", &NoFillOn))
+                    {
+                    }
+                    if (NoFillOn)
+                    {
+                        surfacePlotFlags |= ImPlot3DSurfaceFlags_NoFill;
+                    }
+
                     ImPlot3D::PushColormap(selectedColorMap);
 
                     ImPlot3DFlags plot3DFlags = ImPlot3DFlags_NoPan;
 
                     if (ImPlot3D::BeginPlot("## Temperature", ImVec2(-1, -1), plot3DFlags))
                     {
-                        ImPlot3D::SetupAxes("Width [pixels]", "Depth [pixels]", "Temperature [K]");
+                        ImPlot3D::SetupAxes("Width [pixels]", "Length [pixels]", "Temperature [K]");
 
                         if (resetZoom)
                         {
@@ -257,7 +281,7 @@ namespace HeatTransfer::Visualisation
 
                         ImPlot3DSpec spec;
                         spec.FillAlpha = 1.0f;
-                        spec.Flags = ImPlot3DSurfaceFlags_NoMarkers;
+                        spec.Flags = surfacePlotFlags;
                         spec.LineColor = ImPlot3D::GetColormapColor(1);
 
                         ImPlot3D::PlotSurface("## Temperature Surface Plot",
