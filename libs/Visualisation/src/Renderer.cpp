@@ -199,11 +199,31 @@ namespace HeatTransfer::Visualisation
             {
                 if (ImGui::BeginTabItem("Surface Plot"))
                 {
-                    ImPlot3D::PushColormap(ImPlot3DColormap_Viridis);
+                    static bool resetZoom = false;
 
-                    if (ImPlot3D::BeginPlot("Temperature", ImVec2(-1, -1), ImPlot3DFlags_NoClip))
+                    if (ImGui::Button("Reset zoom"))
                     {
-                        ImPlot3D::SetupAxesLimits(x_min, x_max, y_min, y_max, z_min, z_max);
+                        resetZoom = true;
+                    }
+
+                    ImPlot3D::PushColormap(ImPlot3DColormap_Viridis);
+                    ImPlot3DFlags plot3DFlags = ImPlot3DFlags_NoPan;
+
+                    if (ImPlot3D::BeginPlot("## Temperature", ImVec2(-1, -1), plot3DFlags))
+                    {
+                        ImPlot3D::SetupAxes("Width [pixels]", "Depth [pixels]", "Temperature [K]");
+
+                        if (resetZoom)
+                        {
+                            ImPlot3D::SetupAxesLimits(
+                                x_min, x_max, y_min, y_max, z_min, z_max, ImPlot3DCond_Always);
+                            resetZoom = false;
+                        }
+                        else
+                        {
+                            ImPlot3D::SetupAxesLimits(
+                                x_min, x_max, y_min, y_max, z_min, z_max, ImPlot3DCond_Once);
+                        }
 
                         ImPlot3DSpec spec;
                         spec.FillAlpha = 1.0f;
