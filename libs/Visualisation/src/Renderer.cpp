@@ -74,7 +74,7 @@ namespace HeatTransfer::Visualisation
         ImGuiIO& io = ImGui::GetIO();
         ImFontConfig config;
 
-        config.SizePixels = 13.0f * 1.2f; // ~15.6 pixels crisp rasterization
+        config.SizePixels = 16.0f; // 13 (default) -> 16 pixels
         io.Fonts->AddFontDefault(&config);
 
         // Setup backend
@@ -93,11 +93,8 @@ namespace HeatTransfer::Visualisation
         ImGui::NewFrame();
 
         // Show windows
-        // ImGui::ShowDemoWindow();
-        // ImPlot::ShowDemoWindow();
-        // ImPlot3D::ShowDemoWindow();
 
-        ShowSideBar();
+        ShowSideBar(state);
         ShowPlotsWindow(state);
         ShowConsole();
 
@@ -114,7 +111,7 @@ namespace HeatTransfer::Visualisation
         glfwSwapBuffers(_window);
     }
 
-    void Renderer::ShowSideBar()
+    void Renderer::ShowSideBar(const SimulationRunner::SimulationState& state)
     {
         static bool lightModeOn = false;
 
@@ -139,19 +136,26 @@ namespace HeatTransfer::Visualisation
                     else
                         ImGui::StyleColorsDark();
                 }
-                // Add surface plot checkboxes here later
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
             }
 
             // SECTION 2: Statistics
             if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen))
             {
+                // For now, statistics will use big Temperature matrix, not small field vector
+
+                auto minTemperature = state.TemperatureMatrix.minCoeff();
+                auto maxTemperature = state.TemperatureMatrix.maxCoeff();
+                auto meanTemperature = state.TemperatureMatrix.mean();
+
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
                 ImGui::Indent(10.0f);
                 ImGui::Text("FPS: %.1f FPS", ImGui::GetIO().Framerate);
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                ImGui::Text("Max Temperature: %.2f °C", 100.0f);
-                ImGui::Text("Min Temperature: %.2f °C", 0.0f);
+                ImGui::Text("Max Temperature: %.2f °C", maxTemperature);
+                ImGui::Text("Min Temperature: %.2f °C", minTemperature);
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
+                ImGui::Text("Average Temperature: %.2f °C", meanTemperature);
                 ImGui::Unindent(10.0f);
                 ImGui::Dummy(ImVec2(0.0f, 5.0f));
             }
