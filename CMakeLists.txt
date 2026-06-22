@@ -16,6 +16,7 @@ add_subdirectory(libs/Core)
 add_subdirectory(libs/SimulationRunner)
 add_subdirectory(libs/Solvers)
 add_subdirectory(libs/Visualisation)
+add_subdirectory(libs/Orchestration)
 
 add_subdirectory(apps/HeatTransferRunner)
 add_subdirectory(apps/HeatTransferApp)
