@@ -44,7 +44,6 @@ namespace HeatTransfer::Visualisation
         int screenHeight = mode->height;
 
         _window = glfwCreateWindow(screenWidth, screenHeight, "Heat Transfer", nullptr, nullptr);
-        glfwMaximizeWindow(_window);
 
         if (!_window)
         {
@@ -52,6 +51,7 @@ namespace HeatTransfer::Visualisation
             glfwTerminate();
             return;
         }
+        glfwMaximizeWindow(_window);
         glfwMakeContextCurrent(_window);
 
         if (!gladLoadGL(glfwGetProcAddress))
