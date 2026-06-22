@@ -43,7 +43,11 @@ namespace HeatTransfer::Visualisation
 
         void Init();
         void Shutdown();
+
         void ShowSideBar(const SimulationRunner::SimulationState& state);
+        void AddSettings(const SimulationRunner::SimulationState& state);
+        void AddStatistics(const SimulationRunner::SimulationState& state);
+
         void ShowPlotsWindow(const SimulationRunner::SimulationState& state);
         void ShowConsole();
     };

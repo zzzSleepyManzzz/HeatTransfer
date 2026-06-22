@@ -113,8 +113,6 @@ namespace HeatTransfer::Visualisation
 
     void Renderer::ShowSideBar(const SimulationRunner::SimulationState& state)
     {
-        static bool lightModeOn = false;
-
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
@@ -123,44 +121,53 @@ namespace HeatTransfer::Visualisation
 
         ImGui::Begin("Side Bar", nullptr, windowFlags);
         {
-            // SECTION 1: Settings
-            if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                ImGui::Text("Turn light mode on");
-                ImGui::SameLine();
-                if (ImGui::Checkbox("##Turn light mode on", &lightModeOn))
-                {
-                    if (lightModeOn)
-                        ImGui::StyleColorsLight();
-                    else
-                        ImGui::StyleColorsDark();
-                }
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-            }
-
-            // SECTION 2: Statistics
-            if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                // For now, statistics will use big Temperature matrix, not small field vector
-
-                auto minTemperature = state.TemperatureMatrix.minCoeff();
-                auto maxTemperature = state.TemperatureMatrix.maxCoeff();
-                auto meanTemperature = state.TemperatureMatrix.mean();
-
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                ImGui::Indent(10.0f);
-                ImGui::Text("FPS: %.1f FPS", ImGui::GetIO().Framerate);
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                ImGui::Text("Max Temperature: %.2f °C", maxTemperature);
-                ImGui::Text("Min Temperature: %.2f °C", minTemperature);
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                ImGui::Text("Average Temperature: %.2f °C", meanTemperature);
-                ImGui::Unindent(10.0f);
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-            }
+            AddSettings(state);
+            AddStatistics(state);
         }
         ImGui::End();
+    }
+
+    void Renderer::AddSettings(const SimulationRunner::SimulationState& state)
+    {
+        static bool lightModeOn = false;
+
+        if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Text("Turn light mode on");
+            ImGui::SameLine();
+            if (ImGui::Checkbox("##Turn light mode on", &lightModeOn))
+            {
+                if (lightModeOn)
+                    ImGui::StyleColorsLight();
+                else
+                    ImGui::StyleColorsDark();
+            }
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+        }
+    }
+
+    void Renderer::AddStatistics(const SimulationRunner::SimulationState& state)
+    {
+        if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // For now, statistics will use big Temperature matrix, not small field vector
+
+            auto minTemperature = state.TemperatureMatrix.minCoeff();
+            auto maxTemperature = state.TemperatureMatrix.maxCoeff();
+            auto meanTemperature = state.TemperatureMatrix.mean();
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Indent(10.0f);
+            ImGui::Text("FPS: %.1f FPS", ImGui::GetIO().Framerate);
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Text("Max Temperature: %.2f °C", maxTemperature);
+            ImGui::Text("Min Temperature: %.2f °C", minTemperature);
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Text("Average Temperature: %.2f °C", meanTemperature);
+            ImGui::Unindent(10.0f);
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+        }
     }
 
     void Renderer::ShowPlotsWindow(const SimulationRunner::SimulationState& state)
