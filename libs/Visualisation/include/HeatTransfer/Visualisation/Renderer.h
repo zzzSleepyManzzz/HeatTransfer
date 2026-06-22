@@ -23,6 +23,9 @@
 
 #include "HeatTransfer/Visualisation/ConsoleLogger.h"
 #include "HeatTransfer/Visualisation/FlattenedData.h"
+#include "HeatTransfer/Visualisation/HeatMapState.h"
+#include "HeatTransfer/Visualisation/SettingsState.h"
+#include "HeatTransfer/Visualisation/SurfacePlotState.h"
 
 namespace HeatTransfer::Visualisation
 {
@@ -60,6 +63,9 @@ namespace HeatTransfer::Visualisation
         GLFWwindow* _window = nullptr;
 
         std::shared_ptr<ConsoleLogger> _console;
+        std::shared_ptr<SettingsState> _settingsState;
+        std::shared_ptr<SurfacePlotState> _surfacePlotState;
+        std::shared_ptr<HeatMapState> _heatMapState;
 
         void Init();
         void Shutdown();

@@ -83,6 +83,9 @@ namespace HeatTransfer::Visualisation
 
         // Initialise renderer members
         _console = std::make_shared<ConsoleLogger>();
+        _settingsState = std::make_shared<SettingsState>();
+        _surfacePlotState = std::make_shared<SurfacePlotState>();
+        _heatMapState = std::make_shared<HeatMapState>();
     }
 
     void Renderer::Render(const SimulationRunner::SimulationState& state)
@@ -129,8 +132,6 @@ namespace HeatTransfer::Visualisation
 
     void Renderer::AddSettings(const SimulationRunner::SimulationState& state)
     {
-        static bool lightModeOn = false;
-
         if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
@@ -139,9 +140,9 @@ namespace HeatTransfer::Visualisation
 
             ImGui::SameLine();
 
-            if (ImGui::Checkbox("##Turn light mode on", &lightModeOn))
+            if (ImGui::Checkbox("##Turn light mode on", &_settingsState->lightModeOn))
             {
-                if (lightModeOn)
+                if (_settingsState->lightModeOn)
                     ImGui::StyleColorsLight();
                 else
                     ImGui::StyleColorsDark();
@@ -286,21 +287,13 @@ namespace HeatTransfer::Visualisation
 
     void Renderer::CreateSurfacePlot(const FlattenedData& data)
     {
-        // Surface plot state
-
-        static bool resetZoom = false;
-        static int selectedColorMap = 6; // Hot by default
-
-        static bool hideLinesOn = false;
-        static bool removeFillOn = false;
-
         ImPlot3DSurfaceFlags surfacePlotFlags = ImPlot3DSurfaceFlags_None;
 
         // Reset zoom button
 
         if (ImGui::Button("Reset zoom"))
         {
-            resetZoom = true;
+            _surfacePlotState->resetZoom = true;
         }
 
         // ColorMap combo box, hide lines and remove lines checkboxes
@@ -308,33 +301,33 @@ namespace HeatTransfer::Visualisation
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
 
         ImGui::Combo("Color map type",
-                     &selectedColorMap,
+                     &_surfacePlotState->selectedColorMap,
                      COLOR_MAP_OPTIONS,
                      IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
 
         ImGui::SameLine();
 
-        if (ImGui::Checkbox("Hide lines", &hideLinesOn))
+        if (ImGui::Checkbox("Hide lines", &_surfacePlotState->hideLinesOn))
         {
         }
-        if (hideLinesOn)
+        if (_surfacePlotState->hideLinesOn)
         {
             surfacePlotFlags |= ImPlot3DSurfaceFlags_NoLines;
         }
 
         ImGui::SameLine();
 
-        if (ImGui::Checkbox("Remove fill", &removeFillOn))
+        if (ImGui::Checkbox("Remove fill", &_surfacePlotState->removeFillOn))
         {
         }
-        if (removeFillOn)
+        if (_surfacePlotState->removeFillOn)
         {
             surfacePlotFlags |= ImPlot3DSurfaceFlags_NoFill;
         }
 
         // Create surface plot
 
-        ImPlot3D::PushColormap(selectedColorMap);
+        ImPlot3D::PushColormap(_surfacePlotState->selectedColorMap);
 
         ImPlot3DFlags plot3DFlags = ImPlot3DFlags_NoPan;
         auto plotWindowWidth = ImGui::GetWindowSize().x;
@@ -343,7 +336,7 @@ namespace HeatTransfer::Visualisation
         {
             ImPlot3D::SetupAxes("Width [pixels]", "Length [pixels]", "Temperature [K]");
 
-            if (resetZoom)
+            if (_surfacePlotState->resetZoom)
             {
                 ImPlot3D::SetupAxesLimits(data.x_min,
                                           data.x_max,
@@ -352,7 +345,7 @@ namespace HeatTransfer::Visualisation
                                           data.z_min,
                                           data.z_max,
                                           ImPlot3DCond_Always);
-                resetZoom = false;
+                _surfacePlotState->resetZoom = false;
                 ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Always);
             }
             else
@@ -390,29 +383,25 @@ namespace HeatTransfer::Visualisation
         // Create color bar
 
         ImGui::SameLine();
-        ImPlot::PushColormap(selectedColorMap);
+        ImPlot::PushColormap(_surfacePlotState->selectedColorMap);
         ImPlot::ColormapScale("Temperature [K]", data.z_min, data.z_max, ImVec2(-1, -1));
         ImPlot::PopColormap();
     }
 
     void Renderer::CreateHeatMap(const FlattenedData& data)
     {
-        // Heat map state
-
-        static int selectedColorMap = 6; // Hot by default
-
         // Color map combo box
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
 
         ImGui::Combo("Color map type",
-                     &selectedColorMap,
+                     &_heatMapState->selectedColorMap,
                      COLOR_MAP_OPTIONS,
                      IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
 
         // Create heat map
 
-        ImPlot::PushColormap(selectedColorMap);
+        ImPlot::PushColormap(_heatMapState->selectedColorMap);
 
         auto plotWindowWidth = ImGui::GetWindowSize().x;
 
