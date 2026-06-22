@@ -21,7 +21,7 @@
 
 #include "HeatTransfer/SimulationRunner/SimulationState.h"
 
-#include "HeatTransfer/Visualisation/Console.h"
+#include "HeatTransfer/Visualisation/ConsoleLogger.h"
 #include "HeatTransfer/Visualisation/FlattenedData.h"
 
 namespace HeatTransfer::Visualisation
@@ -40,7 +40,7 @@ namespace HeatTransfer::Visualisation
     private:
         GLFWwindow* _window = nullptr;
 
-        std::shared_ptr<Console> _console;
+        std::shared_ptr<ConsoleLogger> _console;
 
         void Init();
         void Shutdown();

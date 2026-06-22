@@ -82,7 +82,7 @@ namespace HeatTransfer::Visualisation
         ImGui_ImplOpenGL3_Init(glsl_version);
 
         // Initialise renderer members
-        _console = std::make_shared<Console>();
+        _console = std::make_shared<ConsoleLogger>();
     }
 
     void Renderer::Render(const SimulationRunner::SimulationState& state)
