@@ -3,5 +3,5 @@ add_executable(HeatTransferRunner
 )
 
 target_link_libraries(HeatTransferRunner
-    PRIVATE SimulationRunner
+    PRIVATE Orchestration
 )
