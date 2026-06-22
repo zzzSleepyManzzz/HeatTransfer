@@ -134,8 +134,11 @@ namespace HeatTransfer::Visualisation
         if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
             ImGui::Text("Turn light mode on");
+
             ImGui::SameLine();
+
             if (ImGui::Checkbox("##Turn light mode on", &lightModeOn))
             {
                 if (lightModeOn)
@@ -143,6 +146,7 @@ namespace HeatTransfer::Visualisation
                 else
                     ImGui::StyleColorsDark();
             }
+
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
         }
     }
@@ -159,12 +163,18 @@ namespace HeatTransfer::Visualisation
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::Indent(10.0f);
+
             ImGui::Text("FPS: %.1f FPS", ImGui::GetIO().Framerate);
+
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
             ImGui::Text("Max Temperature: %.2f °C", maxTemperature);
             ImGui::Text("Min Temperature: %.2f °C", minTemperature);
+
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
             ImGui::Text("Average Temperature: %.2f °C", meanTemperature);
+
             ImGui::Unindent(10.0f);
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
         }
