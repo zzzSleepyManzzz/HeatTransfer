@@ -38,7 +38,7 @@ namespace HeatTransfer::Visualisation
         void PollEvents();
 
     private:
-        const char* COLOR_MAP_OPTIONS[16] = {
+        static constexpr const char* COLOR_MAP_OPTIONS[16] = {
             "Deep",
             "Dark",
             "Pastel",
