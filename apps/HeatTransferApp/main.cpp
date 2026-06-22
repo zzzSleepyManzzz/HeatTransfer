@@ -1,18 +1,15 @@
-#include <chrono>
-#include <format>
-#include <iostream>
 #include <memory>
 
 #include "HeatTransfer/SimulationRunner/Simulations.h"
+#include "HeatTransfer/Visualisation/Renderer.h"
 
 int main()
 {
-    auto start = std::chrono::steady_clock::now();
-
     using enum HeatTransfer::SimulationRunner::Method;
 
     using namespace HeatTransfer::Core;
     using namespace HeatTransfer::SimulationRunner;
+    using namespace HeatTransfer::Visualisation;
 
     BoundaryConditions boundaryCondition = {.topEdge = 100.0,
                                             .bottomEdge = 0.0,
@@ -33,17 +30,16 @@ int main()
 
     auto simulations = std::make_shared<Simulations>(parameters, boundaryCondition);
     simulations->Run(SUCCESSIVE_OVER_RELAXATION);
-    simulations->Print();
 
-    auto end = std::chrono::steady_clock::now();
-    auto duration = end - start;
+    const auto& simulationState = simulations->GetState();
 
-    auto durationInSeconds = std::chrono::duration<double>(duration).count();
-    auto durationInMilliseconds = std::chrono::duration<double, std::milli>(duration).count();
+    auto renderer = std::make_shared<Renderer>();
 
-    std::cout << std::format("Elasped time: {} seconds", durationInSeconds) << std::endl;
-    std::cout << std::format("Elasped time: {} milliseconds", durationInMilliseconds) << std::endl;
+    while (!renderer->ShouldClose())
+    {
+        renderer->Render(simulationState);
+        renderer->PollEvents();
+    }
 
-    system("pause > 0");
     return 0;
 }
