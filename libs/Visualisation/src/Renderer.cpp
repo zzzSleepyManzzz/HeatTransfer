@@ -161,6 +161,13 @@ namespace HeatTransfer::Visualisation
             auto maxTemperature = state.TemperatureMatrix.maxCoeff();
             auto meanTemperature = state.TemperatureMatrix.mean();
 
+            auto finalError = state.errors.back();
+
+            auto numIterations = finalError.iteration;
+            auto finalMaxError = finalError.errorMax;
+            auto finalMeanError = finalError.errorMean;
+            auto finalRMSError = finalError.errorRMS;
+
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::Indent(10.0f);
 
@@ -174,6 +181,13 @@ namespace HeatTransfer::Visualisation
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             ImGui::Text("Average Temperature: %.2f °C", meanTemperature);
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Text("Number of iterations: %zu", numIterations);
+            ImGui::Text("Final max  error:     %.4f", finalMaxError);
+            ImGui::Text("Final mean error:     %.4f", finalMeanError);
+            ImGui::Text("Final RMS  error:     %.4f", finalRMSError);
 
             ImGui::Unindent(10.0f);
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
