@@ -22,6 +22,7 @@
 #include "HeatTransfer/SimulationRunner/SimulationState.h"
 
 #include "HeatTransfer/Visualisation/Console.h"
+#include "HeatTransfer/Visualisation/FlattenedData.h"
 
 namespace HeatTransfer::Visualisation
 {
@@ -49,6 +50,11 @@ namespace HeatTransfer::Visualisation
         void AddStatistics(const SimulationRunner::SimulationState& state);
 
         void ShowPlotsWindow(const SimulationRunner::SimulationState& state);
+        FlattenedData FlattenState(const SimulationRunner::SimulationState& state);
+        void CreateSurfacePlot(const FlattenedData& data);
+        void CreateHeatMap(const FlattenedData& data);
+        void CreateErrorPlots(const std::vector<HeatTransfer::Core::IterationAndError>& errors);
+
         void ShowConsole();
     };
 }
