@@ -44,7 +44,6 @@ namespace HeatTransfer::Visualisation
         int screenHeight = mode->height;
 
         _window = glfwCreateWindow(screenWidth, screenHeight, "Heat Transfer", nullptr, nullptr);
-        glfwMaximizeWindow(_window);
 
         if (!_window)
         {
@@ -52,6 +51,7 @@ namespace HeatTransfer::Visualisation
             glfwTerminate();
             return;
         }
+        glfwMaximizeWindow(_window);
         glfwMakeContextCurrent(_window);
 
         if (!gladLoadGL(glfwGetProcAddress))
@@ -82,7 +82,10 @@ namespace HeatTransfer::Visualisation
         ImGui_ImplOpenGL3_Init(glsl_version);
 
         // Initialise renderer members
-        _console = std::make_shared<Console>();
+        _console = std::make_shared<ConsoleLogger>();
+        _settingsState = std::make_shared<SettingsState>();
+        _surfacePlotState = std::make_shared<SurfacePlotState>();
+        _heatMapState = std::make_shared<HeatMapState>();
     }
 
     void Renderer::Render(const SimulationRunner::SimulationState& state)
@@ -113,8 +116,6 @@ namespace HeatTransfer::Visualisation
 
     void Renderer::ShowSideBar(const SimulationRunner::SimulationState& state)
     {
-        static bool lightModeOn = false;
-
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
@@ -123,77 +124,80 @@ namespace HeatTransfer::Visualisation
 
         ImGui::Begin("Side Bar", nullptr, windowFlags);
         {
-            // SECTION 1: Settings
-            if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                ImGui::Text("Turn light mode on");
-                ImGui::SameLine();
-                if (ImGui::Checkbox("##Turn light mode on", &lightModeOn))
-                {
-                    if (lightModeOn)
-                        ImGui::StyleColorsLight();
-                    else
-                        ImGui::StyleColorsDark();
-                }
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-            }
-
-            // SECTION 2: Statistics
-            if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                // For now, statistics will use big Temperature matrix, not small field vector
-
-                auto minTemperature = state.TemperatureMatrix.minCoeff();
-                auto maxTemperature = state.TemperatureMatrix.maxCoeff();
-                auto meanTemperature = state.TemperatureMatrix.mean();
-
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                ImGui::Indent(10.0f);
-                ImGui::Text("FPS: %.1f FPS", ImGui::GetIO().Framerate);
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                ImGui::Text("Max Temperature: %.2f °C", maxTemperature);
-                ImGui::Text("Min Temperature: %.2f °C", minTemperature);
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-                ImGui::Text("Average Temperature: %.2f °C", meanTemperature);
-                ImGui::Unindent(10.0f);
-                ImGui::Dummy(ImVec2(0.0f, 5.0f));
-            }
+            AddSettings(state);
+            AddStatistics(state);
         }
         ImGui::End();
     }
 
+    void Renderer::AddSettings(const SimulationRunner::SimulationState& state)
+    {
+        if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Text("Turn light mode on");
+
+            ImGui::SameLine();
+
+            if (ImGui::Checkbox("##Turn light mode on", &_settingsState->lightModeOn))
+            {
+                if (_settingsState->lightModeOn)
+                    ImGui::StyleColorsLight();
+                else
+                    ImGui::StyleColorsDark();
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+        }
+    }
+
+    void Renderer::AddStatistics(const SimulationRunner::SimulationState& state)
+    {
+        if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // For now, statistics will use big Temperature matrix, not small field vector
+
+            auto minTemperature = state.TemperatureMatrix.minCoeff();
+            auto maxTemperature = state.TemperatureMatrix.maxCoeff();
+            auto meanTemperature = state.TemperatureMatrix.mean();
+
+            auto finalError = state.errors.back();
+
+            auto numIterations = finalError.iteration;
+            auto finalMaxError = finalError.errorMax;
+            auto finalMeanError = finalError.errorMean;
+            auto finalRMSError = finalError.errorRMS;
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Indent(10.0f);
+
+            ImGui::Text("FPS: %.1f FPS", ImGui::GetIO().Framerate);
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Text("Max Temperature: %.2f °C", maxTemperature);
+            ImGui::Text("Min Temperature: %.2f °C", minTemperature);
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Text("Average Temperature: %.2f °C", meanTemperature);
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Text("Number of iterations: %zu", numIterations);
+            ImGui::Text("Final max  error:     %.4f", finalMaxError);
+            ImGui::Text("Final mean error:     %.4f", finalMeanError);
+            ImGui::Text("Final RMS  error:     %.4f", finalRMSError);
+
+            ImGui::Unindent(10.0f);
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+        }
+    }
+
     void Renderer::ShowPlotsWindow(const SimulationRunner::SimulationState& state)
     {
-        const auto& data = state.field;
-
-        int cols = state.cols;
-        int rows = state.rows;
-        int N = cols * rows;
-
-        std::vector<float> xs(N, 0);
-        std::vector<float> ys(N, 0);
-        std::vector<float> zs(data.begin(), data.end());
-
-        float x_min = 0;
-        float x_max = state.TemperatureMatrix.cols();
-        float y_min = 0;
-        float y_max = state.TemperatureMatrix.rows();
-        float z_min = *std::min_element(zs.begin(), zs.end());
-        float z_max = *std::max_element(zs.begin(), zs.end());
-
-        float x_step = (x_max - x_min) / (cols - 1);
-        float y_step = (y_max - y_min) / (rows - 1);
-
-        for (int i = 0; i < rows; i++)
-        {
-            for (int j = 0; j < cols; j++)
-            {
-                int idx = i * cols + j;
-                xs[idx] = x_min + j * x_step;
-                ys[idx] = y_min + i * y_step;
-            }
-        }
+        auto data = FlattenState(state);
 
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
@@ -208,255 +212,299 @@ namespace HeatTransfer::Visualisation
             {
                 if (ImGui::BeginTabItem("Surface Plot"))
                 {
-                    static bool resetZoom = false;
-                    static int selectedColorMap = 6; // Hot by default
-
-                    ImPlot3DSurfaceFlags surfacePlotFlags = ImPlot3DSurfaceFlags_None;
-                    static bool hideLinesOn = false;
-                    static bool removeFillOn = false;
-
-                    if (ImGui::Button("Reset zoom"))
-                    {
-                        resetZoom = true;
-                    }
-
-                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
-                    const char* colorMapOptions[] = {
-                        "Deep",
-                        "Dark",
-                        "Pastel",
-                        "Paired",
-                        "Viridis",
-                        "Plasma",
-                        "Hot",
-                        "Cool",
-                        "Pink",
-                        "Jet",
-                        "Twilight",
-                        "RdBu",
-                        "BrBG",
-                        "PiYG",
-                        "Spectral",
-                        "Greys",
-                    };
-                    ImGui::Combo("Color map type",
-                                 &selectedColorMap,
-                                 colorMapOptions,
-                                 IM_ARRAYSIZE(colorMapOptions));
-
-                    ImGui::SameLine();
-
-                    if (ImGui::Checkbox("Hide lines", &hideLinesOn))
-                    {
-                    }
-                    if (hideLinesOn)
-                    {
-                        surfacePlotFlags |= ImPlot3DSurfaceFlags_NoLines;
-                    }
-
-                    ImGui::SameLine();
-
-                    if (ImGui::Checkbox("Remove fill", &removeFillOn))
-                    {
-                    }
-                    if (removeFillOn)
-                    {
-                        surfacePlotFlags |= ImPlot3DSurfaceFlags_NoFill;
-                    }
-
-                    ImPlot3D::PushColormap(selectedColorMap);
-
-                    ImPlot3DFlags plot3DFlags = ImPlot3DFlags_NoPan;
-                    auto plotWindowWidth = ImGui::GetWindowSize().x;
-
-                    if (ImPlot3D::BeginPlot(
-                            "## Temperature", ImVec2(plotWindowWidth * 0.93, -1), plot3DFlags))
-                    {
-                        ImPlot3D::SetupAxes("Width [pixels]", "Length [pixels]", "Temperature [K]");
-
-                        if (resetZoom)
-                        {
-                            ImPlot3D::SetupAxesLimits(
-                                x_min, x_max, y_min, y_max, z_min, z_max, ImPlot3DCond_Always);
-                            resetZoom = false;
-                            ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Always);
-                        }
-                        else
-                        {
-                            ImPlot3D::SetupAxesLimits(
-                                x_min, x_max, y_min, y_max, z_min, z_max, ImPlot3DCond_Once);
-                            ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Once);
-                        }
-
-                        ImPlot3DSpec spec;
-                        spec.FillAlpha = 1.0f;
-                        spec.Flags = surfacePlotFlags;
-                        spec.LineColor = ImPlot3D::GetColormapColor(1);
-
-                        ImPlot3D::PlotSurface("## Temperature Surface Plot",
-                                              xs.data(),
-                                              ys.data(),
-                                              zs.data(),
-                                              cols,
-                                              rows,
-                                              0.0,
-                                              0.0,
-                                              spec);
-
-                        ImPlot3D::EndPlot();
-                    }
-
-                    ImPlot3D::PopColormap();
-
-                    ImGui::SameLine();
-                    ImPlot::PushColormap(selectedColorMap);
-                    ImPlot::ColormapScale("Temperature [K]", z_min, z_max, ImVec2(-1, -1));
-                    ImPlot::PopColormap();
+                    CreateSurfacePlot(data);
 
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("Heat Map"))
                 {
-                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
-                    static int selectedColorMap = 6; // Hot by default
-
-                    const char* colorMapOptions[] = {
-                        "Deep",
-                        "Dark",
-                        "Pastel",
-                        "Paired",
-                        "Viridis",
-                        "Plasma",
-                        "Hot",
-                        "Cool",
-                        "Pink",
-                        "Jet",
-                        "Twilight",
-                        "RdBu",
-                        "BrBG",
-                        "PiYG",
-                        "Spectral",
-                        "Greys",
-                    };
-                    ImGui::Combo("Color map type",
-                                 &selectedColorMap,
-                                 colorMapOptions,
-                                 IM_ARRAYSIZE(colorMapOptions));
-
-                    ImPlot::PushColormap(selectedColorMap);
-
-                    auto plotWindowWidth = ImGui::GetWindowSize().x;
-
-                    if (ImPlot::BeginPlot("Temperature Heat Map",
-                                          ImVec2(plotWindowWidth * 0.93, -1),
-                                          ImPlotFlags_NoLegend))
-                    {
-                        ImPlot::SetupAxes("Length [pixels]",
-                                          "Width [pixels]",
-                                          ImPlotAxisFlags_None,
-                                          ImPlotAxisFlags_None);
-                        ImPlot::SetupAxesLimits(0,
-                                                state.TemperatureMatrix.cols(),
-                                                0,
-                                                state.TemperatureMatrix.rows(),
-                                                ImPlotCond_Always);
-
-                        ImPlot::PlotHeatmap("Plotted Heat Map",
-                                            zs.data(),
-                                            rows,
-                                            cols,
-                                            z_min,
-                                            z_max,
-                                            nullptr,
-                                            ImPlotPoint(0, 0),
-                                            ImPlotPoint(state.TemperatureMatrix.cols(),
-                                                        state.TemperatureMatrix.rows()));
-
-                        ImPlot::EndPlot();
-                    }
-
-                    ImGui::SameLine();
-                    ImPlot::ColormapScale("Temperature [K]", z_min, z_max, ImVec2(-1, -1));
-                    ImPlot::PopColormap();
+                    CreateHeatMap(data);
 
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("Error plot"))
                 {
-                    const auto& errors = state.errors;
+                    CreateErrorPlots(state.errors);
 
-                    std::vector<float> iterations = {};
-                    std::vector<float> maxErrors = {};
-                    std::vector<float> meanErrors = {};
-                    std::vector<float> rmsErrors = {};
-
-                    for (const auto& error : errors)
-                    {
-                        iterations.push_back(error.iteration);
-                        maxErrors.push_back(error.errorMax);
-                        meanErrors.push_back(error.errorMean);
-                        rmsErrors.push_back(error.errorRMS);
-                    }
-
-                    if (ImGui::Button("Print error history"))
-                    {
-                        _console->AddSpace();
-                        _console->Add("================ Errors ================");
-                        _console->AddSpace();
-
-                        for (const auto& e : state.errors)
-                        {
-                            _console->Add(std::format(
-                                "Iter {:4}  |  Max {:.4e}  |  Mean {:.4e}  |  RMS {:.4e}",
-                                e.iteration,
-                                e.errorMax,
-                                e.errorMean,
-                                e.errorRMS));
-                        }
-
-                        _console->AddSpace();
-                        _console->Add("========================================");
-                        _console->AddSpace();
-                    }
-
-                    ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 3.0f);
-
-                    if (ImPlot::BeginPlot("Max errors against iterations"))
-                    {
-                        ImPlot::SetupAxes("Iterations", "Max error");
-                        ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-                        ImPlot::PlotLine(
-                            "## Max Error", iterations.data(), maxErrors.data(), iterations.size());
-                        ImPlot::EndPlot();
-                    }
-                    if (ImPlot::BeginPlot("Mean errors against iteration"))
-                    {
-                        ImPlot::SetupAxes("Iterations", "Mean error");
-                        ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-                        ImPlot::PlotLine("## Max Error",
-                                         iterations.data(),
-                                         meanErrors.data(),
-                                         iterations.size());
-                        ImPlot::EndPlot();
-                    }
-                    if (ImPlot::BeginPlot("RMS errors against iteration"))
-                    {
-                        ImPlot::SetupAxes("Iterations", "RMS error");
-                        ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-                        ImPlot::PlotLine(
-                            "## Max Error", iterations.data(), rmsErrors.data(), iterations.size());
-                        ImPlot::EndPlot();
-                    }
-
-                    ImPlot::PopStyleVar();
                     ImGui::EndTabItem();
                 }
                 ImGui::EndTabBar();
             }
         }
         ImGui::End();
+    }
+
+    FlattenedData Renderer::FlattenState(const SimulationRunner::SimulationState& state)
+    {
+        int cols = state.cols;
+        int rows = state.rows;
+        int N = cols * rows;
+
+        std::vector<float> x_values(N, 0);
+        std::vector<float> y_values(N, 0);
+        std::vector<float> z_values(state.field.begin(), state.field.end());
+
+        float x_min = 0;
+        float x_max = state.TemperatureMatrix.cols();
+
+        float y_min = 0;
+        float y_max = state.TemperatureMatrix.rows();
+
+        float z_min = *std::min_element(z_values.begin(), z_values.end());
+        float z_max = *std::max_element(z_values.begin(), z_values.end());
+
+        float x_step = (x_max - x_min) / (cols - 1);
+        float y_step = (y_max - y_min) / (rows - 1);
+
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                int index = i * cols + j;
+                x_values[index] = x_min + j * x_step;
+                y_values[index] = y_min + i * y_step;
+            }
+        }
+
+        return FlattenedData{.x_values = std::move(x_values),
+                             .y_values = std::move(y_values),
+                             .z_values = std::move(z_values),
+
+                             .rows = rows,
+                             .cols = cols,
+
+                             .x_min = x_min,
+                             .x_max = x_max,
+
+                             .y_min = y_min,
+                             .y_max = y_max,
+
+                             .z_min = z_min,
+                             .z_max = z_max};
+    }
+
+    void Renderer::CreateSurfacePlot(const FlattenedData& data)
+    {
+        ImPlot3DSurfaceFlags surfacePlotFlags = ImPlot3DSurfaceFlags_None;
+
+        // Reset zoom button
+
+        if (ImGui::Button("Reset zoom"))
+        {
+            _surfacePlotState->resetZoom = true;
+        }
+
+        // ColorMap combo box, hide lines and remove lines checkboxes
+
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
+
+        ImGui::Combo("Color map type",
+                     &_surfacePlotState->selectedColorMap,
+                     COLOR_MAP_OPTIONS,
+                     IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
+
+        ImGui::SameLine();
+
+        if (ImGui::Checkbox("Hide lines", &_surfacePlotState->hideLinesOn))
+        {
+        }
+        if (_surfacePlotState->hideLinesOn)
+        {
+            surfacePlotFlags |= ImPlot3DSurfaceFlags_NoLines;
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Checkbox("Remove fill", &_surfacePlotState->removeFillOn))
+        {
+        }
+        if (_surfacePlotState->removeFillOn)
+        {
+            surfacePlotFlags |= ImPlot3DSurfaceFlags_NoFill;
+        }
+
+        // Create surface plot
+
+        ImPlot3D::PushColormap(_surfacePlotState->selectedColorMap);
+
+        ImPlot3DFlags plot3DFlags = ImPlot3DFlags_NoPan;
+        auto plotWindowWidth = ImGui::GetWindowSize().x;
+
+        if (ImPlot3D::BeginPlot("## Temperature", ImVec2(plotWindowWidth * 0.93, -1), plot3DFlags))
+        {
+            ImPlot3D::SetupAxes("Width [pixels]", "Length [pixels]", "Temperature [K]");
+
+            if (_surfacePlotState->resetZoom)
+            {
+                ImPlot3D::SetupAxesLimits(data.x_min,
+                                          data.x_max,
+                                          data.y_min,
+                                          data.y_max,
+                                          data.z_min,
+                                          data.z_max,
+                                          ImPlot3DCond_Always);
+                _surfacePlotState->resetZoom = false;
+                ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Always);
+            }
+            else
+            {
+                ImPlot3D::SetupAxesLimits(data.x_min,
+                                          data.x_max,
+                                          data.y_min,
+                                          data.y_max,
+                                          data.z_min,
+                                          data.z_max,
+                                          ImPlot3DCond_Once);
+                ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Once);
+            }
+
+            ImPlot3DSpec spec;
+            spec.FillAlpha = 1.0f;
+            spec.Flags = surfacePlotFlags;
+            spec.LineColor = ImPlot3D::GetColormapColor(1);
+
+            ImPlot3D::PlotSurface("## Temperature Surface Plot",
+                                  data.x_values.data(),
+                                  data.y_values.data(),
+                                  data.z_values.data(),
+                                  data.cols,
+                                  data.rows,
+                                  0.0,
+                                  0.0,
+                                  spec);
+
+            ImPlot3D::EndPlot();
+        }
+
+        ImPlot3D::PopColormap();
+
+        // Create color bar
+
+        ImGui::SameLine();
+        ImPlot::PushColormap(_surfacePlotState->selectedColorMap);
+        ImPlot::ColormapScale("Temperature [K]", data.z_min, data.z_max, ImVec2(-1, -1));
+        ImPlot::PopColormap();
+    }
+
+    void Renderer::CreateHeatMap(const FlattenedData& data)
+    {
+        // Color map combo box
+
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
+
+        ImGui::Combo("Color map type",
+                     &_heatMapState->selectedColorMap,
+                     COLOR_MAP_OPTIONS,
+                     IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
+
+        // Create heat map
+
+        ImPlot::PushColormap(_heatMapState->selectedColorMap);
+
+        auto plotWindowWidth = ImGui::GetWindowSize().x;
+
+        if (ImPlot::BeginPlot(
+                "Temperature Heat Map", ImVec2(plotWindowWidth * 0.93, -1), ImPlotFlags_NoLegend))
+        {
+            ImPlot::SetupAxes(
+                "Length [pixels]", "Width [pixels]", ImPlotAxisFlags_None, ImPlotAxisFlags_None);
+            ImPlot::SetupAxesLimits(
+                data.x_min, data.x_max, data.y_min, data.y_max, ImPlotCond_Always);
+
+            ImPlot::PlotHeatmap("Plotted Heat Map",
+                                data.z_values.data(),
+                                data.rows,
+                                data.cols,
+                                data.z_min,
+                                data.z_max,
+                                nullptr,
+                                ImPlotPoint(data.x_min, data.y_min),
+                                ImPlotPoint(data.x_max, data.y_max));
+
+            ImPlot::EndPlot();
+        }
+
+        // Create color bar
+
+        ImGui::SameLine();
+        ImPlot::ColormapScale("Temperature [K]", data.z_min, data.z_max, ImVec2(-1, -1));
+        ImPlot::PopColormap();
+    }
+
+    void
+    Renderer::CreateErrorPlots(const std::vector<HeatTransfer::Core::IterationAndError>& errors)
+    {
+        // Some pre-processing
+
+        std::vector<float> iterations = {};
+        std::vector<float> maxErrors = {};
+        std::vector<float> meanErrors = {};
+        std::vector<float> rmsErrors = {};
+
+        for (const auto& error : errors)
+        {
+            iterations.push_back(error.iteration);
+            maxErrors.push_back(error.errorMax);
+            meanErrors.push_back(error.errorMean);
+            rmsErrors.push_back(error.errorRMS);
+        }
+
+        // Print error history button
+
+        if (ImGui::Button("Print error history"))
+        {
+            _console->AddSpace();
+            _console->Add("================ Errors ================");
+            _console->AddSpace();
+
+            for (const auto& e : errors)
+            {
+                _console->Add(std::format("Iter {:4}  |  Max {:.4e}  |  Mean {:.4e}  |  RMS {:.4e}",
+                                          e.iteration,
+                                          e.errorMax,
+                                          e.errorMean,
+                                          e.errorRMS));
+            }
+
+            _console->AddSpace();
+            _console->Add("========================================");
+            _console->AddSpace();
+        }
+
+        // Create line plots
+
+        ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 3.0f);
+
+        if (ImPlot::BeginPlot("Max errors against iterations"))
+        {
+            ImPlot::SetupAxes("Iterations", "Max error");
+            ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
+            ImPlot::PlotLine(
+                "## Max Error", iterations.data(), maxErrors.data(), iterations.size());
+            ImPlot::EndPlot();
+        }
+
+        if (ImPlot::BeginPlot("Mean errors against iteration"))
+        {
+            ImPlot::SetupAxes("Iterations", "Mean error");
+            ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
+            ImPlot::PlotLine(
+                "## Max Error", iterations.data(), meanErrors.data(), iterations.size());
+            ImPlot::EndPlot();
+        }
+
+        if (ImPlot::BeginPlot("RMS errors against iteration"))
+        {
+            ImPlot::SetupAxes("Iterations", "RMS error");
+            ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
+            ImPlot::PlotLine(
+                "## Max Error", iterations.data(), rmsErrors.data(), iterations.size());
+            ImPlot::EndPlot();
+        }
+
+        ImPlot::PopStyleVar();
     }
 
     void Renderer::ShowConsole()

@@ -5,10 +5,10 @@
 
 namespace HeatTransfer::Visualisation
 {
-    class Console
+    class ConsoleLogger
     {
     public:
-        Console();
+        ConsoleLogger();
         void Add(const std::string& message);
         void AddSpace();
         void Clear();

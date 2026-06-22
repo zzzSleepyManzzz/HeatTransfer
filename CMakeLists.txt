@@ -17,8 +17,8 @@ add_subdirectory(libs/SimulationRunner)
 add_subdirectory(libs/Solvers)
 add_subdirectory(libs/Visualisation)
 
+add_subdirectory(apps/HeatTransferRunner)
 add_subdirectory(apps/HeatTransferApp)
-add_subdirectory(apps/HeatTransferRender)
 
 enable_testing()
 add_subdirectory(tests)
