@@ -291,28 +291,12 @@ namespace HeatTransfer::Visualisation
 
         // ColorMap combo box, hide lines and remove lines checkboxes
 
-        const char* colorMapOptions[] = {
-            "Deep",
-            "Dark",
-            "Pastel",
-            "Paired",
-            "Viridis",
-            "Plasma",
-            "Hot",
-            "Cool",
-            "Pink",
-            "Jet",
-            "Twilight",
-            "RdBu",
-            "BrBG",
-            "PiYG",
-            "Spectral",
-            "Greys",
-        };
-
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
-        ImGui::Combo(
-            "Color map type", &selectedColorMap, colorMapOptions, IM_ARRAYSIZE(colorMapOptions));
+
+        ImGui::Combo("Color map type",
+                     &selectedColorMap,
+                     COLOR_MAP_OPTIONS,
+                     IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
 
         ImGui::SameLine();
 
@@ -405,29 +389,12 @@ namespace HeatTransfer::Visualisation
 
         // Color map combo box
 
-        const char* colorMapOptions[] = {
-            "Deep",
-            "Dark",
-            "Pastel",
-            "Paired",
-            "Viridis",
-            "Plasma",
-            "Hot",
-            "Cool",
-            "Pink",
-            "Jet",
-            "Twilight",
-            "RdBu",
-            "BrBG",
-            "PiYG",
-            "Spectral",
-            "Greys",
-        };
-
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
 
-        ImGui::Combo(
-            "Color map type", &selectedColorMap, colorMapOptions, IM_ARRAYSIZE(colorMapOptions));
+        ImGui::Combo("Color map type",
+                     &selectedColorMap,
+                     COLOR_MAP_OPTIONS,
+                     IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
 
         // Create heat map
 

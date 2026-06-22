@@ -38,6 +38,25 @@ namespace HeatTransfer::Visualisation
         void PollEvents();
 
     private:
+        const char* COLOR_MAP_OPTIONS[16] = {
+            "Deep",
+            "Dark",
+            "Pastel",
+            "Paired",
+            "Viridis",
+            "Plasma",
+            "Hot",
+            "Cool",
+            "Pink",
+            "Jet",
+            "Twilight",
+            "RdBu",
+            "BrBG",
+            "PiYG",
+            "Spectral",
+            "Greys",
+        };
+
         GLFWwindow* _window = nullptr;
 
         std::shared_ptr<ConsoleLogger> _console;
