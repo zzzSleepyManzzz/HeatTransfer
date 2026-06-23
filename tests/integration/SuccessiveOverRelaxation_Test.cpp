@@ -41,16 +41,16 @@ namespace HeatTransfer::Tests
         {
             for (auto i = 1u; i < errors.size(); i++)
             {
-                REQUIRE(errors[i].iteration > errors[i - 1].iteration);
-                REQUIRE(errors[i].errorMax >= 0.0);
-                REQUIRE(errors[i].errorMean >= 0.0);
-                REQUIRE(errors[i].errorRMS >= 0.0);
+                REQUIRE(errors[i]->iteration > errors[i - 1]->iteration);
+                REQUIRE(errors[i]->errorMax >= 0.0);
+                REQUIRE(errors[i]->errorMean >= 0.0);
+                REQUIRE(errors[i]->errorRMS >= 0.0);
             }
         }
 
         SECTION("Max error should be below tolerance")
         {
-            REQUIRE(errors.back().errorMax <= parameters.expandedTolerance);
+            REQUIRE(errors.back()->errorMax <= parameters.expandedTolerance);
         }
     }
 
