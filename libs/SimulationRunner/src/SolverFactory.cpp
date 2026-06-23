@@ -28,7 +28,7 @@ namespace HeatTransfer::SimulationRunner
                                                                              _boundaryCondition);
                 break;
             default:
-                throw std::runtime_error("Provide non-existant iterative method");
+                throw std::runtime_error("Provided non-existant iterative method");
         };
 
         return solver;

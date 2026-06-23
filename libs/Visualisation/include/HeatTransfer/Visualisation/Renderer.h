@@ -19,11 +19,9 @@
 #include <implot3d.h>
 #include <implot3d_internal.h>
 
-#include "HeatTransfer/SimulationRunner/SimulationState.h"
-
 #include "HeatTransfer/Visualisation/ConsoleLogger.h"
-#include "HeatTransfer/Visualisation/FlattenedData.h"
 #include "HeatTransfer/Visualisation/HeatMapState.h"
+#include "HeatTransfer/Visualisation/RendererModel.h"
 #include "HeatTransfer/Visualisation/SettingsState.h"
 #include "HeatTransfer/Visualisation/SurfacePlotState.h"
 
@@ -35,7 +33,7 @@ namespace HeatTransfer::Visualisation
         Renderer();
         ~Renderer();
 
-        void Render(const SimulationRunner::SimulationState& state);
+        void Render(std::shared_ptr<RendererModel> model);
 
         bool ShouldClose() const;
         void PollEvents();
@@ -62,7 +60,10 @@ namespace HeatTransfer::Visualisation
 
         GLFWwindow* _window = nullptr;
 
+        std::shared_ptr<RendererModel> _model;
+
         std::shared_ptr<ConsoleLogger> _console;
+
         std::shared_ptr<SettingsState> _settingsState;
         std::shared_ptr<SurfacePlotState> _surfacePlotState;
         std::shared_ptr<HeatMapState> _heatMapState;
@@ -70,15 +71,14 @@ namespace HeatTransfer::Visualisation
         void Init();
         void Shutdown();
 
-        void ShowSideBar(const SimulationRunner::SimulationState& state);
-        void AddSettings(const SimulationRunner::SimulationState& state);
-        void AddStatistics(const SimulationRunner::SimulationState& state);
+        void ShowSideBar();
+        void AddSettings();
+        void AddStatistics();
 
-        void ShowPlotsWindow(const SimulationRunner::SimulationState& state);
-        FlattenedData FlattenState(const SimulationRunner::SimulationState& state);
-        void CreateSurfacePlot(const FlattenedData& data);
-        void CreateHeatMap(const FlattenedData& data);
-        void CreateErrorPlots(const std::vector<HeatTransfer::Core::IterationAndError>& errors);
+        void ShowPlotsWindow();
+        void CreateSurfacePlot();
+        void CreateHeatMap();
+        void CreateErrorPlots();
 
         void ShowConsole();
     };

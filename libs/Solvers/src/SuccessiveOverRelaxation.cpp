@@ -14,8 +14,8 @@ namespace HeatTransfer::Solvers
                                                       double relaxationFactor,
                                                       int& totalIterations)
     {
-        const Eigen::Index rows = T.rows();
-        const Eigen::Index cols = T.cols();
+        const Eigen::Index rows = _temperatureMatrix->rows();
+        const Eigen::Index cols = _temperatureMatrix->cols();
 
         int localIterations = 0;
         double errorMax = tolerance + 1.0;
@@ -23,12 +23,14 @@ namespace HeatTransfer::Solvers
         double errorRMS = tolerance + 1.0;
 
         // Preallocate Eigen matrices for performance
-        Eigen::MatrixXd oldT(rows, cols);
+        Eigen::MatrixXd oldTemperature(rows, cols);
         Eigen::ArrayXXd errorArray(rows, cols);
 
         while (localIterations < maxIterations && errorMax > tolerance)
         {
-            oldT = T;
+            oldTemperature = *_temperatureMatrix;
+
+            auto& T = *_temperatureMatrix;
 
             for (auto i = 1u; i < rows - 1; i++)
             {
@@ -42,7 +44,7 @@ namespace HeatTransfer::Solvers
 
             ApplyBoundaryConditions();
 
-            errorArray = (T - oldT).array();
+            errorArray = (T - oldTemperature).array();
             errorMax = errorArray.abs().maxCoeff();
             errorMean = errorArray.abs().mean();
             errorRMS = std::sqrt(errorArray.square().mean());
@@ -50,12 +52,10 @@ namespace HeatTransfer::Solvers
             localIterations++;
             totalIterations++;
 
-            auto error = Core::IterationAndError{.iteration = totalIterations,
-                                                 .errorMax = errorMax,
-                                                 .errorMean = errorMean,
-                                                 .errorRMS = errorRMS};
+            auto error = std::make_shared<Core::IterationAndError>(
+                totalIterations, errorMax, errorMean, errorRMS);
 
-            _errors.push_back(std::move(error));
+            _errors.push_back(error);
         }
     }
 
@@ -66,7 +66,9 @@ namespace HeatTransfer::Solvers
             _parameters.columns / std::pow(_parameters.expansion, _parameters.numExpansions);
         int totalIterations = 0;
 
-        T = Eigen::MatrixXd::Zero(rows, columns);
+        _temperatureMatrix = std::make_shared<Eigen::MatrixXd>(rows, columns);
+        _temperatureMatrix->setZero();
+
         ApplyBoundaryConditions();
         IterateTemperature(_parameters.maxInitialIterations,
                            _parameters.initialTolerance,

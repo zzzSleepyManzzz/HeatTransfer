@@ -12,28 +12,30 @@ namespace HeatTransfer::Solvers
     {
         for (const auto& error : _errors)
         {
-            std::cout << std::format("Iteration  : {}", error.iteration) << std::endl;
-            std::cout << std::format("Max error  : {}", error.errorMax) << std::endl;
-            std::cout << std::format("Mean error : {}", error.errorMean) << std::endl;
-            std::cout << std::format("RMS error  : {}", error.errorRMS) << std::endl;
+            std::cout << std::format("Iteration  : {}", error->iteration) << std::endl;
+            std::cout << std::format("Max error  : {}", error->errorMax) << std::endl;
+            std::cout << std::format("Mean error : {}", error->errorMean) << std::endl;
+            std::cout << std::format("RMS error  : {}", error->errorRMS) << std::endl;
             std::cout << std::endl;
         }
     }
 
-    const std::vector<Core::IterationAndError>& ISolver::GetErrors()
+    const std::vector<std::shared_ptr<Core::IterationAndError>>& ISolver::GetErrors()
     {
         return _errors;
     }
 
-    const Eigen::MatrixXd& ISolver::GetTemperatureMatrix()
+    std::shared_ptr<Eigen::MatrixXd> ISolver::GetTemperatureMatrix()
     {
-        return T;
+        return _temperatureMatrix;
     }
 
     void ISolver::ApplyBoundaryConditions()
     {
-        const Eigen::Index rows = T.rows();
-        const Eigen::Index cols = T.cols();
+        const Eigen::Index rows = _temperatureMatrix->rows();
+        const Eigen::Index cols = _temperatureMatrix->cols();
+
+        auto& T = *_temperatureMatrix;
 
         T.row(0) = Eigen::VectorXd::Constant(cols, _boundaryCondition.topEdge);
         T.row(rows - 1) = Eigen::VectorXd::Constant(cols, _boundaryCondition.bottomEdge);
@@ -50,12 +52,16 @@ namespace HeatTransfer::Solvers
 
         T(Eigen::seq(h1, h2), h3) =
             Eigen::VectorXd::Constant(h2 - h1 + 1, _boundaryCondition.innerSquare);
+
         T(Eigen::seq(h1, h2), h4) =
             Eigen::VectorXd::Constant(h2 - h1 + 1, _boundaryCondition.innerSquare);
+
         T(h1, Eigen::seq(h3, h4)) =
             Eigen::RowVectorXd::Constant(h4 - h3 + 1, _boundaryCondition.innerSquare);
+
         T(h2, Eigen::seq(h3, h4)) =
             Eigen::RowVectorXd::Constant(h4 - h3 + 1, _boundaryCondition.innerSquare);
+
         T(c1, c2) = _boundaryCondition.centerPoint;
     }
 
@@ -63,12 +69,14 @@ namespace HeatTransfer::Solvers
     {
         int expansionFactor = _parameters.expansion;
 
-        const Eigen::Index rows = T.rows();
-        const Eigen::Index cols = T.cols();
+        const Eigen::Index rows = _temperatureMatrix->rows();
+        const Eigen::Index cols = _temperatureMatrix->cols();
         const Eigen::Index newRows = rows * expansionFactor;
         const Eigen::Index newCols = cols * expansionFactor;
 
-        Eigen::MatrixXd oldT = T;
+        auto& T = *_temperatureMatrix;
+
+        Eigen::MatrixXd oldTemperature = T;
         T = Eigen::MatrixXd(newRows, newCols);
 
         // Use block operations for efficiency
@@ -77,7 +85,7 @@ namespace HeatTransfer::Solvers
             for (auto j = 0u; j < cols; j++)
             {
                 T.block(i * expansionFactor, j * expansionFactor, expansionFactor, expansionFactor)
-                    .setConstant(oldT(i, j));
+                    .setConstant(oldTemperature(i, j));
             }
         }
     }
