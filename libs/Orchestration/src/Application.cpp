@@ -31,12 +31,17 @@ namespace HeatTransfer::Orchestration
         auto simulations =
             std::make_shared<HeatTransfer::SimulationRunner::Simulations>(simulationConfig);
 
+        auto start = std::chrono::steady_clock::now();
+
         simulations->Run();
+
+        auto end = std::chrono::steady_clock::now();
+        auto durationInSeconds = std::chrono::duration<double>(end - start).count();
 
         auto simulationOutput = simulations->GetOutput();
 
         auto rendererModel = std::make_shared<HeatTransfer::Visualisation::RendererModel>(
-            simulationConfig, simulationOutput);
+            simulationConfig, simulationOutput, durationInSeconds);
 
         auto renderer = std::make_shared<HeatTransfer::Visualisation::Renderer>();
 
@@ -51,12 +56,17 @@ namespace HeatTransfer::Orchestration
                 simulations =
                     std::make_shared<HeatTransfer::SimulationRunner::Simulations>(simulationConfig);
 
+                start = std::chrono::steady_clock::now();
+
                 simulations->Run();
+
+                end = std::chrono::steady_clock::now();
+                durationInSeconds = std::chrono::duration<double>(end - start).count();
 
                 simulationOutput = simulations->GetOutput();
 
                 rendererModel = std::make_shared<HeatTransfer::Visualisation::RendererModel>(
-                    simulationConfig, simulationOutput);
+                    simulationConfig, simulationOutput, durationInSeconds);
             }
 
             renderer->Render(rendererModel);

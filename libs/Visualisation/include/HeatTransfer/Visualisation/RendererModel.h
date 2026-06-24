@@ -14,7 +14,8 @@ namespace HeatTransfer::Visualisation
     {
     public:
         RendererModel(std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig> config,
-                      std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output);
+                      std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output,
+                      double durationInSeconds);
 
         std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig> GetSimulationConfig();
         std::shared_ptr<RenderFrameData> GetRenderFrameData();

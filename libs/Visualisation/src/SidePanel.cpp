@@ -76,6 +76,8 @@ namespace HeatTransfer::Visualisation
 
             auto statisticsData = _model->GetStatisticsData();
 
+            auto durationInSeconds = statisticsData->GetDurationInSeconds();
+
             auto minTemperature = statisticsData->GetMinTemperature();
             auto maxTemperature = statisticsData->GetMaxTemperature();
             auto meanTemperature = statisticsData->GetMeanTemperature();
@@ -88,23 +90,24 @@ namespace HeatTransfer::Visualisation
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::Indent(10.0f);
 
-            ImGui::Text("FPS: %.1f FPS", ImGui::GetIO().Framerate);
+            ImGui::SeparatorText("Performance");
+            ImGui::Text("FPS : %.1f FPS", ImGui::GetIO().Framerate);
+            ImGui::Text("Simulation duration : %.2f seconds", durationInSeconds);
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-            ImGui::Text("Max Temperature: %.2f °C", maxTemperature);
-            ImGui::Text("Min Temperature: %.2f °C", minTemperature);
+            ImGui::SeparatorText("Temperature statistics");
+            ImGui::Text("Max Temperature     : %.2f °C", maxTemperature);
+            ImGui::Text("Min Temperature     : %.2f °C", minTemperature);
+            ImGui::Text("Average Temperature : %.2f °C", meanTemperature);
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-            ImGui::Text("Average Temperature: %.2f °C", meanTemperature);
-
-            ImGui::Dummy(ImVec2(0.0f, 5.0f));
-
-            ImGui::Text("Number of iterations: %zu", numIterations);
-            ImGui::Text("Final max  error:     %.4f", finalMaxError);
-            ImGui::Text("Final mean error:     %.4f", finalMeanError);
-            ImGui::Text("Final RMS  error:     %.4f", finalRMSError);
+            ImGui::SeparatorText("Final error information");
+            ImGui::Text("Number of iterations : %zu", numIterations);
+            ImGui::Text("Final max  error     : %.4f", finalMaxError);
+            ImGui::Text("Final mean error     : %.4f", finalMeanError);
+            ImGui::Text("Final RMS  error     : %.4f", finalRMSError);
 
             ImGui::Unindent(10.0f);
             ImGui::Dummy(ImVec2(0.0f, 5.0f));

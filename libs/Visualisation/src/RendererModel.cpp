@@ -4,10 +4,11 @@ namespace HeatTransfer::Visualisation
 {
     RendererModel::RendererModel(
         std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig> config,
-        std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output)
+        std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output,
+        double durationInSeconds)
         : _simulationConfig(config)
         , _renderFrameData(std::make_shared<RenderFrameData>(output))
-        , _statisticsData(std::make_shared<StatisticsData>(output))
+        , _statisticsData(std::make_shared<StatisticsData>(output, durationInSeconds))
         , _needsSimulationUpdate(false)
     {
     }
