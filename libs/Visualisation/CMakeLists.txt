@@ -4,6 +4,10 @@ add_library(Visualisation
     src/RendererModel.cpp
     src/RenderFrameData.cpp
     src/StatisticsData.cpp
+    src/IPanel.cpp
+    src/SidePanel.cpp
+    src/PlotsPanel.cpp
+    src/ConsolePanel.cpp
 
     thirdparty/implot3d/implot3d.cpp         # Vendored source
     thirdparty/implot3d/implot3d_demo.cpp    # Vendored source
