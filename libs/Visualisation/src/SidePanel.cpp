@@ -35,6 +35,8 @@ namespace HeatTransfer::Visualisation
         {
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
+            // Light mode check box
+
             ImGui::Text("Turn light mode on");
 
             ImGui::SameLine();
@@ -48,6 +50,8 @@ namespace HeatTransfer::Visualisation
             }
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            // Iterative method combo box
 
             if (ImGui::Combo("## Iterative Method",
                              &_settingsState->iterativeMethod,
