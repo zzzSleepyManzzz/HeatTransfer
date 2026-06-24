@@ -49,18 +49,14 @@ namespace HeatTransfer::Visualisation
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-            auto oldIterativeMethod = _settingsState->iterativeMethod;
-
-            ImGui::Combo("## Iterative Method",
-                         &_settingsState->iterativeMethod,
-                         METHOD_OPTIONS,
-                         IM_ARRAYSIZE(METHOD_OPTIONS));
-
-            auto newIterativeMethod = _settingsState->iterativeMethod;
-
-            if (newIterativeMethod != oldIterativeMethod)
+            if (ImGui::Combo("## Iterative Method",
+                             &_settingsState->iterativeMethod,
+                             METHOD_OPTIONS,
+                             IM_ARRAYSIZE(METHOD_OPTIONS)))
             {
-                _model->GetSimulationConfig()->method = METHOD_ARRAY[newIterativeMethod];
+                _model->GetSimulationConfig()->method =
+                    METHOD_ARRAY[_settingsState->iterativeMethod];
+
                 _model->UpdateModel();
             }
 
