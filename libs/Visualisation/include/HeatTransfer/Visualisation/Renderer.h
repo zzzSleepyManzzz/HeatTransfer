@@ -60,7 +60,7 @@ namespace HeatTransfer::Visualisation
 
         GLFWwindow* _window = nullptr;
 
-        std::shared_ptr<RendererModel> _model;
+        std::shared_ptr<RendererModel> _model; // Attached during Renderer::Render
 
         std::shared_ptr<ConsoleLogger> _console;
 
