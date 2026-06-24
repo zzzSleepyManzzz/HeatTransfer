@@ -32,10 +32,10 @@ namespace HeatTransfer::Solvers
 
     void ISolver::ApplyBoundaryConditions()
     {
-        const Eigen::Index rows = _temperatureMatrix->rows();
-        const Eigen::Index cols = _temperatureMatrix->cols();
-
         auto& T = *_temperatureMatrix;
+
+        const Eigen::Index rows = T.rows();
+        const Eigen::Index cols = T.cols();
 
         T.row(0) = Eigen::VectorXd::Constant(cols, _boundaryCondition.topEdge);
         T.row(rows - 1) = Eigen::VectorXd::Constant(cols, _boundaryCondition.bottomEdge);
@@ -67,14 +67,14 @@ namespace HeatTransfer::Solvers
 
     void ISolver::ExpandMatrix()
     {
+        auto& T = *_temperatureMatrix;
+
         int expansionFactor = _parameters.expansion;
 
-        const Eigen::Index rows = _temperatureMatrix->rows();
-        const Eigen::Index cols = _temperatureMatrix->cols();
+        const Eigen::Index rows = T.rows();
+        const Eigen::Index cols = T.cols();
         const Eigen::Index newRows = rows * expansionFactor;
         const Eigen::Index newCols = cols * expansionFactor;
-
-        auto& T = *_temperatureMatrix;
 
         Eigen::MatrixXd oldTemperature = T;
         T = Eigen::MatrixXd(newRows, newCols);

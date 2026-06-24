@@ -12,19 +12,19 @@ namespace HeatTransfer::Visualisation
 
         // ImGui by default uses 16-bit indexing, which limits vertex indices to 65,535
         // Target ~5,000 max vertices instead of 65,535 to account for the index multiplier
-        int total_elements = (int)temperatureMatrix->rows() * (int)temperatureMatrix->cols();
+        int total_elements = (int)T.rows() * (int)T.cols();
         int target_num_elements = 5000;
         int stride = std::max(
             1, (int)std::ceil(std::sqrt((double)total_elements / (double)target_num_elements)));
 
-        _rows = (temperatureMatrix->rows() + stride - 1) / stride;
-        _cols = (temperatureMatrix->cols() + stride - 1) / stride;
+        _rows = (T.rows() + stride - 1) / stride;
+        _cols = (T.cols() + stride - 1) / stride;
 
         _z_values.reserve(_rows * _cols);
 
-        for (auto i = 0u; i < temperatureMatrix->rows(); i += stride)
+        for (auto i = 0u; i < T.rows(); i += stride)
         {
-            for (auto j = 0u; j < temperatureMatrix->cols(); j += stride)
+            for (auto j = 0u; j < T.cols(); j += stride)
             {
                 _z_values.push_back(T(i, j));
             }
@@ -38,10 +38,10 @@ namespace HeatTransfer::Visualisation
         _y_values = std::vector<double>(N, 0);
 
         _x_min = 0;
-        _x_max = temperatureMatrix->cols();
+        _x_max = T.cols();
 
         _y_min = 0;
-        _y_max = temperatureMatrix->rows();
+        _y_max = T.rows();
 
         _z_min = *std::min_element(_z_values.begin(), _z_values.end());
         _z_max = *std::max_element(_z_values.begin(), _z_values.end());

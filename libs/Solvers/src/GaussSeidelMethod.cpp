@@ -11,8 +11,10 @@ namespace HeatTransfer::Solvers
     void
     GaussSeidelMethod::IterateTemperature(int maxIterations, double tolerance, int& totalIterations)
     {
-        const Eigen::Index rows = _temperatureMatrix->rows();
-        const Eigen::Index cols = _temperatureMatrix->cols();
+        auto& T = *_temperatureMatrix;
+
+        const Eigen::Index rows = T.rows();
+        const Eigen::Index cols = T.cols();
 
         int localIterations = 0;
         double errorMax = tolerance + 1.0;
@@ -25,9 +27,7 @@ namespace HeatTransfer::Solvers
 
         while (localIterations < maxIterations && errorMax > tolerance)
         {
-            oldTemperature = *_temperatureMatrix;
-
-            auto& T = *_temperatureMatrix;
+            oldTemperature = T;
 
             for (auto i = 1u; i < rows - 1; i++)
             {
