@@ -2,8 +2,8 @@
 
 namespace HeatTransfer::Visualisation
 {
-    SidePanel::SidePanel(GLFWwindow* window, std::shared_ptr<ConsoleLogger> logger)
-        : IPanel(window, logger), _settingsState(std::make_shared<SettingsState>())
+    SidePanel::SidePanel(std::shared_ptr<ConsoleLogger> logger)
+        : IPanel(logger), _settingsState(std::make_shared<SettingsState>())
     {
     }
 

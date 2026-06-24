@@ -8,7 +8,7 @@ namespace HeatTransfer::Visualisation
     class SidePanel : public IPanel
     {
     public:
-        SidePanel(GLFWwindow* window, std::shared_ptr<ConsoleLogger> logger);
+        SidePanel(std::shared_ptr<ConsoleLogger> logger);
         void Render(std::shared_ptr<RendererModel> model) override;
 
     private:

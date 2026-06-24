@@ -2,8 +2,8 @@
 
 namespace HeatTransfer::Visualisation
 {
-    PlotsPanel::PlotsPanel(GLFWwindow* window, std::shared_ptr<ConsoleLogger> logger)
-        : IPanel(window, logger)
+    PlotsPanel::PlotsPanel(std::shared_ptr<ConsoleLogger> logger)
+        : IPanel(logger)
         , _surfacePlotState(std::make_shared<SurfacePlotState>())
         , _heatMapState(std::make_shared<HeatMapState>())
     {

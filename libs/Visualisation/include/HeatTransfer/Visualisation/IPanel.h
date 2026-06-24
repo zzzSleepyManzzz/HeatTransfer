@@ -28,11 +28,10 @@ namespace HeatTransfer::Visualisation
         virtual void Render(std::shared_ptr<RendererModel> model) = 0;
 
     protected:
-        GLFWwindow* _window = nullptr;
         std::shared_ptr<ConsoleLogger> _logger;
 
         std::shared_ptr<RendererModel> _model; // Attached during Render
 
-        IPanel(GLFWwindow* window, std::shared_ptr<ConsoleLogger> logger);
+        IPanel(std::shared_ptr<ConsoleLogger> logger);
     };
 }

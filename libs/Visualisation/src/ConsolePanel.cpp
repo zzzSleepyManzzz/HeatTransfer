@@ -2,10 +2,7 @@
 
 namespace HeatTransfer::Visualisation
 {
-    ConsolePanel::ConsolePanel(GLFWwindow* window, std::shared_ptr<ConsoleLogger> logger)
-        : IPanel(window, logger)
-    {
-    }
+    ConsolePanel::ConsolePanel(std::shared_ptr<ConsoleLogger> logger) : IPanel(logger) {}
 
     void ConsolePanel::Render(std::shared_ptr<RendererModel> model)
     {

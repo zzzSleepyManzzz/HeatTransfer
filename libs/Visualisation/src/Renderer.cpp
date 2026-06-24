@@ -84,9 +84,9 @@ namespace HeatTransfer::Visualisation
         // Initialise renderer members
         auto consoleLogger = std::make_shared<ConsoleLogger>();
 
-        _sidePanel = std::make_shared<SidePanel>(_window, consoleLogger);
-        _plotsPanel = std::make_shared<PlotsPanel>(_window, consoleLogger);
-        _consolePanel = std::make_shared<ConsolePanel>(_window, consoleLogger);
+        _sidePanel = std::make_shared<SidePanel>(consoleLogger);
+        _plotsPanel = std::make_shared<PlotsPanel>(consoleLogger);
+        _consolePanel = std::make_shared<ConsolePanel>(consoleLogger);
     }
 
     void Renderer::Render(std::shared_ptr<RendererModel> model)

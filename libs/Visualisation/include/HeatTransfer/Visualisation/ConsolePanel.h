@@ -7,7 +7,7 @@ namespace HeatTransfer::Visualisation
     class ConsolePanel : public IPanel
     {
     public:
-        ConsolePanel(GLFWwindow* window, std::shared_ptr<ConsoleLogger> logger);
+        ConsolePanel(std::shared_ptr<ConsoleLogger> logger);
         void Render(std::shared_ptr<RendererModel> model) override;
 
     private:
