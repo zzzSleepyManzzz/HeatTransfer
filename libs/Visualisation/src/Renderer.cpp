@@ -82,7 +82,7 @@ namespace HeatTransfer::Visualisation
         ImGui_ImplOpenGL3_Init(glsl_version);
 
         // Initialise renderer members
-        _console = std::make_shared<ConsoleLogger>();
+        _consoleLogger = std::make_shared<ConsoleLogger>();
         _settingsState = std::make_shared<SettingsState>();
         _surfacePlotState = std::make_shared<SurfacePlotState>();
         _heatMapState = std::make_shared<HeatMapState>();
@@ -101,7 +101,7 @@ namespace HeatTransfer::Visualisation
 
         ShowSideBar();
         ShowPlotsWindow();
-        ShowConsole();
+        ShowConsoleLogger();
 
         // Render
         ImGui::Render();
@@ -406,22 +406,23 @@ namespace HeatTransfer::Visualisation
 
         if (ImGui::Button("Print error history"))
         {
-            _console->AddSpace();
-            _console->Add("================ Errors ================");
-            _console->AddSpace();
+            _consoleLogger->AddSpace();
+            _consoleLogger->Add("================ Errors ================");
+            _consoleLogger->AddSpace();
 
             for (auto i = 0u; i < iterations.size(); i++)
             {
-                _console->Add(std::format("Iter {:4}  |  Max {:.4e}  |  Mean {:.4e}  |  RMS {:.4e}",
-                                          (int)iterations[i],
-                                          maxErrors[i],
-                                          meanErrors[i],
-                                          rmsErrors[i]));
+                _consoleLogger->Add(
+                    std::format("Iter {:4}  |  Max {:.4e}  |  Mean {:.4e}  |  RMS {:.4e}",
+                                (int)iterations[i],
+                                maxErrors[i],
+                                meanErrors[i],
+                                rmsErrors[i]));
             }
 
-            _console->AddSpace();
-            _console->Add("========================================");
-            _console->AddSpace();
+            _consoleLogger->AddSpace();
+            _consoleLogger->Add("========================================");
+            _consoleLogger->AddSpace();
         }
 
         // Create line plots
@@ -458,7 +459,7 @@ namespace HeatTransfer::Visualisation
         ImPlot::PopStyleVar();
     }
 
-    void Renderer::ShowConsole()
+    void Renderer::ShowConsoleLogger()
     {
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
@@ -470,13 +471,13 @@ namespace HeatTransfer::Visualisation
         {
             if (ImGui::Button("Clear"))
             {
-                _console->Clear();
+                _consoleLogger->Clear();
             }
 
             ImGui::BeginChild(
                 "ConsoleScroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-            for (const auto& line : _console->GetLines())
+            for (const auto& line : _consoleLogger->GetLines())
             {
                 ImGui::TextUnformatted(line.c_str());
             }

@@ -62,7 +62,7 @@ namespace HeatTransfer::Visualisation
 
         std::shared_ptr<RendererModel> _model; // Attached during Renderer::Render
 
-        std::shared_ptr<ConsoleLogger> _console;
+        std::shared_ptr<ConsoleLogger> _consoleLogger;
 
         std::shared_ptr<SettingsState> _settingsState;
         std::shared_ptr<SurfacePlotState> _surfacePlotState;
@@ -80,6 +80,6 @@ namespace HeatTransfer::Visualisation
         void CreateHeatMap();
         void CreateErrorPlots();
 
-        void ShowConsole();
+        void ShowConsoleLogger();
     };
 }
