@@ -1,18 +1,18 @@
 #include <catch2/catch_all.hpp>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/Method.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
-#include "HeatTransfer/SimulationRunner/Method.h"
 #include "HeatTransfer/SimulationRunner/Simulations.h"
 
 namespace
 {
-    int NumIterations(HeatTransfer::SimulationRunner::Method method,
+    int NumIterations(HeatTransfer::Core::Method method,
                       HeatTransfer::Core::SimulationParameters parameters,
                       HeatTransfer::Core::BoundaryConditions boundaryCondition)
     {
-        using enum HeatTransfer::SimulationRunner::Method;
+        using enum HeatTransfer::Core::Method;
 
         std::shared_ptr<HeatTransfer::Solvers::ISolver> solver;
 
@@ -60,16 +60,14 @@ namespace HeatTransfer::Tests
                                                                .maxInitialIterations = 1000,
                                                                .maxExpandedIterations = 1000};
 
-        auto numIterationsJacobi = NumIterations(
-            HeatTransfer::SimulationRunner::Method::JACOBI, parameters, boundaryCondition);
+        auto numIterationsJacobi =
+            NumIterations(HeatTransfer::Core::Method::JACOBI, parameters, boundaryCondition);
 
-        auto numIterationsGaussSeidel = NumIterations(
-            HeatTransfer::SimulationRunner::Method::GAUSS_SEIDEL, parameters, boundaryCondition);
+        auto numIterationsGaussSeidel =
+            NumIterations(HeatTransfer::Core::Method::GAUSS_SEIDEL, parameters, boundaryCondition);
 
-        auto numIterationsSuccessiveOverRelaxation =
-            NumIterations(HeatTransfer::SimulationRunner::Method::SUCCESSIVE_OVER_RELAXATION,
-                          parameters,
-                          boundaryCondition);
+        auto numIterationsSuccessiveOverRelaxation = NumIterations(
+            HeatTransfer::Core::Method::SUCCESSIVE_OVER_RELAXATION, parameters, boundaryCondition);
 
         REQUIRE(numIterationsGaussSeidel < numIterationsJacobi);
         REQUIRE(numIterationsSuccessiveOverRelaxation < numIterationsGaussSeidel);

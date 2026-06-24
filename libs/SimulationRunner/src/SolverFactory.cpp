@@ -8,9 +8,9 @@ namespace HeatTransfer::SimulationRunner
     {
     }
 
-    std::shared_ptr<Solvers::ISolver> SolverFactory::Create(Method method)
+    std::shared_ptr<Solvers::ISolver> SolverFactory::Create(HeatTransfer::Core::Method method)
     {
-        using enum Method;
+        using enum HeatTransfer::Core::Method;
 
         std::shared_ptr<Solvers::ISolver> solver;
 

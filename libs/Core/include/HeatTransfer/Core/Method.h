@@ -1,6 +1,6 @@
 #pragma once
 
-namespace HeatTransfer::SimulationRunner
+namespace HeatTransfer::Core
 {
     enum class Method
     {
