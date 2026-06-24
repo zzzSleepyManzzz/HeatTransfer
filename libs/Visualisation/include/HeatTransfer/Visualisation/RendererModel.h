@@ -20,6 +20,7 @@ namespace HeatTransfer::Visualisation
         std::shared_ptr<RenderFrameData> GetRenderFrameData();
         std::shared_ptr<StatisticsData> GetStatisticsData();
 
+        void UpdateModel();
         bool NeedsSimulationUpdate();
 
     private:

@@ -28,6 +28,11 @@ namespace HeatTransfer::Visualisation
         return _statisticsData;
     }
 
+    void RendererModel::UpdateModel()
+    {
+        _needsSimulationUpdate = true;
+    }
+
     bool RendererModel::NeedsSimulationUpdate()
     {
         return _needsSimulationUpdate;
