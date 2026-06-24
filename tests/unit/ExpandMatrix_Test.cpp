@@ -28,12 +28,12 @@ namespace
 
         void SetTemperatureMatrix(const Eigen::MatrixXd& matrix)
         {
-            T = matrix;
+            _temperatureMatrix = std::make_shared<Eigen::MatrixXd>(matrix);
         }
 
-        const Eigen::MatrixXd& GetTemperatureMatrix()
+        std::shared_ptr<Eigen::MatrixXd> GetTemperatureMatrix()
         {
-            return T;
+            return _temperatureMatrix;
         }
     };
 }
@@ -67,19 +67,19 @@ namespace HeatTransfer::Tests
 
         auto originalMatrix = solver->GetTemperatureMatrix();
 
-        REQUIRE(originalMatrix.rows() == 2);
-        REQUIRE(originalMatrix.cols() == 2);
+        REQUIRE(originalMatrix->rows() == 2);
+        REQUIRE(originalMatrix->cols() == 2);
 
-        REQUIRE(originalMatrix.isApprox((Eigen::MatrixXd(2, 2) << 1, 2, 3, 4).finished()));
+        REQUIRE(originalMatrix->isApprox((Eigen::MatrixXd(2, 2) << 1, 2, 3, 4).finished()));
 
         solver->ExpandDummyMatrix();
 
         auto newMatrix = solver->GetTemperatureMatrix();
 
-        REQUIRE(newMatrix.rows() == 4);
-        REQUIRE(newMatrix.cols() == 4);
+        REQUIRE(newMatrix->rows() == 4);
+        REQUIRE(newMatrix->cols() == 4);
 
-        REQUIRE(newMatrix.isApprox(
+        REQUIRE(newMatrix->isApprox(
             (Eigen::MatrixXd(4, 4) << 1, 1, 2, 2, 1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 4, 4).finished()));
     }
 }

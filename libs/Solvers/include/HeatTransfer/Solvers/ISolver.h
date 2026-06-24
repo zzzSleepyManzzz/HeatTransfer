@@ -3,6 +3,7 @@
 #include <cmath>
 #include <format>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 #include <Eigen/Dense>
@@ -21,14 +22,14 @@ namespace HeatTransfer::Solvers
         virtual void ComputeSimulation() = 0;
         virtual void PrintError();
 
-        virtual const std::vector<Core::IterationAndError>& GetErrors();
-        const Eigen::MatrixXd& GetTemperatureMatrix();
+        virtual const std::vector<std::shared_ptr<Core::IterationAndError>>& GetErrors();
+        std::shared_ptr<Eigen::MatrixXd> GetTemperatureMatrix();
 
     protected:
         Core::SimulationParameters _parameters;
         Core::BoundaryConditions _boundaryCondition;
-        std::vector<Core::IterationAndError> _errors;
-        Eigen::MatrixXd T;
+        std::vector<std::shared_ptr<Core::IterationAndError>> _errors;
+        std::shared_ptr<Eigen::MatrixXd> _temperatureMatrix;
 
         ISolver(const Core::SimulationParameters& parameters,
                 const Core::BoundaryConditions& boundaryCondition);

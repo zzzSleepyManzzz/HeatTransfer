@@ -30,13 +30,15 @@ namespace HeatTransfer::Orchestration
 
         simulations->Run(SUCCESSIVE_OVER_RELAXATION);
 
-        const auto& simulationState = simulations->GetState();
+        auto simulationOutput = simulations->GetOutput();
+        auto rendererModel =
+            std::make_shared<HeatTransfer::Visualisation::RendererModel>(simulationOutput);
 
         auto renderer = std::make_shared<HeatTransfer::Visualisation::Renderer>();
 
         while (!renderer->ShouldClose())
         {
-            renderer->Render(simulationState);
+            renderer->Render(rendererModel);
             renderer->PollEvents();
         }
     }

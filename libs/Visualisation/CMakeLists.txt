@@ -1,6 +1,9 @@
 add_library(Visualisation 
     src/ConsoleLogger.cpp
     src/Renderer.cpp
+    src/RendererModel.cpp
+    src/RenderFrameData.cpp
+    src/StatisticsData.cpp
 
     thirdparty/implot3d/implot3d.cpp         # Vendored source
     thirdparty/implot3d/implot3d_demo.cpp    # Vendored source

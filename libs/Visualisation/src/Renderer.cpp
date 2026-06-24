@@ -82,13 +82,13 @@ namespace HeatTransfer::Visualisation
         ImGui_ImplOpenGL3_Init(glsl_version);
 
         // Initialise renderer members
-        _console = std::make_shared<ConsoleLogger>();
+        _consoleLogger = std::make_shared<ConsoleLogger>();
         _settingsState = std::make_shared<SettingsState>();
         _surfacePlotState = std::make_shared<SurfacePlotState>();
         _heatMapState = std::make_shared<HeatMapState>();
     }
 
-    void Renderer::Render(const SimulationRunner::SimulationState& state)
+    void Renderer::Render(std::shared_ptr<RendererModel> model)
     {
         // Start frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -97,9 +97,11 @@ namespace HeatTransfer::Visualisation
 
         // Show windows
 
-        ShowSideBar(state);
-        ShowPlotsWindow(state);
-        ShowConsole();
+        _model = model;
+
+        ShowSideBar();
+        ShowPlotsWindow();
+        ShowConsoleLogger();
 
         // Render
         ImGui::Render();
@@ -114,7 +116,7 @@ namespace HeatTransfer::Visualisation
         glfwSwapBuffers(_window);
     }
 
-    void Renderer::ShowSideBar(const SimulationRunner::SimulationState& state)
+    void Renderer::ShowSideBar()
     {
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
@@ -124,13 +126,13 @@ namespace HeatTransfer::Visualisation
 
         ImGui::Begin("Side Bar", nullptr, windowFlags);
         {
-            AddSettings(state);
-            AddStatistics(state);
+            AddSettings();
+            AddStatistics();
         }
         ImGui::End();
     }
 
-    void Renderer::AddSettings(const SimulationRunner::SimulationState& state)
+    void Renderer::AddSettings()
     {
         if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
         {
@@ -152,22 +154,22 @@ namespace HeatTransfer::Visualisation
         }
     }
 
-    void Renderer::AddStatistics(const SimulationRunner::SimulationState& state)
+    void Renderer::AddStatistics()
     {
         if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen))
         {
             // For now, statistics will use big Temperature matrix, not small field vector
 
-            auto minTemperature = state.TemperatureMatrix.minCoeff();
-            auto maxTemperature = state.TemperatureMatrix.maxCoeff();
-            auto meanTemperature = state.TemperatureMatrix.mean();
+            auto statisticsData = _model->GetStatisticsData();
 
-            auto finalError = state.errors.back();
+            auto minTemperature = statisticsData->GetMinTemperature();
+            auto maxTemperature = statisticsData->GetMaxTemperature();
+            auto meanTemperature = statisticsData->GetMeanTemperature();
 
-            auto numIterations = finalError.iteration;
-            auto finalMaxError = finalError.errorMax;
-            auto finalMeanError = finalError.errorMean;
-            auto finalRMSError = finalError.errorRMS;
+            auto numIterations = statisticsData->GetNumIterations();
+            auto finalMaxError = statisticsData->GetFinalMaxError();
+            auto finalMeanError = statisticsData->GetFinalMeanError();
+            auto finalRMSError = statisticsData->GetFinal_RMS_Error();
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::Indent(10.0f);
@@ -195,10 +197,8 @@ namespace HeatTransfer::Visualisation
         }
     }
 
-    void Renderer::ShowPlotsWindow(const SimulationRunner::SimulationState& state)
+    void Renderer::ShowPlotsWindow()
     {
-        auto data = FlattenState(state);
-
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
@@ -212,21 +212,21 @@ namespace HeatTransfer::Visualisation
             {
                 if (ImGui::BeginTabItem("Surface Plot"))
                 {
-                    CreateSurfacePlot(data);
+                    CreateSurfacePlot();
 
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("Heat Map"))
                 {
-                    CreateHeatMap(data);
+                    CreateHeatMap();
 
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("Error plot"))
                 {
-                    CreateErrorPlots(state.errors);
+                    CreateErrorPlots();
 
                     ImGui::EndTabItem();
                 }
@@ -236,57 +236,10 @@ namespace HeatTransfer::Visualisation
         ImGui::End();
     }
 
-    FlattenedData Renderer::FlattenState(const SimulationRunner::SimulationState& state)
+    void Renderer::CreateSurfacePlot()
     {
-        int cols = state.cols;
-        int rows = state.rows;
-        int N = cols * rows;
+        auto plotData = _model->GetRenderFrameData();
 
-        std::vector<float> x_values(N, 0);
-        std::vector<float> y_values(N, 0);
-        std::vector<float> z_values(state.field.begin(), state.field.end());
-
-        float x_min = 0;
-        float x_max = state.TemperatureMatrix.cols();
-
-        float y_min = 0;
-        float y_max = state.TemperatureMatrix.rows();
-
-        float z_min = *std::min_element(z_values.begin(), z_values.end());
-        float z_max = *std::max_element(z_values.begin(), z_values.end());
-
-        float x_step = (x_max - x_min) / (cols - 1);
-        float y_step = (y_max - y_min) / (rows - 1);
-
-        for (int i = 0; i < rows; i++)
-        {
-            for (int j = 0; j < cols; j++)
-            {
-                int index = i * cols + j;
-                x_values[index] = x_min + j * x_step;
-                y_values[index] = y_min + i * y_step;
-            }
-        }
-
-        return FlattenedData{.x_values = std::move(x_values),
-                             .y_values = std::move(y_values),
-                             .z_values = std::move(z_values),
-
-                             .rows = rows,
-                             .cols = cols,
-
-                             .x_min = x_min,
-                             .x_max = x_max,
-
-                             .y_min = y_min,
-                             .y_max = y_max,
-
-                             .z_min = z_min,
-                             .z_max = z_max};
-    }
-
-    void Renderer::CreateSurfacePlot(const FlattenedData& data)
-    {
         ImPlot3DSurfaceFlags surfacePlotFlags = ImPlot3DSurfaceFlags_None;
 
         // Reset zoom button
@@ -338,24 +291,24 @@ namespace HeatTransfer::Visualisation
 
             if (_surfacePlotState->resetZoom)
             {
-                ImPlot3D::SetupAxesLimits(data.x_min,
-                                          data.x_max,
-                                          data.y_min,
-                                          data.y_max,
-                                          data.z_min,
-                                          data.z_max,
+                ImPlot3D::SetupAxesLimits(plotData->Get_X_Min(),
+                                          plotData->Get_X_Max(),
+                                          plotData->Get_Y_Min(),
+                                          plotData->Get_Y_Max(),
+                                          plotData->Get_Z_Min(),
+                                          plotData->Get_Z_Max(),
                                           ImPlot3DCond_Always);
                 _surfacePlotState->resetZoom = false;
                 ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Always);
             }
             else
             {
-                ImPlot3D::SetupAxesLimits(data.x_min,
-                                          data.x_max,
-                                          data.y_min,
-                                          data.y_max,
-                                          data.z_min,
-                                          data.z_max,
+                ImPlot3D::SetupAxesLimits(plotData->Get_X_Min(),
+                                          plotData->Get_X_Max(),
+                                          plotData->Get_Y_Min(),
+                                          plotData->Get_Y_Max(),
+                                          plotData->Get_Z_Min(),
+                                          plotData->Get_Z_Max(),
                                           ImPlot3DCond_Once);
                 ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Once);
             }
@@ -366,11 +319,11 @@ namespace HeatTransfer::Visualisation
             spec.LineColor = ImPlot3D::GetColormapColor(1);
 
             ImPlot3D::PlotSurface("## Temperature Surface Plot",
-                                  data.x_values.data(),
-                                  data.y_values.data(),
-                                  data.z_values.data(),
-                                  data.cols,
-                                  data.rows,
+                                  plotData->Get_X_Values().data(),
+                                  plotData->Get_Y_Values().data(),
+                                  plotData->Get_Z_Values().data(),
+                                  plotData->GetCols(),
+                                  plotData->GetRows(),
                                   0.0,
                                   0.0,
                                   spec);
@@ -384,12 +337,15 @@ namespace HeatTransfer::Visualisation
 
         ImGui::SameLine();
         ImPlot::PushColormap(_surfacePlotState->selectedColorMap);
-        ImPlot::ColormapScale("Temperature [°C]", data.z_min, data.z_max, ImVec2(-1, -1));
+        ImPlot::ColormapScale(
+            "Temperature [°C]", plotData->Get_Z_Min(), plotData->Get_Z_Max(), ImVec2(-1, -1));
         ImPlot::PopColormap();
     }
 
-    void Renderer::CreateHeatMap(const FlattenedData& data)
+    void Renderer::CreateHeatMap()
     {
+        auto data = _model->GetRenderFrameData();
+
         // Color map combo box
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
@@ -410,18 +366,21 @@ namespace HeatTransfer::Visualisation
         {
             ImPlot::SetupAxes(
                 "Length [pixels]", "Width [pixels]", ImPlotAxisFlags_None, ImPlotAxisFlags_None);
-            ImPlot::SetupAxesLimits(
-                data.x_min, data.x_max, data.y_min, data.y_max, ImPlotCond_Always);
+            ImPlot::SetupAxesLimits(data->Get_X_Min(),
+                                    data->Get_X_Max(),
+                                    data->Get_Y_Min(),
+                                    data->Get_Y_Max(),
+                                    ImPlotCond_Always);
 
             ImPlot::PlotHeatmap("Plotted Heat Map",
-                                data.z_values.data(),
-                                data.rows,
-                                data.cols,
-                                data.z_min,
-                                data.z_max,
+                                data->Get_Z_Values().data(),
+                                data->GetRows(),
+                                data->GetCols(),
+                                data->Get_Z_Min(),
+                                data->Get_Z_Max(),
                                 nullptr,
-                                ImPlotPoint(data.x_min, data.y_min),
-                                ImPlotPoint(data.x_max, data.y_max));
+                                ImPlotPoint(data->Get_X_Min(), data->Get_Y_Min()),
+                                ImPlotPoint(data->Get_X_Max(), data->Get_Y_Max()));
 
             ImPlot::EndPlot();
         }
@@ -429,48 +388,41 @@ namespace HeatTransfer::Visualisation
         // Create color bar
 
         ImGui::SameLine();
-        ImPlot::ColormapScale("Temperature [°C]", data.z_min, data.z_max, ImVec2(-1, -1));
+        ImPlot::ColormapScale(
+            "Temperature [°C]", data->Get_Z_Min(), data->Get_Z_Max(), ImVec2(-1, -1));
         ImPlot::PopColormap();
     }
 
-    void
-    Renderer::CreateErrorPlots(const std::vector<HeatTransfer::Core::IterationAndError>& errors)
+    void Renderer::CreateErrorPlots()
     {
-        // Some pre-processing
+        auto plotData = _model->GetRenderFrameData();
 
-        std::vector<float> iterations = {};
-        std::vector<float> maxErrors = {};
-        std::vector<float> meanErrors = {};
-        std::vector<float> rmsErrors = {};
-
-        for (const auto& error : errors)
-        {
-            iterations.push_back(error.iteration);
-            maxErrors.push_back(error.errorMax);
-            meanErrors.push_back(error.errorMean);
-            rmsErrors.push_back(error.errorRMS);
-        }
+        const auto& iterations = plotData->Get_Iterations();
+        const auto& maxErrors = plotData->Get_MaxErrors();
+        const auto& meanErrors = plotData->Get_MeanErrors();
+        const auto& rmsErrors = plotData->Get_RMS_Errors();
 
         // Print error history button
 
         if (ImGui::Button("Print error history"))
         {
-            _console->AddSpace();
-            _console->Add("================ Errors ================");
-            _console->AddSpace();
+            _consoleLogger->AddSpace();
+            _consoleLogger->Add("================ Errors ================");
+            _consoleLogger->AddSpace();
 
-            for (const auto& e : errors)
+            for (auto i = 0u; i < iterations.size(); i++)
             {
-                _console->Add(std::format("Iter {:4}  |  Max {:.4e}  |  Mean {:.4e}  |  RMS {:.4e}",
-                                          e.iteration,
-                                          e.errorMax,
-                                          e.errorMean,
-                                          e.errorRMS));
+                _consoleLogger->Add(
+                    std::format("Iter {:4}  |  Max {:.4e}  |  Mean {:.4e}  |  RMS {:.4e}",
+                                (int)iterations[i],
+                                maxErrors[i],
+                                meanErrors[i],
+                                rmsErrors[i]));
             }
 
-            _console->AddSpace();
-            _console->Add("========================================");
-            _console->AddSpace();
+            _consoleLogger->AddSpace();
+            _consoleLogger->Add("========================================");
+            _consoleLogger->AddSpace();
         }
 
         // Create line plots
@@ -507,7 +459,7 @@ namespace HeatTransfer::Visualisation
         ImPlot::PopStyleVar();
     }
 
-    void Renderer::ShowConsole()
+    void Renderer::ShowConsoleLogger()
     {
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
@@ -519,13 +471,13 @@ namespace HeatTransfer::Visualisation
         {
             if (ImGui::Button("Clear"))
             {
-                _console->Clear();
+                _consoleLogger->Clear();
             }
 
             ImGui::BeginChild(
                 "ConsoleScroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-            for (const auto& line : _console->GetLines())
+            for (const auto& line : _consoleLogger->GetLines())
             {
                 ImGui::TextUnformatted(line.c_str());
             }
