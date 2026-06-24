@@ -9,7 +9,10 @@ namespace HeatTransfer::Visualisation
     class StatisticsData
     {
     public:
-        StatisticsData(std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output);
+        StatisticsData(std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output,
+                       double durationInSeconds);
+
+        double GetDurationInSeconds();
 
         double GetMaxTemperature();
         double GetMinTemperature();
@@ -21,6 +24,8 @@ namespace HeatTransfer::Visualisation
         double GetFinal_RMS_Error();
 
     private:
+        double _durationInSeconds;
+
         double _maxTemperature;
         double _minTemperature;
         double _meanTemperature;

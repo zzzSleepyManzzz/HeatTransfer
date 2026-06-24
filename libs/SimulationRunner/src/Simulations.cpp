@@ -2,16 +2,17 @@
 
 namespace HeatTransfer::SimulationRunner
 {
-    Simulations::Simulations(const Core::SimulationParameters& parameters,
-                             const Core::BoundaryConditions& boundaryCondition)
-        : _parameters(parameters), _boundaryCondition(boundaryCondition)
+    Simulations::Simulations(std::shared_ptr<SimulationConfig> config)
+        : _parameters(config->parameters)
+        , _boundaryCondition(config->boundaryConditions)
+        , _method(config->method)
     {
     }
 
-    void Simulations::Run(Method method)
+    void Simulations::Run()
     {
         auto solverFactory = std::make_shared<SolverFactory>(_parameters, _boundaryCondition);
-        _solver = solverFactory->Create(method);
+        _solver = solverFactory->Create(_method);
         _solver->ComputeSimulation();
     }
 

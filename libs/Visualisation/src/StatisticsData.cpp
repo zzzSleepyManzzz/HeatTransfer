@@ -3,7 +3,9 @@
 namespace HeatTransfer::Visualisation
 {
     StatisticsData::StatisticsData(
-        std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output)
+        std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output,
+        double durationInSeconds)
+        : _durationInSeconds(durationInSeconds)
     {
         auto temperatureMatrix = output->TemperatureMatrix;
         const auto& errors = output->Errors;
@@ -18,6 +20,11 @@ namespace HeatTransfer::Visualisation
         _finalMaxError = finalError->errorMax;
         _finalMeanError = finalError->errorMean;
         _final_RMS_Error = finalError->errorRMS;
+    }
+
+    double StatisticsData::GetDurationInSeconds()
+    {
+        return _durationInSeconds;
     }
 
     double StatisticsData::GetMaxTemperature()

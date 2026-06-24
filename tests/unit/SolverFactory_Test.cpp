@@ -9,7 +9,7 @@ namespace HeatTransfer::Tests
 {
     TEST_CASE("Solver factory should give correct solver")
     {
-        using enum HeatTransfer::SimulationRunner::Method;
+        using enum HeatTransfer::Core::Method;
 
         HeatTransfer::Core::BoundaryConditions boundaryCondition = {.topEdge = 100.0,
                                                                     .bottomEdge = 0.0,
