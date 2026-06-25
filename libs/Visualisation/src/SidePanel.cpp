@@ -67,6 +67,8 @@ namespace HeatTransfer::Visualisation
                         "Jacobi method utilizes very efficient Eigen block operations, "
                         "thus may be faster than Gauss-Seidel and "
                         "Successive-Over-Relaxation even with higher number of iterations!");
+
+                    _logger->AddSpace();
                 }
 
                 _model->UpdateModel();
