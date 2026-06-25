@@ -61,6 +61,13 @@ namespace HeatTransfer::Visualisation
                 _model->GetSimulationConfig()->method =
                     METHOD_ARRAY[_settingsState->iterativeMethod];
 
+                if (_model->GetSimulationConfig()->method == HeatTransfer::Core::Method::JACOBI)
+                {
+                    _logger->Add("Jacobi method utilizes very efficient Eigen block operations, "
+                                 "thus may be faster than Gauss-Seidel and "
+                                 "Successive-Over-Relaxation even for large matrices!");
+                }
+
                 _model->UpdateModel();
             }
 
