@@ -25,7 +25,11 @@ namespace HeatTransfer::Visualisation
         std::shared_ptr<SettingsState> _settingsState;
 
         void ShowSideBar();
+
         void AddSettings();
+        void AddParametersButton();
+        void AddBoundaryConditionsButton();
+
         void AddStatistics();
     };
 }
