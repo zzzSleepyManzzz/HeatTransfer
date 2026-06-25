@@ -68,6 +68,18 @@ namespace HeatTransfer::Visualisation
             _meanErrors.push_back(error->errorMean);
             _RMS_Errors.push_back(error->errorRMS);
         }
+
+        _iterations_min = *std::min_element(_iterations.begin(), _iterations.end());
+        _iterations_max = *std::max_element(_iterations.begin(), _iterations.end());
+
+        _maxErrors_min = *std::min_element(_maxErrors.begin(), _maxErrors.end());
+        _maxErrors_max = *std::max_element(_maxErrors.begin(), _maxErrors.end());
+
+        _meanErrors_min = *std::min_element(_meanErrors.begin(), _meanErrors.end());
+        _meanErrors_max = *std::max_element(_meanErrors.begin(), _meanErrors.end());
+
+        _RMS_Errors_min = *std::min_element(_RMS_Errors.begin(), _RMS_Errors.end());
+        _RMS_Errors_max = *std::max_element(_RMS_Errors.begin(), _RMS_Errors.end());
     }
 
     const std::vector<double>& RenderFrameData::Get_X_Values()
@@ -143,5 +155,45 @@ namespace HeatTransfer::Visualisation
     const std::vector<double>& RenderFrameData::Get_RMS_Errors()
     {
         return _RMS_Errors;
+    }
+
+    double RenderFrameData::Get_Iterations_Min()
+    {
+        return _iterations_min;
+    }
+
+    double RenderFrameData::Get_Iterations_Max()
+    {
+        return _iterations_max;
+    }
+
+    double RenderFrameData::Get_MaxErrors_Min()
+    {
+        return _maxErrors_min;
+    }
+
+    double RenderFrameData::Get_MaxErrors_Max()
+    {
+        return _maxErrors_max;
+    }
+
+    double RenderFrameData::Get_MeanErrors_Min()
+    {
+        return _meanErrors_min;
+    }
+
+    double RenderFrameData::Get_MeanErrors_Max()
+    {
+        return _meanErrors_max;
+    }
+
+    double RenderFrameData::Get_RMS_Errors_Min()
+    {
+        return _RMS_Errors_min;
+    }
+
+    double RenderFrameData::Get_RMS_Errors_Max()
+    {
+        return _RMS_Errors_max;
     }
 }
