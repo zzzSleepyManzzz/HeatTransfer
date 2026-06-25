@@ -6,6 +6,7 @@ namespace HeatTransfer::Visualisation
         : IPanel(logger)
         , _surfacePlotState(std::make_shared<SurfacePlotState>())
         , _heatMapState(std::make_shared<HeatMapState>())
+        , _errorPlotsState(std::make_shared<ErrorPlotsState>())
     {
     }
 
@@ -220,6 +221,25 @@ namespace HeatTransfer::Visualisation
         const auto& meanErrors = plotData->Get_MeanErrors();
         const auto& rmsErrors = plotData->Get_RMS_Errors();
 
+        auto iterations_min = plotData->Get_Iterations_Min();
+        auto iterations_max = plotData->Get_Iterations_Max();
+
+        auto maxErrors_min = plotData->Get_MaxErrors_Min();
+        auto maxErrors_max = plotData->Get_MaxErrors_Max();
+
+        auto meanErrors_min = plotData->Get_MeanErrors_Min();
+        auto meanErrors_max = plotData->Get_MeanErrors_Max();
+
+        auto rmsErrors_min = plotData->Get_RMS_Errors_Min();
+        auto rmsErrors_max = plotData->Get_RMS_Errors_Max();
+
+        // Reset zoom
+
+        if (ImGui::Button("Reset zoom"))
+        {
+            _errorPlotsState->resetZoom = true;
+        }
+
         // Print error history button
 
         if (ImGui::Button("Print error history"))
@@ -249,6 +269,14 @@ namespace HeatTransfer::Visualisation
         if (ImPlot::BeginPlot("Max errors against iterations"))
         {
             ImPlot::SetupAxes("Iterations", "Max error");
+
+            if (_errorPlotsState->resetZoom)
+            {
+                ImPlot::SetupAxisLimits(
+                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
+                ImPlot::SetupAxisLimits(ImAxis_Y1, maxErrors_min, maxErrors_max, ImPlotCond_Always);
+            }
+
             ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
             ImPlot::PlotLine(
                 "## Max Error", iterations.data(), maxErrors.data(), iterations.size());
@@ -258,6 +286,15 @@ namespace HeatTransfer::Visualisation
         if (ImPlot::BeginPlot("Mean errors against iteration"))
         {
             ImPlot::SetupAxes("Iterations", "Mean error");
+
+            if (_errorPlotsState->resetZoom)
+            {
+                ImPlot::SetupAxisLimits(
+                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
+                ImPlot::SetupAxisLimits(
+                    ImAxis_Y1, meanErrors_min, meanErrors_max, ImPlotCond_Always);
+            }
+
             ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
             ImPlot::PlotLine(
                 "## Max Error", iterations.data(), meanErrors.data(), iterations.size());
@@ -267,11 +304,21 @@ namespace HeatTransfer::Visualisation
         if (ImPlot::BeginPlot("RMS errors against iteration"))
         {
             ImPlot::SetupAxes("Iterations", "RMS error");
+
+            if (_errorPlotsState->resetZoom)
+            {
+                ImPlot::SetupAxisLimits(
+                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
+                ImPlot::SetupAxisLimits(ImAxis_Y1, rmsErrors_min, rmsErrors_max, ImPlotCond_Always);
+            }
+
             ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
             ImPlot::PlotLine(
                 "## Max Error", iterations.data(), rmsErrors.data(), iterations.size());
             ImPlot::EndPlot();
         }
+
+        _errorPlotsState->resetZoom = false;
 
         ImPlot::PopStyleVar();
     }

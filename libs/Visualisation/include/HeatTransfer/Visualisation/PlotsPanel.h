@@ -1,5 +1,6 @@
 #pragma once
 
+#include "HeatTransfer/Visualisation/ErrorPlotsState.h"
 #include "HeatTransfer/Visualisation/HeatMapState.h"
 #include "HeatTransfer/Visualisation/IPanel.h"
 #include "HeatTransfer/Visualisation/SurfacePlotState.h"
@@ -34,6 +35,7 @@ namespace HeatTransfer::Visualisation
 
         std::shared_ptr<SurfacePlotState> _surfacePlotState;
         std::shared_ptr<HeatMapState> _heatMapState;
+        std::shared_ptr<ErrorPlotsState> _errorPlotsState;
 
         void ShowPlotsWindow();
         void CreateSurfacePlot();

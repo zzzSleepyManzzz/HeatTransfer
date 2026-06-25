@@ -35,6 +35,18 @@ namespace HeatTransfer::Visualisation
         const std::vector<double>& Get_MeanErrors();
         const std::vector<double>& Get_RMS_Errors();
 
+        double Get_Iterations_Min();
+        double Get_Iterations_Max();
+
+        double Get_MaxErrors_Min();
+        double Get_MaxErrors_Max();
+
+        double Get_MeanErrors_Min();
+        double Get_MeanErrors_Max();
+
+        double Get_RMS_Errors_Min();
+        double Get_RMS_Errors_Max();
+
     private:
         std::vector<double> _x_values;
         std::vector<double> _y_values;
@@ -56,5 +68,17 @@ namespace HeatTransfer::Visualisation
         std::vector<double> _maxErrors;
         std::vector<double> _meanErrors;
         std::vector<double> _RMS_Errors;
+
+        double _iterations_min;
+        double _iterations_max;
+
+        double _maxErrors_min;
+        double _maxErrors_max;
+
+        double _meanErrors_min;
+        double _meanErrors_max;
+
+        double _RMS_Errors_min;
+        double _RMS_Errors_max;
     };
 }
