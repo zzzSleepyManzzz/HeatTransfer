@@ -65,7 +65,7 @@ namespace HeatTransfer::Visualisation
 
         if (ImGui::Button("Reset zoom"))
         {
-            _surfacePlotState->resetZoom = true;
+            _surfacePlotState->ResetZoom = true;
         }
 
         // ColorMap combo box, hide lines and remove lines checkboxes
@@ -73,33 +73,33 @@ namespace HeatTransfer::Visualisation
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
 
         ImGui::Combo("Color map type",
-                     &_surfacePlotState->selectedColorMap,
+                     &_surfacePlotState->SelectedColorMap,
                      COLOR_MAP_OPTIONS,
                      IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
 
         ImGui::SameLine();
 
-        if (ImGui::Checkbox("Hide lines", &_surfacePlotState->hideLinesOn))
+        if (ImGui::Checkbox("Hide lines", &_surfacePlotState->HideLinesOn))
         {
         }
-        if (_surfacePlotState->hideLinesOn)
+        if (_surfacePlotState->HideLinesOn)
         {
             surfacePlotFlags |= ImPlot3DSurfaceFlags_NoLines;
         }
 
         ImGui::SameLine();
 
-        if (ImGui::Checkbox("Remove fill", &_surfacePlotState->removeFillOn))
+        if (ImGui::Checkbox("Remove fill", &_surfacePlotState->RemoveFillOn))
         {
         }
-        if (_surfacePlotState->removeFillOn)
+        if (_surfacePlotState->RemoveFillOn)
         {
             surfacePlotFlags |= ImPlot3DSurfaceFlags_NoFill;
         }
 
         // Create surface plot
 
-        ImPlot3D::PushColormap(_surfacePlotState->selectedColorMap);
+        ImPlot3D::PushColormap(_surfacePlotState->SelectedColorMap);
 
         ImPlot3DFlags plot3DFlags = ImPlot3DFlags_NoPan;
         auto plotWindowWidth = ImGui::GetWindowSize().x;
@@ -108,7 +108,7 @@ namespace HeatTransfer::Visualisation
         {
             ImPlot3D::SetupAxes("Width [pixels]", "Length [pixels]", "Temperature [°C]");
 
-            if (_surfacePlotState->resetZoom)
+            if (_surfacePlotState->ResetZoom)
             {
                 ImPlot3D::SetupAxesLimits(plotData->Get_X_Min(),
                                           plotData->Get_X_Max(),
@@ -117,7 +117,7 @@ namespace HeatTransfer::Visualisation
                                           plotData->Get_Z_Min(),
                                           plotData->Get_Z_Max(),
                                           ImPlot3DCond_Always);
-                _surfacePlotState->resetZoom = false;
+                _surfacePlotState->ResetZoom = false;
                 ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Always);
             }
             else
@@ -155,7 +155,7 @@ namespace HeatTransfer::Visualisation
         // Create color bar
 
         ImGui::SameLine();
-        ImPlot::PushColormap(_surfacePlotState->selectedColorMap);
+        ImPlot::PushColormap(_surfacePlotState->SelectedColorMap);
         ImPlot::ColormapScale(
             "Temperature [°C]", plotData->Get_Z_Min(), plotData->Get_Z_Max(), ImVec2(-1, -1));
         ImPlot::PopColormap();
@@ -170,13 +170,13 @@ namespace HeatTransfer::Visualisation
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
 
         ImGui::Combo("Color map type",
-                     &_heatMapState->selectedColorMap,
+                     &_heatMapState->SelectedColorMap,
                      COLOR_MAP_OPTIONS,
                      IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
 
         // Create heat map
 
-        ImPlot::PushColormap(_heatMapState->selectedColorMap);
+        ImPlot::PushColormap(_heatMapState->SelectedColorMap);
 
         auto plotWindowWidth = ImGui::GetWindowSize().x;
 
@@ -237,7 +237,7 @@ namespace HeatTransfer::Visualisation
 
         if (ImGui::Button("Reset zoom"))
         {
-            _errorPlotsState->resetZoom = true;
+            _errorPlotsState->ResetZoom = true;
         }
 
         // Print error history button
@@ -270,7 +270,7 @@ namespace HeatTransfer::Visualisation
         {
             ImPlot::SetupAxes("Iterations", "Max error");
 
-            if (_errorPlotsState->resetZoom)
+            if (_errorPlotsState->ResetZoom)
             {
                 ImPlot::SetupAxisLimits(
                     ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
@@ -287,7 +287,7 @@ namespace HeatTransfer::Visualisation
         {
             ImPlot::SetupAxes("Iterations", "Mean error");
 
-            if (_errorPlotsState->resetZoom)
+            if (_errorPlotsState->ResetZoom)
             {
                 ImPlot::SetupAxisLimits(
                     ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
@@ -305,7 +305,7 @@ namespace HeatTransfer::Visualisation
         {
             ImPlot::SetupAxes("Iterations", "RMS error");
 
-            if (_errorPlotsState->resetZoom)
+            if (_errorPlotsState->ResetZoom)
             {
                 ImPlot::SetupAxisLimits(
                     ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
@@ -318,7 +318,7 @@ namespace HeatTransfer::Visualisation
             ImPlot::EndPlot();
         }
 
-        _errorPlotsState->resetZoom = false;
+        _errorPlotsState->ResetZoom = false;
 
         ImPlot::PopStyleVar();
     }

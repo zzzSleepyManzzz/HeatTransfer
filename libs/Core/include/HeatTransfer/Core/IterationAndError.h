@@ -4,9 +4,9 @@ namespace HeatTransfer::Core
 {
     struct IterationAndError
     {
-        int iteration;
-        double errorMax;
-        double errorMean;
-        double errorRMS;
+        int Iteration;
+        double ErrorMax;
+        double ErrorMean;
+        double ErrorRMS;
     };
 }

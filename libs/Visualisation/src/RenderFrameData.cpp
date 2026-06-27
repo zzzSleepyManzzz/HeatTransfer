@@ -63,10 +63,10 @@ namespace HeatTransfer::Visualisation
 
         for (auto error : errors)
         {
-            _iterations.push_back(error->iteration);
-            _maxErrors.push_back(error->errorMax);
-            _meanErrors.push_back(error->errorMean);
-            _RMS_Errors.push_back(error->errorRMS);
+            _iterations.push_back(error->Iteration);
+            _maxErrors.push_back(error->ErrorMax);
+            _meanErrors.push_back(error->ErrorMean);
+            _RMS_Errors.push_back(error->ErrorRMS);
         }
 
         _iterations_min = *std::min_element(_iterations.begin(), _iterations.end());

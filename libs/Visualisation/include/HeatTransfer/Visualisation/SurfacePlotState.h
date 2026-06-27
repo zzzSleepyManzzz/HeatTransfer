@@ -4,10 +4,10 @@ namespace HeatTransfer::Visualisation
 {
     struct SurfacePlotState
     {
-        bool resetZoom = false;
-        int selectedColorMap = 6; // Hot by default
+        bool ResetZoom = false;
+        int SelectedColorMap = 6; // Hot by default
 
-        bool hideLinesOn = false;
-        bool removeFillOn = false;
+        bool HideLinesOn = false;
+        bool RemoveFillOn = false;
     };
 }

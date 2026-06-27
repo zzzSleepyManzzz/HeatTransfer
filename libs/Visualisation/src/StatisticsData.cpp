@@ -16,10 +16,10 @@ namespace HeatTransfer::Visualisation
 
         auto finalError = errors.back();
 
-        _numIterations = finalError->iteration;
-        _finalMaxError = finalError->errorMax;
-        _finalMeanError = finalError->errorMean;
-        _final_RMS_Error = finalError->errorRMS;
+        _numIterations = finalError->Iteration;
+        _finalMaxError = finalError->ErrorMax;
+        _finalMeanError = finalError->ErrorMean;
+        _final_RMS_Error = finalError->ErrorRMS;
     }
 
     double StatisticsData::GetDurationInSeconds()

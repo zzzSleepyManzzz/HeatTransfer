@@ -61,27 +61,27 @@ namespace HeatTransfer::Solvers
 
     void SuccessiveOverRelaxation::ComputeSimulation()
     {
-        int rows = _parameters.rows / std::pow(_parameters.expansion, _parameters.numExpansions);
+        int rows = _parameters.Rows / std::pow(_parameters.Expansion, _parameters.NumExpansions);
         int columns =
-            _parameters.columns / std::pow(_parameters.expansion, _parameters.numExpansions);
+            _parameters.Columns / std::pow(_parameters.Expansion, _parameters.NumExpansions);
         int totalIterations = 0;
 
         _temperatureMatrix = std::make_shared<Eigen::MatrixXd>(rows, columns);
         _temperatureMatrix->setZero();
 
         ApplyBoundaryConditions();
-        IterateTemperature(_parameters.maxInitialIterations,
-                           _parameters.initialTolerance,
-                           _parameters.relaxationFactor,
+        IterateTemperature(_parameters.MaxInitialIterations,
+                           _parameters.InitialTolerance,
+                           _parameters.RelaxationFactor,
                            totalIterations);
 
-        for (int i = 0; i < _parameters.numExpansions; i++)
+        for (int i = 0; i < _parameters.NumExpansions; i++)
         {
             ExpandMatrix();
             ApplyBoundaryConditions();
-            IterateTemperature(_parameters.maxExpandedIterations,
-                               _parameters.expandedTolerance,
-                               _parameters.relaxationFactor,
+            IterateTemperature(_parameters.MaxExpandedIterations,
+                               _parameters.ExpandedTolerance,
+                               _parameters.RelaxationFactor,
                                totalIterations);
         }
     }

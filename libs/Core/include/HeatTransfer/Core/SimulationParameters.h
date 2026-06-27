@@ -4,27 +4,27 @@ namespace HeatTransfer::Core
 {
     struct SimulationParameters
     {
-        int rows;
-        int columns;
-        int expansion;
-        int numExpansions;
-        double initialTolerance;
-        double expandedTolerance;
-        double relaxationFactor;
-        int maxInitialIterations;
-        int maxExpandedIterations;
+        int Rows;
+        int Columns;
+        int Expansion;
+        int NumExpansions;
+        double InitialTolerance;
+        double ExpandedTolerance;
+        double RelaxationFactor;
+        int MaxInitialIterations;
+        int MaxExpandedIterations;
 
         constexpr static const SimulationParameters Default()
         {
-            return {.rows = 2000,
-                    .columns = 2000,
-                    .expansion = 2,
-                    .numExpansions = 5,
-                    .initialTolerance = 1e-3,
-                    .expandedTolerance = 1e-1,
-                    .relaxationFactor = 1.7,
-                    .maxInitialIterations = 1000,
-                    .maxExpandedIterations = 1000};
+            return {.Rows = 2000,
+                    .Columns = 2000,
+                    .Expansion = 2,
+                    .NumExpansions = 5,
+                    .InitialTolerance = 1e-3,
+                    .ExpandedTolerance = 1e-1,
+                    .RelaxationFactor = 1.7,
+                    .MaxInitialIterations = 1000,
+                    .MaxExpandedIterations = 1000};
         }
     };
 }

@@ -42,22 +42,22 @@ namespace HeatTransfer::Tests
 {
     TEST_CASE("Verifying ExpandMatrix in ISolver")
     {
-        HeatTransfer::Core::BoundaryConditions boundaryCondition = {.topEdge = 100.0,
-                                                                    .bottomEdge = 0.0,
-                                                                    .leftEdge = 100.0,
-                                                                    .rightEdge = 0.0,
-                                                                    .innerSquare = 50.0,
-                                                                    .centerPoint = -100.0};
+        HeatTransfer::Core::BoundaryConditions boundaryCondition = {.TopEdge = 100.0,
+                                                                    .BottomEdge = 0.0,
+                                                                    .LeftEdge = 100.0,
+                                                                    .RightEdge = 0.0,
+                                                                    .InnerSquare = 50.0,
+                                                                    .CenterPoint = -100.0};
 
-        HeatTransfer::Core::SimulationParameters parameters = {.rows = 2,
-                                                               .columns = 2,
-                                                               .expansion = 2,
-                                                               .numExpansions = 2,
-                                                               .initialTolerance = 1e-3,
-                                                               .expandedTolerance = 1e-1,
-                                                               .relaxationFactor = 1.7,
-                                                               .maxInitialIterations = 1000,
-                                                               .maxExpandedIterations = 1000};
+        HeatTransfer::Core::SimulationParameters parameters = {.Rows = 2,
+                                                               .Columns = 2,
+                                                               .Expansion = 2,
+                                                               .NumExpansions = 2,
+                                                               .InitialTolerance = 1e-3,
+                                                               .ExpandedTolerance = 1e-1,
+                                                               .RelaxationFactor = 1.7,
+                                                               .MaxInitialIterations = 1000,
+                                                               .MaxExpandedIterations = 1000};
 
         auto solver = std::make_shared<DummySolver>(parameters, boundaryCondition);
 

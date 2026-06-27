@@ -8,8 +8,8 @@ namespace HeatTransfer::SimulationRunner
 {
     struct SimulationConfig
     {
-        HeatTransfer::Core::SimulationParameters parameters;
-        HeatTransfer::Core::BoundaryConditions boundaryConditions;
-        HeatTransfer::Core::Method method;
+        HeatTransfer::Core::SimulationParameters Parameters;
+        HeatTransfer::Core::BoundaryConditions BoundaryConditions;
+        HeatTransfer::Core::Method Method;
     };
 }
