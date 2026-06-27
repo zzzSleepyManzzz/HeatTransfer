@@ -4,6 +4,6 @@ namespace HeatTransfer::Visualisation
 {
     struct ErrorPlotsState
     {
-        bool resetZoom = false;
+        bool ResetZoom = false;
     };
 }

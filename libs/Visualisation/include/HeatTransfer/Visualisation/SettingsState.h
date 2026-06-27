@@ -9,9 +9,9 @@ namespace HeatTransfer::Visualisation
 {
     struct SettingsState
     {
-        bool lightModeOn = false;
-        int iterativeMethod = 2; // SOR by default
-        Core::SimulationParameters temporaryParameters = Core::SimulationParameters::Default();
-        Core::BoundaryConditions temporaryBoundaryConditions = Core::BoundaryConditions::Default();
+        bool LightModeOn = false;
+        int IterativeMethod = 2; // SOR by default
+        Core::SimulationParameters TemporaryParameters = Core::SimulationParameters::Default();
+        Core::BoundaryConditions TemporaryBoundaryConditions = Core::BoundaryConditions::Default();
     };
 }

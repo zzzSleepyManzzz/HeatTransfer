@@ -56,9 +56,9 @@ namespace HeatTransfer::Solvers
 
     void GaussSeidelMethod::ComputeSimulation()
     {
-        int rows = _parameters.rows / std::pow(_parameters.expansion, _parameters.numExpansions);
+        int rows = _parameters.Rows / std::pow(_parameters.Expansion, _parameters.NumExpansions);
         int columns =
-            _parameters.columns / std::pow(_parameters.expansion, _parameters.numExpansions);
+            _parameters.Columns / std::pow(_parameters.Expansion, _parameters.NumExpansions);
         int totalIterations = 0;
 
         _temperatureMatrix = std::make_shared<Eigen::MatrixXd>(rows, columns);
@@ -66,14 +66,14 @@ namespace HeatTransfer::Solvers
 
         ApplyBoundaryConditions();
         IterateTemperature(
-            _parameters.maxInitialIterations, _parameters.initialTolerance, totalIterations);
+            _parameters.MaxInitialIterations, _parameters.InitialTolerance, totalIterations);
 
-        for (int i = 0; i < _parameters.numExpansions; i++)
+        for (int i = 0; i < _parameters.NumExpansions; i++)
         {
             ExpandMatrix();
             ApplyBoundaryConditions();
             IterateTemperature(
-                _parameters.maxExpandedIterations, _parameters.expandedTolerance, totalIterations);
+                _parameters.MaxExpandedIterations, _parameters.ExpandedTolerance, totalIterations);
         }
     }
 }

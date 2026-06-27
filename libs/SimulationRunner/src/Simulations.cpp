@@ -3,9 +3,9 @@
 namespace HeatTransfer::SimulationRunner
 {
     Simulations::Simulations(std::shared_ptr<SimulationConfig> config)
-        : _parameters(config->parameters)
-        , _boundaryCondition(config->boundaryConditions)
-        , _method(config->method)
+        : _parameters(config->Parameters)
+        , _boundaryCondition(config->BoundaryConditions)
+        , _method(config->Method)
     {
     }
 

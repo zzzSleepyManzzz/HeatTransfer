@@ -4,21 +4,21 @@ namespace HeatTransfer::Core
 {
     struct BoundaryConditions
     {
-        double topEdge;
-        double bottomEdge;
-        double leftEdge;
-        double rightEdge;
-        double innerSquare;
-        double centerPoint;
+        double TopEdge;
+        double BottomEdge;
+        double LeftEdge;
+        double RightEdge;
+        double InnerSquare;
+        double CenterPoint;
 
         constexpr static const BoundaryConditions Default()
         {
-            return {.topEdge = 100.0,
-                    .bottomEdge = 0.0,
-                    .leftEdge = 100.0,
-                    .rightEdge = 0.0,
-                    .innerSquare = 50.0,
-                    .centerPoint = -100.0};
+            return {.TopEdge = 100.0,
+                    .BottomEdge = 0.0,
+                    .LeftEdge = 100.0,
+                    .RightEdge = 0.0,
+                    .InnerSquare = 50.0,
+                    .CenterPoint = -100.0};
         }
     };
 }

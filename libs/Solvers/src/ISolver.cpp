@@ -12,10 +12,10 @@ namespace HeatTransfer::Solvers
     {
         for (const auto& error : _errors)
         {
-            std::cout << std::format("Iteration  : {}", error->iteration) << std::endl;
-            std::cout << std::format("Max error  : {}", error->errorMax) << std::endl;
-            std::cout << std::format("Mean error : {}", error->errorMean) << std::endl;
-            std::cout << std::format("RMS error  : {}", error->errorRMS) << std::endl;
+            std::cout << std::format("Iteration  : {}", error->Iteration) << std::endl;
+            std::cout << std::format("Max error  : {}", error->ErrorMax) << std::endl;
+            std::cout << std::format("Mean error : {}", error->ErrorMean) << std::endl;
+            std::cout << std::format("RMS error  : {}", error->ErrorRMS) << std::endl;
             std::cout << std::endl;
         }
     }
@@ -37,10 +37,10 @@ namespace HeatTransfer::Solvers
         const Eigen::Index rows = T.rows();
         const Eigen::Index cols = T.cols();
 
-        T.row(0) = Eigen::VectorXd::Constant(cols, _boundaryCondition.topEdge);
-        T.row(rows - 1) = Eigen::VectorXd::Constant(cols, _boundaryCondition.bottomEdge);
-        T.col(0) = Eigen::VectorXd::Constant(rows, _boundaryCondition.leftEdge);
-        T.col(cols - 1) = Eigen::VectorXd::Constant(rows, _boundaryCondition.rightEdge);
+        T.row(0) = Eigen::VectorXd::Constant(cols, _boundaryCondition.TopEdge);
+        T.row(rows - 1) = Eigen::VectorXd::Constant(cols, _boundaryCondition.BottomEdge);
+        T.col(0) = Eigen::VectorXd::Constant(rows, _boundaryCondition.LeftEdge);
+        T.col(cols - 1) = Eigen::VectorXd::Constant(rows, _boundaryCondition.RightEdge);
 
         // Set inner square
         const int h1 = std::floor(rows / 4);
@@ -51,25 +51,25 @@ namespace HeatTransfer::Solvers
         const int c2 = std::floor(cols / 2) - 1;
 
         T(Eigen::seq(h1, h2), h3) =
-            Eigen::VectorXd::Constant(h2 - h1 + 1, _boundaryCondition.innerSquare);
+            Eigen::VectorXd::Constant(h2 - h1 + 1, _boundaryCondition.InnerSquare);
 
         T(Eigen::seq(h1, h2), h4) =
-            Eigen::VectorXd::Constant(h2 - h1 + 1, _boundaryCondition.innerSquare);
+            Eigen::VectorXd::Constant(h2 - h1 + 1, _boundaryCondition.InnerSquare);
 
         T(h1, Eigen::seq(h3, h4)) =
-            Eigen::RowVectorXd::Constant(h4 - h3 + 1, _boundaryCondition.innerSquare);
+            Eigen::RowVectorXd::Constant(h4 - h3 + 1, _boundaryCondition.InnerSquare);
 
         T(h2, Eigen::seq(h3, h4)) =
-            Eigen::RowVectorXd::Constant(h4 - h3 + 1, _boundaryCondition.innerSquare);
+            Eigen::RowVectorXd::Constant(h4 - h3 + 1, _boundaryCondition.InnerSquare);
 
-        T(c1, c2) = _boundaryCondition.centerPoint;
+        T(c1, c2) = _boundaryCondition.CenterPoint;
     }
 
     void ISolver::ExpandMatrix()
     {
         auto& T = *_temperatureMatrix;
 
-        int expansionFactor = _parameters.expansion;
+        int expansionFactor = _parameters.Expansion;
 
         const Eigen::Index rows = T.rows();
         const Eigen::Index cols = T.cols();

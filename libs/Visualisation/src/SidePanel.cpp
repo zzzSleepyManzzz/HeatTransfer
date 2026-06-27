@@ -41,9 +41,9 @@ namespace HeatTransfer::Visualisation
 
             ImGui::SameLine();
 
-            if (ImGui::Checkbox("##Turn light mode on", &_settingsState->lightModeOn))
+            if (ImGui::Checkbox("##Turn light mode on", &_settingsState->LightModeOn))
             {
-                if (_settingsState->lightModeOn)
+                if (_settingsState->LightModeOn)
                     ImGui::StyleColorsLight();
                 else
                     ImGui::StyleColorsDark();
@@ -54,14 +54,14 @@ namespace HeatTransfer::Visualisation
             // Iterative method combo box
 
             if (ImGui::Combo("## Iterative Method",
-                             &_settingsState->iterativeMethod,
+                             &_settingsState->IterativeMethod,
                              METHOD_OPTIONS,
                              IM_ARRAYSIZE(METHOD_OPTIONS)))
             {
-                _model->GetSimulationConfig()->method =
-                    METHOD_ARRAY[_settingsState->iterativeMethod];
+                _model->GetSimulationConfig()->Method =
+                    METHOD_ARRAY[_settingsState->IterativeMethod];
 
-                if (_model->GetSimulationConfig()->method == HeatTransfer::Core::Method::JACOBI)
+                if (_model->GetSimulationConfig()->Method == HeatTransfer::Core::Method::JACOBI)
                 {
                     _logger->Add(
                         "Jacobi method utilizes very efficient Eigen block operations, "
@@ -111,37 +111,37 @@ namespace HeatTransfer::Visualisation
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-            if (ImGui::InputInt("Number of rows", &_settingsState->temporaryParameters.rows))
+            if (ImGui::InputInt("Number of rows", &_settingsState->TemporaryParameters.Rows))
             {
             }
-            if (ImGui::InputInt("Number of columns", &_settingsState->temporaryParameters.columns))
+            if (ImGui::InputInt("Number of columns", &_settingsState->TemporaryParameters.Columns))
             {
             }
-            if (ImGui::InputInt("Expansion factor", &_settingsState->temporaryParameters.expansion))
+            if (ImGui::InputInt("Expansion factor", &_settingsState->TemporaryParameters.Expansion))
             {
             }
             if (ImGui::InputInt("Num of expansions",
-                                &_settingsState->temporaryParameters.numExpansions))
+                                &_settingsState->TemporaryParameters.NumExpansions))
             {
             }
             if (ImGui::InputDouble("Initial tolerance",
-                                   &_settingsState->temporaryParameters.initialTolerance))
+                                   &_settingsState->TemporaryParameters.InitialTolerance))
             {
             }
             if (ImGui::InputDouble("Expanded tolerance",
-                                   &_settingsState->temporaryParameters.expandedTolerance))
+                                   &_settingsState->TemporaryParameters.ExpandedTolerance))
             {
             }
             if (ImGui::InputDouble("Relaxation factor",
-                                   &_settingsState->temporaryParameters.relaxationFactor))
+                                   &_settingsState->TemporaryParameters.RelaxationFactor))
             {
             }
             if (ImGui::InputInt("Max initial iterations",
-                                &_settingsState->temporaryParameters.maxInitialIterations))
+                                &_settingsState->TemporaryParameters.MaxInitialIterations))
             {
             }
             if (ImGui::InputInt("Max expanded iterations",
-                                &_settingsState->temporaryParameters.maxExpandedIterations))
+                                &_settingsState->TemporaryParameters.MaxExpandedIterations))
             {
             }
 
@@ -149,7 +149,7 @@ namespace HeatTransfer::Visualisation
 
             if (ImGui::Button("OK", ImVec2(displaySize.x * 1.0f / 6.0f, 0)))
             {
-                _model->GetSimulationConfig()->parameters = _settingsState->temporaryParameters;
+                _model->GetSimulationConfig()->Parameters = _settingsState->TemporaryParameters;
                 _model->UpdateModel();
 
                 ImGui::CloseCurrentPopup();
@@ -159,7 +159,7 @@ namespace HeatTransfer::Visualisation
 
             if (ImGui::Button("Cancel", ImVec2(-1, 0)))
             {
-                _settingsState->temporaryParameters = _model->GetSimulationConfig()->parameters;
+                _settingsState->TemporaryParameters = _model->GetSimulationConfig()->Parameters;
 
                 ImGui::CloseCurrentPopup();
             }
@@ -199,27 +199,27 @@ namespace HeatTransfer::Visualisation
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             if (ImGui::InputDouble("Top edge temperature",
-                                   &_settingsState->temporaryBoundaryConditions.topEdge))
+                                   &_settingsState->TemporaryBoundaryConditions.TopEdge))
             {
             }
             if (ImGui::InputDouble("Bottom edge temperature",
-                                   &_settingsState->temporaryBoundaryConditions.bottomEdge))
+                                   &_settingsState->TemporaryBoundaryConditions.BottomEdge))
             {
             }
             if (ImGui::InputDouble("Left edge temperature",
-                                   &_settingsState->temporaryBoundaryConditions.leftEdge))
+                                   &_settingsState->TemporaryBoundaryConditions.LeftEdge))
             {
             }
             if (ImGui::InputDouble("Right edge temperature",
-                                   &_settingsState->temporaryBoundaryConditions.rightEdge))
+                                   &_settingsState->TemporaryBoundaryConditions.RightEdge))
             {
             }
             if (ImGui::InputDouble("Inner square temperature",
-                                   &_settingsState->temporaryBoundaryConditions.innerSquare))
+                                   &_settingsState->TemporaryBoundaryConditions.InnerSquare))
             {
             }
             if (ImGui::InputDouble("Center point temperature",
-                                   &_settingsState->temporaryBoundaryConditions.centerPoint))
+                                   &_settingsState->TemporaryBoundaryConditions.CenterPoint))
             {
             }
 
@@ -227,8 +227,8 @@ namespace HeatTransfer::Visualisation
 
             if (ImGui::Button("OK", ImVec2(displaySize.x * 1.0f / 6.0f, 0)))
             {
-                _model->GetSimulationConfig()->boundaryConditions =
-                    _settingsState->temporaryBoundaryConditions;
+                _model->GetSimulationConfig()->BoundaryConditions =
+                    _settingsState->TemporaryBoundaryConditions;
                 _model->UpdateModel();
 
                 ImGui::CloseCurrentPopup();
@@ -238,8 +238,8 @@ namespace HeatTransfer::Visualisation
 
             if (ImGui::Button("Cancel", ImVec2(-1, 0)))
             {
-                _settingsState->temporaryBoundaryConditions =
-                    _model->GetSimulationConfig()->boundaryConditions;
+                _settingsState->TemporaryBoundaryConditions =
+                    _model->GetSimulationConfig()->BoundaryConditions;
 
                 ImGui::CloseCurrentPopup();
             }

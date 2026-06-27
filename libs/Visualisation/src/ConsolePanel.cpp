@@ -25,6 +25,22 @@ namespace HeatTransfer::Visualisation
                 _logger->Clear();
             }
 
+            ImGui::SameLine();
+
+            if (ImGui::Button("Copy"))
+            {
+                std::string allText = "";
+                for (const auto& line : _logger->GetLines())
+                {
+                    allText += line + "\n";
+                }
+
+                if (!allText.empty())
+                {
+                    ImGui::SetClipboardText(allText.c_str());
+                }
+            }
+
             ImGui::BeginChild(
                 "ConsoleScroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
