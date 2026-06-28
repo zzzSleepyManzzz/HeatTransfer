@@ -89,4 +89,94 @@ namespace HeatTransfer::Solvers
             }
         }
     }
+
+    bool ISolver::IsInsulated(Eigen::Index row, Eigen::Index col)
+    {
+        auto& T = *_temperatureMatrix;
+
+        const Eigen::Index numRows = T.rows();
+        const Eigen::Index numCols = T.cols();
+
+        if (row == 0 && col >= 0 && col < numCols)
+            return true;
+
+        if (row == numRows - 1 && col >= 0 && col < numCols)
+            return true;
+
+        if (col == 0 && row >= 0 && row < numRows)
+            return true;
+
+        if (col == numCols - 1 && row >= 0 && row < numRows)
+            return true;
+
+        // Set inner square
+        const int h1 = std::floor(numRows / 4);
+        const int h2 = std::floor(3 * numRows / 4);
+        const int h3 = std::floor(numCols / 4);
+        const int h4 = std::floor(3 * numCols / 4);
+        const int c1 = std::floor(numRows / 2) - 1;
+        const int c2 = std::floor(numCols / 2) - 1;
+
+        if (row == h1 && col >= h3 && col <= h4)
+            return true;
+
+        if (row == h2 && col >= h3 && col <= h4)
+            return true;
+
+        if (col == h3 && row >= h1 && row <= h2)
+            return true;
+
+        if (col == h4 && row >= h1 && row <= h2)
+            return true;
+
+        if (row == c1 && col == c2)
+            return true;
+
+        return false;
+    }
+
+    double ISolver::InsulatedValue(Eigen::Index row, Eigen::Index col)
+    {
+        auto& T = *_temperatureMatrix;
+
+        const Eigen::Index numRows = T.rows();
+        const Eigen::Index numCols = T.cols();
+
+        if (row == 0 && col >= 0 && col < numCols)
+            return _boundaryCondition.TopEdge;
+
+        if (row == numRows - 1 && col >= 0 && col < numCols)
+            return _boundaryCondition.BottomEdge;
+
+        if (col == 0 && row >= 0 && row < numRows)
+            return _boundaryCondition.LeftEdge;
+
+        if (col == numCols - 1 && row >= 0 && row < numRows)
+            return _boundaryCondition.RightEdge;
+
+        // Set inner square
+        const int h1 = std::floor(numRows / 4);
+        const int h2 = std::floor(3 * numRows / 4);
+        const int h3 = std::floor(numCols / 4);
+        const int h4 = std::floor(3 * numCols / 4);
+        const int c1 = std::floor(numRows / 2) - 1;
+        const int c2 = std::floor(numCols / 2) - 1;
+
+        if (row == h1 && col >= h3 && col <= h4)
+            return _boundaryCondition.InnerSquare;
+
+        if (row == h2 && col >= h3 && col <= h4)
+            return _boundaryCondition.InnerSquare;
+
+        if (col == h3 && row >= h1 && row <= h2)
+            return _boundaryCondition.InnerSquare;
+
+        if (col == h4 && row >= h1 && row <= h2)
+            return _boundaryCondition.InnerSquare;
+
+        if (row == c1 && col == c2)
+            return _boundaryCondition.CenterPoint;
+
+        throw std::runtime_error("Asking for insulated value from non-insulated edge");
+    }
 }
