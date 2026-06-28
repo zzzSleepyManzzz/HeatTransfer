@@ -27,7 +27,7 @@ namespace HeatTransfer::Solvers
         Eigen::ArrayXXd errorArray(rows, cols);
         Eigen::ArrayXXd residualArray(rows, cols);
 
-        while (localIterations < maxIterations && errorMax > tolerance)
+        while (localIterations < maxIterations && residualMax > tolerance)
         {
             oldTemperature = *_temperatureMatrix;
 
@@ -61,7 +61,7 @@ namespace HeatTransfer::Solvers
             _errors.push_back(error);
 
             auto residual = std::make_shared<Core::ResidualMetric>(
-                totalIterations, residualMax, residualMean, residualMean);
+                totalIterations, residualMax, residualMean, residualRMS);
 
             _residualMetrics.push_back(residual);
         }

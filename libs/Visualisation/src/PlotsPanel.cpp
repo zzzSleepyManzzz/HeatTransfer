@@ -479,7 +479,7 @@ namespace HeatTransfer::Visualisation
 
         // Print residual metrics history button
 
-        if (ImGui::Button("Print residual metrics history"))
+        if (ImGui::Button("Print residual history"))
         {
             _logger->AddSpace();
             _logger->Add("================ Residual Metrics ================");
