@@ -225,5 +225,7 @@ namespace HeatTransfer::Solvers
         R(h2, Eigen::seq(h3, h4)) = Eigen::RowVectorXd::Constant(h4 - h3 + 1, 0);
 
         R(c1, c2) = 0;
+
+        R = R.cwiseAbs().eval();
     }
 }
