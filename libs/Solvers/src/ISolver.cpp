@@ -219,6 +219,6 @@ namespace HeatTransfer::Solvers
         R(h1, Eigen::seq(h3, h4)) = Eigen::RowVectorXd::Constant(h4 - h3 + 1, 0);
         R(h2, Eigen::seq(h3, h4)) = Eigen::RowVectorXd::Constant(h4 - h3 + 1, 0);
 
-        R(c1, c2) = _boundaryCondition.CenterPoint;
+        R(c1, c2) = 0;
     }
 }
