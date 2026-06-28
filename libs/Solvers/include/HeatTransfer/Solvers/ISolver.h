@@ -10,6 +10,7 @@
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/IterationAndError.h"
+#include "HeatTransfer/Core/ResidualMetric.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
 namespace HeatTransfer::Solvers
@@ -23,6 +24,8 @@ namespace HeatTransfer::Solvers
         virtual void PrintError();
 
         virtual const std::vector<std::shared_ptr<Core::IterationAndError>>& GetErrors();
+        virtual const std::vector<std::shared_ptr<Core::ResidualMetric>>& GetResidualMetrics();
+
         std::shared_ptr<Eigen::MatrixXd> GetTemperatureMatrix();
         std::shared_ptr<Eigen::MatrixXd> GetResidualMatrix();
 
@@ -30,6 +33,7 @@ namespace HeatTransfer::Solvers
         Core::SimulationParameters _parameters;
         Core::BoundaryConditions _boundaryCondition;
         std::vector<std::shared_ptr<Core::IterationAndError>> _errors;
+        std::vector<std::shared_ptr<Core::ResidualMetric>> _residualMetrics;
         std::shared_ptr<Eigen::MatrixXd> _temperatureMatrix;
         std::shared_ptr<Eigen::MatrixXd> _residualMatrix;
 

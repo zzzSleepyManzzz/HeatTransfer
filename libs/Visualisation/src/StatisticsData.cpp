@@ -20,6 +20,13 @@ namespace HeatTransfer::Visualisation
         _finalMaxError = finalError->ErrorMax;
         _finalMeanError = finalError->ErrorMean;
         _final_RMS_Error = finalError->ErrorRMS;
+
+        const auto& residualMetrics = output->ResidualMetrics;
+        auto finalResidual = residualMetrics.back();
+
+        _finalMaxResidual = finalResidual->ResidualMax;
+        _finalMeanResidual = finalResidual->ResidualMean;
+        _final_RMS_Residual = finalResidual->ResidualRMS;
     }
 
     double StatisticsData::GetDurationInSeconds()
@@ -60,5 +67,20 @@ namespace HeatTransfer::Visualisation
     double StatisticsData::GetFinal_RMS_Error()
     {
         return _final_RMS_Error;
+    }
+
+    double StatisticsData::GetFinalMaxResidual()
+    {
+        return _finalMaxResidual;
+    }
+
+    double StatisticsData::GetFinalMeanResidual()
+    {
+        return _finalMeanResidual;
+    }
+
+    double StatisticsData::GetFinal_RMS_Residual()
+    {
+        return _final_RMS_Residual;
     }
 }

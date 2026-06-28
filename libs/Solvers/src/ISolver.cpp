@@ -25,6 +25,11 @@ namespace HeatTransfer::Solvers
         return _errors;
     }
 
+    const std::vector<std::shared_ptr<Core::ResidualMetric>>& ISolver::GetResidualMetrics()
+    {
+        return _residualMetrics;
+    }
+
     std::shared_ptr<Eigen::MatrixXd> ISolver::GetTemperatureMatrix()
     {
         return _temperatureMatrix;
