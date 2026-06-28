@@ -114,8 +114,8 @@ namespace HeatTransfer::Visualisation
                                           plotData->Get_X_Max(),
                                           plotData->Get_Y_Min(),
                                           plotData->Get_Y_Max(),
-                                          plotData->Get_Z_Min(),
-                                          plotData->Get_Z_Max(),
+                                          plotData->Get_Temperature_Min(),
+                                          plotData->Get_Temperature_Max(),
                                           ImPlot3DCond_Always);
                 _surfacePlotState->ResetZoom = false;
                 ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Always);
@@ -126,8 +126,8 @@ namespace HeatTransfer::Visualisation
                                           plotData->Get_X_Max(),
                                           plotData->Get_Y_Min(),
                                           plotData->Get_Y_Max(),
-                                          plotData->Get_Z_Min(),
-                                          plotData->Get_Z_Max(),
+                                          plotData->Get_Temperature_Min(),
+                                          plotData->Get_Temperature_Max(),
                                           ImPlot3DCond_Once);
                 ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Once);
             }
@@ -140,7 +140,7 @@ namespace HeatTransfer::Visualisation
             ImPlot3D::PlotSurface("## Temperature Surface Plot",
                                   plotData->Get_X_Values().data(),
                                   plotData->Get_Y_Values().data(),
-                                  plotData->Get_Z_Values().data(),
+                                  plotData->Get_Temperature_Values().data(),
                                   plotData->GetCols(),
                                   plotData->GetRows(),
                                   0.0,
@@ -156,8 +156,10 @@ namespace HeatTransfer::Visualisation
 
         ImGui::SameLine();
         ImPlot::PushColormap(_surfacePlotState->SelectedColorMap);
-        ImPlot::ColormapScale(
-            "Temperature [°C]", plotData->Get_Z_Min(), plotData->Get_Z_Max(), ImVec2(-1, -1));
+        ImPlot::ColormapScale("Temperature [°C]",
+                              plotData->Get_Temperature_Min(),
+                              plotData->Get_Temperature_Max(),
+                              ImVec2(-1, -1));
         ImPlot::PopColormap();
     }
 
@@ -192,11 +194,11 @@ namespace HeatTransfer::Visualisation
                                     ImPlotCond_Always);
 
             ImPlot::PlotHeatmap("Plotted Heat Map",
-                                data->Get_Z_Values().data(),
+                                data->Get_Temperature_Values().data(),
                                 data->GetRows(),
                                 data->GetCols(),
-                                data->Get_Z_Min(),
-                                data->Get_Z_Max(),
+                                data->Get_Temperature_Min(),
+                                data->Get_Temperature_Max(),
                                 nullptr,
                                 ImPlotPoint(data->Get_X_Min(), data->Get_Y_Min()),
                                 ImPlotPoint(data->Get_X_Max(), data->Get_Y_Max()));
@@ -207,8 +209,10 @@ namespace HeatTransfer::Visualisation
         // Create color bar
 
         ImGui::SameLine();
-        ImPlot::ColormapScale(
-            "Temperature [°C]", data->Get_Z_Min(), data->Get_Z_Max(), ImVec2(-1, -1));
+        ImPlot::ColormapScale("Temperature [°C]",
+                              data->Get_Temperature_Min(),
+                              data->Get_Temperature_Max(),
+                              ImVec2(-1, -1));
         ImPlot::PopColormap();
     }
 
