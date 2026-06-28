@@ -190,6 +190,9 @@ namespace HeatTransfer::Solvers
         const Eigen::Index rows = _temperatureMatrix->rows();
         const Eigen::Index cols = _temperatureMatrix->cols();
 
+        _residualMatrix = std::make_shared<Eigen::MatrixXd>(rows, cols);
+        _residualMatrix->setZero();
+
         auto& T = *_temperatureMatrix;
         auto& R = *_residualMatrix;
 
