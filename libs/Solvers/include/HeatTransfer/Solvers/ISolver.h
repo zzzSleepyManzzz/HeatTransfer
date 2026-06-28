@@ -35,5 +35,8 @@ namespace HeatTransfer::Solvers
                 const Core::BoundaryConditions& boundaryCondition);
         void ApplyBoundaryConditions();
         void ExpandMatrix();
+
+        bool IsInsulated(Eigen::Index row, Eigen::Index col);
+        double InsulatedValue(Eigen::Index row, Eigen::Index col);
     };
 }

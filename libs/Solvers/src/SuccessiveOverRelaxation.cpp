@@ -32,17 +32,22 @@ namespace HeatTransfer::Solvers
         {
             oldTemperature = T;
 
-            for (auto i = 1u; i < rows - 1; i++)
+            for (auto i = 0u; i < rows; i++)
             {
-                for (auto j = 1u; j < cols - 1; j++)
+                for (auto j = 0u; j < cols; j++)
                 {
-                    T(i, j) = (1 - relaxationFactor) * T(i, j) +
-                              relaxationFactor * 0.25f *
-                                  (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1));
+                    if (IsInsulated(i, j))
+                    {
+                        T(i, j) = InsulatedValue(i, j);
+                    }
+                    else
+                    {
+                        T(i, j) = (1 - relaxationFactor) * T(i, j) +
+                                  relaxationFactor * 0.25f *
+                                      (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1));
+                    }
                 }
             }
-
-            ApplyBoundaryConditions();
 
             errorArray = (T - oldTemperature).array();
             errorMax = errorArray.abs().maxCoeff();
