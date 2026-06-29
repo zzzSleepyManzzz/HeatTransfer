@@ -8,14 +8,14 @@ namespace HeatTransfer::Solvers
     {
     }
 
-    void ISolver::PrintError()
+    void ISolver::PrintResidual()
     {
-        for (const auto& error : _errorMetrics)
+        for (const auto& residual : _residualMetrics)
         {
-            std::cout << std::format("Iteration  : {}", error->Iteration) << std::endl;
-            std::cout << std::format("Max error  : {}", error->ErrorMax) << std::endl;
-            std::cout << std::format("Mean error : {}", error->ErrorMean) << std::endl;
-            std::cout << std::format("RMS error  : {}", error->ErrorRMS) << std::endl;
+            std::cout << std::format("Iteration     : {}", residual->Iteration) << std::endl;
+            std::cout << std::format("Max residual  : {}", residual->ResidualMax) << std::endl;
+            std::cout << std::format("Mean residual : {}", residual->ResidualMean) << std::endl;
+            std::cout << std::format("RMS residual  : {}", residual->ResidualRMS) << std::endl;
             std::cout << std::endl;
         }
     }
