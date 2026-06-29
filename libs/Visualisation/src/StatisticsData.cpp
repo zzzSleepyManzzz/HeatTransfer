@@ -8,13 +8,13 @@ namespace HeatTransfer::Visualisation
         : _durationInSeconds(durationInSeconds)
     {
         auto temperatureMatrix = output->TemperatureMatrix;
-        const auto& errors = output->Errors;
+        const auto& errorMetrics = output->ErrorMetrics;
 
         _minTemperature = temperatureMatrix->minCoeff();
         _maxTemperature = temperatureMatrix->maxCoeff();
         _meanTemperature = temperatureMatrix->mean();
 
-        auto finalError = errors.back();
+        auto finalError = errorMetrics.back();
 
         _numIterations = finalError->Iteration;
         _finalMaxError = finalError->ErrorMax;

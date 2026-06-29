@@ -2,7 +2,7 @@
 
 namespace HeatTransfer::Visualisation
 {
-    struct SurfacePlotState
+    struct TemperatureSurfacePlotState
     {
         bool ResetZoom = false;
         int SelectedColorMap = 6; // Hot by default

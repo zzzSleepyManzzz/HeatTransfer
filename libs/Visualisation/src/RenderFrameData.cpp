@@ -6,7 +6,7 @@ namespace HeatTransfer::Visualisation
         std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output)
     {
         auto temperatureMatrix = output->TemperatureMatrix;
-        const auto& errors = output->Errors;
+        const auto& errorMetrics = output->ErrorMetrics;
 
         auto residualMatrix = output->ResidualMatrix;
         const auto& residualMetrics = output->ResidualMetrics;
@@ -72,12 +72,12 @@ namespace HeatTransfer::Visualisation
 
         // Populate error and residual related information
 
-        for (auto error : errors)
+        for (auto errorMetric : errorMetrics)
         {
-            _iterations.push_back(error->Iteration);
-            _maxErrors.push_back(error->ErrorMax);
-            _meanErrors.push_back(error->ErrorMean);
-            _RMS_Errors.push_back(error->ErrorRMS);
+            _iterations.push_back(errorMetric->Iteration);
+            _maxErrors.push_back(errorMetric->ErrorMax);
+            _meanErrors.push_back(errorMetric->ErrorMean);
+            _RMS_Errors.push_back(errorMetric->ErrorRMS);
         }
 
         for (auto residualMetric : residualMetrics)

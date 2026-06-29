@@ -24,12 +24,12 @@ namespace HeatTransfer::SimulationRunner
     std::shared_ptr<SimulationOutput> Simulations::GetOutput()
     {
         auto temperatureMatrix = _solver->GetTemperatureMatrix();
-        const auto& errors = _solver->GetErrors();
+        const auto& errorMetrics = _solver->GetErrorMetrics();
 
         auto residualMatrix = _solver->GetResidualMatrix();
         const auto& residualMetrics = _solver->GetResidualMetrics();
 
         return std::make_shared<SimulationOutput>(
-            temperatureMatrix, errors, residualMatrix, residualMetrics);
+            temperatureMatrix, errorMetrics, residualMatrix, residualMetrics);
     }
 }

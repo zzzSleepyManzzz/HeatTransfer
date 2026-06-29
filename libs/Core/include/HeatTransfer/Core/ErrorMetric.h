@@ -2,7 +2,7 @@
 
 namespace HeatTransfer::Core
 {
-    struct IterationAndError
+    struct ErrorMetric
     {
         int Iteration;
         double ErrorMax;

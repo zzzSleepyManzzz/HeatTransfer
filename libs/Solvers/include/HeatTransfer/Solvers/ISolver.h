@@ -9,7 +9,7 @@
 #include <Eigen/Dense>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
-#include "HeatTransfer/Core/IterationAndError.h"
+#include "HeatTransfer/Core/ErrorMetric.h"
 #include "HeatTransfer/Core/ResidualMetric.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
@@ -23,7 +23,7 @@ namespace HeatTransfer::Solvers
         virtual void ComputeSimulation() = 0;
         virtual void PrintError();
 
-        virtual const std::vector<std::shared_ptr<Core::IterationAndError>>& GetErrors();
+        virtual const std::vector<std::shared_ptr<Core::ErrorMetric>>& GetErrorMetrics();
         virtual const std::vector<std::shared_ptr<Core::ResidualMetric>>& GetResidualMetrics();
 
         std::shared_ptr<Eigen::MatrixXd> GetTemperatureMatrix();
@@ -32,7 +32,7 @@ namespace HeatTransfer::Solvers
     protected:
         Core::SimulationParameters _parameters;
         Core::BoundaryConditions _boundaryCondition;
-        std::vector<std::shared_ptr<Core::IterationAndError>> _errors;
+        std::vector<std::shared_ptr<Core::ErrorMetric>> _errorMetrics;
         std::vector<std::shared_ptr<Core::ResidualMetric>> _residualMetrics;
         std::shared_ptr<Eigen::MatrixXd> _temperatureMatrix;
         std::shared_ptr<Eigen::MatrixXd> _residualMatrix;
