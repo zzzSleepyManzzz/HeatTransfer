@@ -19,8 +19,6 @@ namespace
         {
         }
 
-        void ComputeSimulation() override {}
-
         void ExpandDummyMatrix()
         {
             ExpandMatrix();
@@ -35,6 +33,9 @@ namespace
         {
             return _temperatureMatrix;
         }
+
+    private:
+        void UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature) override {};
     };
 }
 
