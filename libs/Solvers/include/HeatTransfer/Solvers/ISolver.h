@@ -20,7 +20,7 @@ namespace HeatTransfer::Solvers
     public:
         ISolver() = delete;
         virtual ~ISolver() = default;
-        virtual void ComputeSimulation() = 0;
+        void ComputeSimulation();
         virtual void PrintResidual();
 
         virtual const std::vector<std::shared_ptr<Core::ErrorMetric>>& GetErrorMetrics();
@@ -39,11 +39,15 @@ namespace HeatTransfer::Solvers
 
         ISolver(const Core::SimulationParameters& parameters,
                 const Core::BoundaryConditions& boundaryCondition);
+
+        void IterateTemperature(int maxIterations, double tolerance, int& totalIterations);
         void ApplyBoundaryConditions();
         void ExpandMatrix();
 
         bool IsInsulated(Eigen::Index row, Eigen::Index col);
         double InsulatedValue(Eigen::Index row, Eigen::Index col);
+
+        virtual void UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature) = 0;
 
         void UpdateResidualMatrix();
     };

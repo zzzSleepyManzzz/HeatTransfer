@@ -14,12 +14,8 @@ namespace HeatTransfer::Solvers
     public:
         SuccessiveOverRelaxation(const Core::SimulationParameters& parameters,
                                  const Core::BoundaryConditions& boundaryCondition);
-        void ComputeSimulation() override;
 
     private:
-        void IterateTemperature(int maxIterations,
-                                double tolerance,
-                                double relaxationFactor,
-                                int& totalIterations);
+        void UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature) override;
     };
 }
