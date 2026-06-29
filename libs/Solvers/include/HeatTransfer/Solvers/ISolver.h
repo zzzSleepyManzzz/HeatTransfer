@@ -20,11 +20,12 @@ namespace HeatTransfer::Solvers
     public:
         ISolver() = delete;
         virtual ~ISolver() = default;
-        void ComputeSimulation();
-        virtual void PrintResidual();
 
-        virtual const std::vector<std::shared_ptr<Core::ErrorMetric>>& GetErrorMetrics();
-        virtual const std::vector<std::shared_ptr<Core::ResidualMetric>>& GetResidualMetrics();
+        void ComputeSimulation();
+        void PrintResidual();
+
+        const std::vector<std::shared_ptr<Core::ErrorMetric>>& GetErrorMetrics();
+        const std::vector<std::shared_ptr<Core::ResidualMetric>>& GetResidualMetrics();
 
         std::shared_ptr<Eigen::MatrixXd> GetTemperatureMatrix();
         std::shared_ptr<Eigen::MatrixXd> GetResidualMatrix();
