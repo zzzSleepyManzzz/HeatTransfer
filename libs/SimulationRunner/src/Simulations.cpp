@@ -18,7 +18,7 @@ namespace HeatTransfer::SimulationRunner
 
     void Simulations::Print()
     {
-        _solver->PrintError();
+        _solver->PrintResidual();
     }
 
     std::shared_ptr<SimulationOutput> Simulations::GetOutput()
