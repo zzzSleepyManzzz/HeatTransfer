@@ -31,26 +31,27 @@ namespace HeatTransfer::Tests
 
         auto solver = std::make_shared<HeatTransfer::Solvers::SuccessiveOverRelaxation>(
             parameters, boundaryCondition);
+
         solver->ComputeSimulation();
 
-        const auto& errors = solver->GetErrors();
+        const auto& residuals = solver->GetResidualMetrics();
 
-        REQUIRE_FALSE(errors.empty());
+        REQUIRE_FALSE(residuals.empty());
 
-        SECTION("Sanity check for errors array")
+        SECTION("Sanity check for residuals array")
         {
-            for (auto i = 1u; i < errors.size(); i++)
+            for (auto i = 1u; i < residuals.size(); i++)
             {
-                REQUIRE(errors[i]->Iteration > errors[i - 1]->Iteration);
-                REQUIRE(errors[i]->ErrorMax >= 0.0);
-                REQUIRE(errors[i]->ErrorMean >= 0.0);
-                REQUIRE(errors[i]->ErrorRMS >= 0.0);
+                REQUIRE(residuals[i]->Iteration > residuals[i - 1]->Iteration);
+                REQUIRE(residuals[i]->ResidualMax >= 0.0);
+                REQUIRE(residuals[i]->ResidualMean >= 0.0);
+                REQUIRE(residuals[i]->ResidualRMS >= 0.0);
             }
         }
 
-        SECTION("Max error should be below tolerance")
+        SECTION("Max residual should be below tolerance")
         {
-            REQUIRE(errors.back()->ErrorMax <= parameters.ExpandedTolerance);
+            REQUIRE(residuals.back()->ResidualMax <= parameters.ExpandedTolerance);
         }
     }
 
