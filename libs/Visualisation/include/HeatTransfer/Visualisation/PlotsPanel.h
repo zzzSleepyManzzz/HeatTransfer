@@ -5,7 +5,7 @@
 #include "HeatTransfer/Visualisation/IPanel.h"
 #include "HeatTransfer/Visualisation/ResidualConvergencePlotsState.h"
 #include "HeatTransfer/Visualisation/ResidualSurfacePlotState.h"
-#include "HeatTransfer/Visualisation/SurfacePlotState.h"
+#include "HeatTransfer/Visualisation/TemperatureSurfacePlotState.h"
 
 namespace HeatTransfer::Visualisation
 {
@@ -35,7 +35,7 @@ namespace HeatTransfer::Visualisation
             "Greys",
         };
 
-        std::shared_ptr<SurfacePlotState> _temperatureSurfacePlotState;
+        std::shared_ptr<TemperatureSurfacePlotState> _temperatureSurfacePlotState;
         std::shared_ptr<ResidualSurfacePlotState> _residualSurfacePlotState;
         std::shared_ptr<HeatMapState> _heatMapState;
         std::shared_ptr<ErrorPlotsState> _errorPlotsState;

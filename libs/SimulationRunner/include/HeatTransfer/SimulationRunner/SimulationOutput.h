@@ -2,7 +2,7 @@
 
 #include <Eigen/Dense>
 
-#include "HeatTransfer/Core/IterationAndError.h"
+#include "HeatTransfer/Core/ErrorMetric.h"
 #include "HeatTransfer/Core/ResidualMetric.h"
 
 namespace HeatTransfer::SimulationRunner
@@ -10,7 +10,7 @@ namespace HeatTransfer::SimulationRunner
     struct SimulationOutput
     {
         std::shared_ptr<Eigen::MatrixXd> TemperatureMatrix;
-        std::vector<std::shared_ptr<HeatTransfer::Core::IterationAndError>> Errors;
+        std::vector<std::shared_ptr<HeatTransfer::Core::ErrorMetric>> ErrorMetrics;
         std::shared_ptr<Eigen::MatrixXd> ResidualMatrix;
         std::vector<std::shared_ptr<HeatTransfer::Core::ResidualMetric>> ResidualMetrics;
     };

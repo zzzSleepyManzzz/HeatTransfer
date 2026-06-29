@@ -10,7 +10,7 @@ namespace HeatTransfer::Solvers
 
     void ISolver::PrintError()
     {
-        for (const auto& error : _errors)
+        for (const auto& error : _errorMetrics)
         {
             std::cout << std::format("Iteration  : {}", error->Iteration) << std::endl;
             std::cout << std::format("Max error  : {}", error->ErrorMax) << std::endl;
@@ -20,9 +20,9 @@ namespace HeatTransfer::Solvers
         }
     }
 
-    const std::vector<std::shared_ptr<Core::IterationAndError>>& ISolver::GetErrors()
+    const std::vector<std::shared_ptr<Core::ErrorMetric>>& ISolver::GetErrorMetrics()
     {
-        return _errors;
+        return _errorMetrics;
     }
 
     const std::vector<std::shared_ptr<Core::ResidualMetric>>& ISolver::GetResidualMetrics()

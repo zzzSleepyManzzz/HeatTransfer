@@ -55,10 +55,10 @@ namespace HeatTransfer::Solvers
             localIterations++;
             totalIterations++;
 
-            auto error = std::make_shared<Core::IterationAndError>(
-                totalIterations, errorMax, errorMean, errorRMS);
+            auto error =
+                std::make_shared<Core::ErrorMetric>(totalIterations, errorMax, errorMean, errorRMS);
 
-            _errors.push_back(error);
+            _errorMetrics.push_back(error);
 
             auto residual = std::make_shared<Core::ResidualMetric>(
                 totalIterations, residualMax, residualMean, residualRMS);

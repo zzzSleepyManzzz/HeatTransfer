@@ -4,7 +4,7 @@ namespace HeatTransfer::Visualisation
 {
     PlotsPanel::PlotsPanel(std::shared_ptr<ConsoleLogger> logger)
         : IPanel(logger)
-        , _temperatureSurfacePlotState(std::make_shared<SurfacePlotState>())
+        , _temperatureSurfacePlotState(std::make_shared<TemperatureSurfacePlotState>())
         , _residualSurfacePlotState(std::make_shared<ResidualSurfacePlotState>())
         , _heatMapState(std::make_shared<HeatMapState>())
         , _errorPlotsState(std::make_shared<ErrorPlotsState>())
@@ -482,7 +482,7 @@ namespace HeatTransfer::Visualisation
         if (ImGui::Button("Print residual history"))
         {
             _logger->AddSpace();
-            _logger->Add("================ Residual Metrics ================");
+            _logger->Add("================ Residuals ================");
             _logger->AddSpace();
 
             for (auto i = 0u; i < iterations.size(); i++)
