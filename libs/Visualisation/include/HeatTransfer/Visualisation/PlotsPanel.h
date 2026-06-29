@@ -35,14 +35,14 @@ namespace HeatTransfer::Visualisation
             "Greys",
         };
 
-        std::shared_ptr<SurfacePlotState> _surfacePlotState;
+        std::shared_ptr<SurfacePlotState> _temperatureSurfacePlotState;
         std::shared_ptr<ResidualSurfacePlotState> _residualSurfacePlotState;
         std::shared_ptr<HeatMapState> _heatMapState;
         std::shared_ptr<ErrorPlotsState> _errorPlotsState;
         std::shared_ptr<ResidualConvergencePlotsState> _residualConvergencePlotsState;
 
         void ShowPlotsWindow();
-        void CreateSurfacePlot();
+        void CreateTemperatureSurfacePlot();
         void CreateResidualSurfacePlot();
         void CreateHeatMap();
         void CreateErrorPlots();

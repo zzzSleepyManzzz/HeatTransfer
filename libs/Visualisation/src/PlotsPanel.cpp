@@ -4,7 +4,7 @@ namespace HeatTransfer::Visualisation
 {
     PlotsPanel::PlotsPanel(std::shared_ptr<ConsoleLogger> logger)
         : IPanel(logger)
-        , _surfacePlotState(std::make_shared<SurfacePlotState>())
+        , _temperatureSurfacePlotState(std::make_shared<SurfacePlotState>())
         , _residualSurfacePlotState(std::make_shared<ResidualSurfacePlotState>())
         , _heatMapState(std::make_shared<HeatMapState>())
         , _errorPlotsState(std::make_shared<ErrorPlotsState>())
@@ -33,7 +33,7 @@ namespace HeatTransfer::Visualisation
             {
                 if (ImGui::BeginTabItem("Surface Plot"))
                 {
-                    CreateSurfacePlot();
+                    CreateTemperatureSurfacePlot();
 
                     ImGui::EndTabItem();
                 }
@@ -71,7 +71,7 @@ namespace HeatTransfer::Visualisation
         ImGui::End();
     }
 
-    void PlotsPanel::CreateSurfacePlot()
+    void PlotsPanel::CreateTemperatureSurfacePlot()
     {
         auto plotData = _model->GetRenderFrameData();
 
@@ -81,7 +81,7 @@ namespace HeatTransfer::Visualisation
 
         if (ImGui::Button("Reset zoom"))
         {
-            _surfacePlotState->ResetZoom = true;
+            _temperatureSurfacePlotState->ResetZoom = true;
         }
 
         // ColorMap combo box, hide lines and remove lines checkboxes
@@ -89,33 +89,33 @@ namespace HeatTransfer::Visualisation
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
 
         ImGui::Combo("Color map type",
-                     &_surfacePlotState->SelectedColorMap,
+                     &_temperatureSurfacePlotState->SelectedColorMap,
                      COLOR_MAP_OPTIONS,
                      IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
 
         ImGui::SameLine();
 
-        if (ImGui::Checkbox("Hide lines", &_surfacePlotState->HideLinesOn))
+        if (ImGui::Checkbox("Hide lines", &_temperatureSurfacePlotState->HideLinesOn))
         {
         }
-        if (_surfacePlotState->HideLinesOn)
+        if (_temperatureSurfacePlotState->HideLinesOn)
         {
             surfacePlotFlags |= ImPlot3DSurfaceFlags_NoLines;
         }
 
         ImGui::SameLine();
 
-        if (ImGui::Checkbox("Remove fill", &_surfacePlotState->RemoveFillOn))
+        if (ImGui::Checkbox("Remove fill", &_temperatureSurfacePlotState->RemoveFillOn))
         {
         }
-        if (_surfacePlotState->RemoveFillOn)
+        if (_temperatureSurfacePlotState->RemoveFillOn)
         {
             surfacePlotFlags |= ImPlot3DSurfaceFlags_NoFill;
         }
 
         // Create surface plot
 
-        ImPlot3D::PushColormap(_surfacePlotState->SelectedColorMap);
+        ImPlot3D::PushColormap(_temperatureSurfacePlotState->SelectedColorMap);
 
         ImPlot3DFlags plot3DFlags = ImPlot3DFlags_NoPan;
         auto plotWindowWidth = ImGui::GetWindowSize().x;
@@ -124,7 +124,7 @@ namespace HeatTransfer::Visualisation
         {
             ImPlot3D::SetupAxes("Width [pixels]", "Length [pixels]", "Temperature [°C]");
 
-            if (_surfacePlotState->ResetZoom)
+            if (_temperatureSurfacePlotState->ResetZoom)
             {
                 ImPlot3D::SetupAxesLimits(plotData->Get_X_Min(),
                                           plotData->Get_X_Max(),
@@ -133,7 +133,7 @@ namespace HeatTransfer::Visualisation
                                           plotData->Get_Temperature_Min(),
                                           plotData->Get_Temperature_Max(),
                                           ImPlot3DCond_Always);
-                _surfacePlotState->ResetZoom = false;
+                _temperatureSurfacePlotState->ResetZoom = false;
                 ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Always);
             }
             else
@@ -171,7 +171,7 @@ namespace HeatTransfer::Visualisation
         // Create color bar
 
         ImGui::SameLine();
-        ImPlot::PushColormap(_surfacePlotState->SelectedColorMap);
+        ImPlot::PushColormap(_temperatureSurfacePlotState->SelectedColorMap);
         ImPlot::ColormapScale("Temperature [°C]",
                               plotData->Get_Temperature_Min(),
                               plotData->Get_Temperature_Max(),
