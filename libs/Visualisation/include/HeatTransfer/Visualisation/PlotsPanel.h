@@ -3,6 +3,8 @@
 #include "HeatTransfer/Visualisation/ErrorPlotsState.h"
 #include "HeatTransfer/Visualisation/HeatMapState.h"
 #include "HeatTransfer/Visualisation/IPanel.h"
+#include "HeatTransfer/Visualisation/ResidualConvergencePlotsState.h"
+#include "HeatTransfer/Visualisation/ResidualSurfacePlotState.h"
 #include "HeatTransfer/Visualisation/SurfacePlotState.h"
 
 namespace HeatTransfer::Visualisation
@@ -34,12 +36,16 @@ namespace HeatTransfer::Visualisation
         };
 
         std::shared_ptr<SurfacePlotState> _surfacePlotState;
+        std::shared_ptr<ResidualSurfacePlotState> _residualSurfacePlotState;
         std::shared_ptr<HeatMapState> _heatMapState;
         std::shared_ptr<ErrorPlotsState> _errorPlotsState;
+        std::shared_ptr<ResidualConvergencePlotsState> _residualConvergencePlotsState;
 
         void ShowPlotsWindow();
         void CreateSurfacePlot();
+        void CreateResidualSurfacePlot();
         void CreateHeatMap();
         void CreateErrorPlots();
+        void CreateResidualConvergencePlots();
     };
 }

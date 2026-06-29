@@ -25,9 +25,19 @@ namespace HeatTransfer::Solvers
         return _errors;
     }
 
+    const std::vector<std::shared_ptr<Core::ResidualMetric>>& ISolver::GetResidualMetrics()
+    {
+        return _residualMetrics;
+    }
+
     std::shared_ptr<Eigen::MatrixXd> ISolver::GetTemperatureMatrix()
     {
         return _temperatureMatrix;
+    }
+
+    std::shared_ptr<Eigen::MatrixXd> ISolver::GetResidualMatrix()
+    {
+        return _residualMatrix;
     }
 
     void ISolver::ApplyBoundaryConditions()
@@ -178,5 +188,44 @@ namespace HeatTransfer::Solvers
             return _boundaryCondition.CenterPoint;
 
         throw std::runtime_error("Asking for insulated value from non-insulated edge");
+    }
+
+    void ISolver::UpdateResidualMatrix()
+    {
+        const Eigen::Index rows = _temperatureMatrix->rows();
+        const Eigen::Index cols = _temperatureMatrix->cols();
+
+        _residualMatrix = std::make_shared<Eigen::MatrixXd>(rows, cols);
+        _residualMatrix->setZero();
+
+        auto& T = *_temperatureMatrix;
+        auto& R = *_residualMatrix;
+
+        R.block(1, 1, rows - 2, cols - 2) =
+            T.block(1, 1, rows - 2, cols - 2) -
+            (T.block(0, 1, rows - 2, cols - 2) + T.block(2, 1, rows - 2, cols - 2) +
+             T.block(1, 0, rows - 2, cols - 2) + T.block(1, 2, rows - 2, cols - 2)) *
+                0.25f;
+
+        const int h1 = std::floor(rows / 4);
+        const int h2 = std::floor(3 * rows / 4);
+        const int h3 = std::floor(cols / 4);
+        const int h4 = std::floor(3 * cols / 4);
+        const int c1 = std::floor(rows / 2) - 1;
+        const int c2 = std::floor(cols / 2) - 1;
+
+        R.row(0) = Eigen::VectorXd::Constant(cols, 0);
+        R.row(rows - 1) = Eigen::VectorXd::Constant(cols, 0);
+        R.col(0) = Eigen::VectorXd::Constant(rows, 0);
+        R.col(cols - 1) = Eigen::VectorXd::Constant(rows, 0);
+
+        R(Eigen::seq(h1, h2), h3) = Eigen::VectorXd::Constant(h2 - h1 + 1, 0);
+        R(Eigen::seq(h1, h2), h4) = Eigen::VectorXd::Constant(h2 - h1 + 1, 0);
+        R(h1, Eigen::seq(h3, h4)) = Eigen::RowVectorXd::Constant(h4 - h3 + 1, 0);
+        R(h2, Eigen::seq(h3, h4)) = Eigen::RowVectorXd::Constant(h4 - h3 + 1, 0);
+
+        R(c1, c2) = 0;
+
+        R = R.cwiseAbs().eval();
     }
 }

@@ -35,7 +35,7 @@ namespace
         }
 
         solver->ComputeSimulation();
-        return solver->GetErrors().size();
+        return solver->GetResidualMetrics().size();
     }
 }
 

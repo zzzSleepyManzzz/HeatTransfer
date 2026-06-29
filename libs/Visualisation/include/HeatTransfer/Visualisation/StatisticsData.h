@@ -23,6 +23,10 @@ namespace HeatTransfer::Visualisation
         double GetFinalMeanError();
         double GetFinal_RMS_Error();
 
+        double GetFinalMaxResidual();
+        double GetFinalMeanResidual();
+        double GetFinal_RMS_Residual();
+
     private:
         double _durationInSeconds;
 
@@ -34,5 +38,9 @@ namespace HeatTransfer::Visualisation
         double _finalMaxError;
         double _finalMeanError;
         double _final_RMS_Error;
+
+        double _finalMaxResidual;
+        double _finalMeanResidual;
+        double _final_RMS_Residual;
     };
 }

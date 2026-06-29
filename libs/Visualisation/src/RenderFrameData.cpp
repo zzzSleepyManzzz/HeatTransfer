@@ -8,7 +8,11 @@ namespace HeatTransfer::Visualisation
         auto temperatureMatrix = output->TemperatureMatrix;
         const auto& errors = output->Errors;
 
+        auto residualMatrix = output->ResidualMatrix;
+        const auto& residualMetrics = output->ResidualMetrics;
+
         auto& T = *temperatureMatrix;
+        auto& R = *residualMatrix;
 
         // ImGui by default uses 16-bit indexing, which limits vertex indices to 65,535
         // Target ~5,000 max vertices instead of 65,535 to account for the index multiplier
@@ -20,13 +24,15 @@ namespace HeatTransfer::Visualisation
         _rows = (T.rows() + stride - 1) / stride;
         _cols = (T.cols() + stride - 1) / stride;
 
-        _z_values.reserve(_rows * _cols);
+        _temperature_values.reserve(_rows * _cols);
+        _residual_values.reserve(_rows * _cols);
 
         for (auto i = 0u; i < T.rows(); i += stride)
         {
             for (auto j = 0u; j < T.cols(); j += stride)
             {
-                _z_values.push_back(T(i, j));
+                _temperature_values.push_back(T(i, j));
+                _residual_values.push_back(R(i, j));
             }
         }
 
@@ -43,8 +49,13 @@ namespace HeatTransfer::Visualisation
         _y_min = 0;
         _y_max = T.rows();
 
-        _z_min = *std::min_element(_z_values.begin(), _z_values.end());
-        _z_max = *std::max_element(_z_values.begin(), _z_values.end());
+        _temperature_min =
+            *std::min_element(_temperature_values.begin(), _temperature_values.end());
+        _temperature_max =
+            *std::max_element(_temperature_values.begin(), _temperature_values.end());
+
+        _residual_min = *std::min_element(_residual_values.begin(), _residual_values.end());
+        _residual_max = *std::max_element(_residual_values.begin(), _residual_values.end());
 
         auto x_step = (_x_max - _x_min) / (_cols - 1);
         auto y_step = (_y_max - _y_min) / (_rows - 1);
@@ -59,7 +70,7 @@ namespace HeatTransfer::Visualisation
             }
         }
 
-        // Populate error related information
+        // Populate error and residual related information
 
         for (auto error : errors)
         {
@@ -67,6 +78,13 @@ namespace HeatTransfer::Visualisation
             _maxErrors.push_back(error->ErrorMax);
             _meanErrors.push_back(error->ErrorMean);
             _RMS_Errors.push_back(error->ErrorRMS);
+        }
+
+        for (auto residualMetric : residualMetrics)
+        {
+            _maxResiduals.push_back(residualMetric->ResidualMax);
+            _meanResiduals.push_back(residualMetric->ResidualMean);
+            _RMS_Residuals.push_back(residualMetric->ResidualRMS);
         }
 
         _iterations_min = *std::min_element(_iterations.begin(), _iterations.end());
@@ -80,6 +98,15 @@ namespace HeatTransfer::Visualisation
 
         _RMS_Errors_min = *std::min_element(_RMS_Errors.begin(), _RMS_Errors.end());
         _RMS_Errors_max = *std::max_element(_RMS_Errors.begin(), _RMS_Errors.end());
+
+        _maxResiduals_min = *std::min_element(_maxResiduals.begin(), _maxResiduals.end());
+        _maxResiduals_max = *std::max_element(_maxResiduals.begin(), _maxResiduals.end());
+
+        _meanResiduals_min = *std::min_element(_meanResiduals.begin(), _meanResiduals.end());
+        _meanResiduals_max = *std::max_element(_meanResiduals.begin(), _meanResiduals.end());
+
+        _RMS_Residuals_min = *std::min_element(_RMS_Residuals.begin(), _RMS_Residuals.end());
+        _RMS_Residuals_max = *std::max_element(_RMS_Residuals.begin(), _RMS_Residuals.end());
     }
 
     const std::vector<double>& RenderFrameData::Get_X_Values()
@@ -92,9 +119,14 @@ namespace HeatTransfer::Visualisation
         return _y_values;
     }
 
-    const std::vector<double>& RenderFrameData::Get_Z_Values()
+    const std::vector<double>& RenderFrameData::Get_Temperature_Values()
     {
-        return _z_values;
+        return _temperature_values;
+    }
+
+    const std::vector<double>& RenderFrameData::Get_Residual_Values()
+    {
+        return _residual_values;
     }
 
     int RenderFrameData::GetRows()
@@ -127,14 +159,24 @@ namespace HeatTransfer::Visualisation
         return _y_max;
     }
 
-    double RenderFrameData::Get_Z_Min()
+    double RenderFrameData::Get_Temperature_Min()
     {
-        return _z_min;
+        return _temperature_min;
     }
 
-    double RenderFrameData::Get_Z_Max()
+    double RenderFrameData::Get_Temperature_Max()
     {
-        return _z_max;
+        return _temperature_max;
+    }
+
+    double RenderFrameData::Get_Residual_Min()
+    {
+        return _residual_min;
+    }
+
+    double RenderFrameData::Get_Residual_Max()
+    {
+        return _residual_max;
     }
 
     const std::vector<double>& RenderFrameData::Get_Iterations()
@@ -155,6 +197,21 @@ namespace HeatTransfer::Visualisation
     const std::vector<double>& RenderFrameData::Get_RMS_Errors()
     {
         return _RMS_Errors;
+    }
+
+    const std::vector<double>& RenderFrameData::Get_MaxResiduals()
+    {
+        return _maxResiduals;
+    }
+
+    const std::vector<double>& RenderFrameData::Get_MeanResiduals()
+    {
+        return _meanResiduals;
+    }
+
+    const std::vector<double>& RenderFrameData::Get_RMS_Residuals()
+    {
+        return _RMS_Residuals;
     }
 
     double RenderFrameData::Get_Iterations_Min()
@@ -195,5 +252,35 @@ namespace HeatTransfer::Visualisation
     double RenderFrameData::Get_RMS_Errors_Max()
     {
         return _RMS_Errors_max;
+    }
+
+    double RenderFrameData::Get_MaxResiduals_Min()
+    {
+        return _maxResiduals_min;
+    }
+
+    double RenderFrameData::Get_MaxResiduals_Max()
+    {
+        return _maxResiduals_max;
+    }
+
+    double RenderFrameData::Get_MeanResiduals_Min()
+    {
+        return _meanResiduals_min;
+    }
+
+    double RenderFrameData::Get_MeanResiduals_Max()
+    {
+        return _meanResiduals_max;
+    }
+
+    double RenderFrameData::Get_RMS_Residuals_Min()
+    {
+        return _RMS_Residuals_min;
+    }
+
+    double RenderFrameData::Get_RMS_Residuals_Max()
+    {
+        return _RMS_Residuals_max;
     }
 }

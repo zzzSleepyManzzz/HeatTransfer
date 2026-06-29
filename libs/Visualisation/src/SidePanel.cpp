@@ -269,9 +269,14 @@ namespace HeatTransfer::Visualisation
             auto meanTemperature = statisticsData->GetMeanTemperature();
 
             auto numIterations = statisticsData->GetNumIterations();
+
             auto finalMaxError = statisticsData->GetFinalMaxError();
             auto finalMeanError = statisticsData->GetFinalMeanError();
             auto finalRMSError = statisticsData->GetFinal_RMS_Error();
+
+            auto finalMaxResidual = statisticsData->GetFinalMaxResidual();
+            auto finalMeanResidual = statisticsData->GetFinalMeanResidual();
+            auto finalRMSResidual = statisticsData->GetFinal_RMS_Residual();
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::Indent(10.0f);
@@ -291,12 +296,24 @@ namespace HeatTransfer::Visualisation
 
             ImGui::SeparatorText("Final error information");
             ImGui::Text("Number of iterations : %zu", numIterations);
-            ImGui::Text("Final max  error     : %.4f", finalMaxError);
-            ImGui::Text("Final mean error     : %.4f", finalMeanError);
-            ImGui::Text("Final RMS  error     : %.4f", finalRMSError);
+            ImGui::Text("Final max  error     : %.4g", finalMaxError);
+            ImGui::Text("Final mean error     : %.4g", finalMeanError);
+            ImGui::Text("Final RMS  error     : %.4g", finalRMSError);
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::SeparatorText("Final residual information");
+            ImGui::Text("Number of iterations : %zu", numIterations);
+            ImGui::Text("Final max  residual  : %.4g", finalMaxResidual);
+            ImGui::Text("Final mean residual  : %.4g", finalMeanResidual);
+            ImGui::Text("Final RMS  residual  : %.4g", finalRMSResidual);
+
+            float bottomPadding = 80.0f;
+            ImGui::Dummy(ImVec2(0.0f, ImGui::GetContentRegionAvail().y - bottomPadding));
+            ImGui::TextWrapped("Note: Error refers to the per-iteration temperature change (update "
+                               "difference) for brevity");
 
             ImGui::Unindent(10.0f);
-            ImGui::Dummy(ImVec2(0.0f, 5.0f));
         }
     }
 }
