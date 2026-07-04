@@ -19,15 +19,17 @@ namespace HeatTransfer::Solvers
         _temperatureMatrix->setZero();
 
         ApplyBoundaryConditions();
-        IterateTemperature(
-            _parameters.MaxInitialIterations, _parameters.InitialTolerance, totalIterations);
+        IterateTemperature(_parameters.MaxInitialIterations,
+                           _parameters.InitialResidualTolerance,
+                           totalIterations);
 
         for (int i = 0; i < _parameters.NumExpansions; i++)
         {
             ExpandMatrix();
             ApplyBoundaryConditions();
-            IterateTemperature(
-                _parameters.MaxExpandedIterations, _parameters.ExpandedTolerance, totalIterations);
+            IterateTemperature(_parameters.MaxExpandedIterations,
+                               _parameters.ExpandedResidualTolerance,
+                               totalIterations);
         }
     }
 

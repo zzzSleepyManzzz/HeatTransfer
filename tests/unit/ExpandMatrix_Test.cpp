@@ -54,8 +54,8 @@ namespace HeatTransfer::Tests
                                                                .Columns = 2,
                                                                .Expansion = 2,
                                                                .NumExpansions = 2,
-                                                               .InitialTolerance = 1e-3,
-                                                               .ExpandedTolerance = 1e-1,
+                                                               .InitialResidualTolerance = 1e-3,
+                                                               .ExpandedResidualTolerance = 1e-1,
                                                                .RelaxationFactor = 1.7,
                                                                .MaxInitialIterations = 1000,
                                                                .MaxExpandedIterations = 1000};

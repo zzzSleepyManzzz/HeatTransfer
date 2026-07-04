@@ -124,12 +124,12 @@ namespace HeatTransfer::Visualisation
                                 &_settingsState->TemporaryParameters.NumExpansions))
             {
             }
-            if (ImGui::InputDouble("Initial tolerance",
-                                   &_settingsState->TemporaryParameters.InitialTolerance))
+            if (ImGui::InputDouble("Initial residual tolerance",
+                                   &_settingsState->TemporaryParameters.InitialResidualTolerance))
             {
             }
-            if (ImGui::InputDouble("Expanded tolerance",
-                                   &_settingsState->TemporaryParameters.ExpandedTolerance))
+            if (ImGui::InputDouble("Expanded residual tolerance",
+                                   &_settingsState->TemporaryParameters.ExpandedResidualTolerance))
             {
             }
             if (ImGui::InputDouble("Relaxation factor",
