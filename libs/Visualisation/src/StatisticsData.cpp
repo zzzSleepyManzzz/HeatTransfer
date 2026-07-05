@@ -27,6 +27,8 @@ namespace HeatTransfer::Visualisation
         _finalMaxResidual = finalResidual->ResidualMax;
         _finalMeanResidual = finalResidual->ResidualMean;
         _final_RMS_Residual = finalResidual->ResidualRMS;
+
+        _isConverged = output->IsConverged;
     }
 
     double StatisticsData::GetDurationInSeconds()
@@ -82,5 +84,10 @@ namespace HeatTransfer::Visualisation
     double StatisticsData::GetFinal_RMS_Residual()
     {
         return _final_RMS_Residual;
+    }
+
+    bool StatisticsData::IsConverged()
+    {
+        return _isConverged;
     }
 }

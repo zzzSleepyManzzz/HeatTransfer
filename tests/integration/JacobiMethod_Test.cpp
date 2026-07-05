@@ -23,8 +23,10 @@ namespace HeatTransfer::Tests
                                                                .Columns = 100,
                                                                .Expansion = 2,
                                                                .NumExpansions = 2,
-                                                               .InitialTolerance = 1e-3,
-                                                               .ExpandedTolerance = 1e-1,
+                                                               .InitialResidualTolerance = 1e-3,
+                                                               .ExpandedResidualTolerance = 1e-1,
+                                                               .InitialErrorTolerance = 1e-6,
+                                                               .ExpandedErrorTolerance = 1e-6,
                                                                .RelaxationFactor = 1.7,
                                                                .MaxInitialIterations = 1000,
                                                                .MaxExpandedIterations = 1000};
@@ -51,7 +53,7 @@ namespace HeatTransfer::Tests
 
         SECTION("Max residual should be below tolerance")
         {
-            REQUIRE(residuals.back()->ResidualMax <= parameters.ExpandedTolerance);
+            REQUIRE(residuals.back()->ResidualMax <= parameters.ExpandedResidualTolerance);
         }
     }
 

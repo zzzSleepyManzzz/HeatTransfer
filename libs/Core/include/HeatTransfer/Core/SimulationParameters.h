@@ -8,8 +8,10 @@ namespace HeatTransfer::Core
         int Columns;
         int Expansion;
         int NumExpansions;
-        double InitialTolerance;
-        double ExpandedTolerance;
+        double InitialResidualTolerance;
+        double ExpandedResidualTolerance;
+        double InitialErrorTolerance;
+        double ExpandedErrorTolerance;
         double RelaxationFactor;
         int MaxInitialIterations;
         int MaxExpandedIterations;
@@ -20,8 +22,10 @@ namespace HeatTransfer::Core
                     .Columns = 2000,
                     .Expansion = 2,
                     .NumExpansions = 5,
-                    .InitialTolerance = 1e-3,
-                    .ExpandedTolerance = 1e-1,
+                    .InitialResidualTolerance = 1e-3,
+                    .ExpandedResidualTolerance = 1e-1,
+                    .InitialErrorTolerance = 1e-6,
+                    .ExpandedErrorTolerance = 1e-6,
                     .RelaxationFactor = 1.7,
                     .MaxInitialIterations = 1000,
                     .MaxExpandedIterations = 1000};

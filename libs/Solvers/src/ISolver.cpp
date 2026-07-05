@@ -19,15 +19,19 @@ namespace HeatTransfer::Solvers
         _temperatureMatrix->setZero();
 
         ApplyBoundaryConditions();
-        IterateTemperature(
-            _parameters.MaxInitialIterations, _parameters.InitialTolerance, totalIterations);
+        IterateTemperature(_parameters.MaxInitialIterations,
+                           _parameters.InitialResidualTolerance,
+                           _parameters.InitialErrorTolerance,
+                           totalIterations);
 
         for (int i = 0; i < _parameters.NumExpansions; i++)
         {
             ExpandMatrix();
             ApplyBoundaryConditions();
-            IterateTemperature(
-                _parameters.MaxExpandedIterations, _parameters.ExpandedTolerance, totalIterations);
+            IterateTemperature(_parameters.MaxExpandedIterations,
+                               _parameters.ExpandedResidualTolerance,
+                               _parameters.ExpandedErrorTolerance,
+                               totalIterations);
         }
     }
 
@@ -41,6 +45,14 @@ namespace HeatTransfer::Solvers
             std::cout << std::format("RMS residual  : {}", residual->ResidualRMS) << std::endl;
             std::cout << std::endl;
         }
+    }
+
+    bool ISolver::IsConverged()
+    {
+        auto finalResidual = _residualMetrics.back();
+        auto finalMaxResidual = finalResidual->ResidualMax;
+
+        return finalMaxResidual <= _parameters.ExpandedResidualTolerance;
     }
 
     const std::vector<std::shared_ptr<Core::ErrorMetric>>& ISolver::GetErrorMetrics()
@@ -123,26 +135,30 @@ namespace HeatTransfer::Solvers
         }
     }
 
-    void ISolver::IterateTemperature(int maxIterations, double tolerance, int& totalIterations)
+    void ISolver::IterateTemperature(int maxIterations,
+                                     double residualTolerance,
+                                     double errorTolerance,
+                                     int& totalIterations)
     {
         const Eigen::Index rows = _temperatureMatrix->rows();
         const Eigen::Index cols = _temperatureMatrix->cols();
 
         int localIterations = 0;
-        double errorMax = tolerance + 1.0;
-        double errorMean = tolerance + 1.0;
-        double errorRMS = tolerance + 1.0;
+        double errorMax = errorTolerance + 1.0;
+        double errorMean = errorTolerance + 1.0;
+        double errorRMS = errorTolerance + 1.0;
 
-        double residualMax = tolerance + 1.0;
-        double residualMean = tolerance + 1.0;
-        double residualRMS = tolerance + 1.0;
+        double residualMax = residualTolerance + 1.0;
+        double residualMean = residualTolerance + 1.0;
+        double residualRMS = residualTolerance + 1.0;
 
         // Preallocate Eigen matrices for performance
         Eigen::MatrixXd oldTemperature(rows, cols);
         Eigen::ArrayXXd errorArray(rows, cols);
         Eigen::ArrayXXd residualArray(rows, cols);
 
-        while (localIterations < maxIterations && residualMax > tolerance)
+        while (localIterations < maxIterations && residualMax > residualTolerance &&
+               errorMax > errorTolerance)
         {
             oldTemperature = *_temperatureMatrix;
 

@@ -29,7 +29,9 @@ namespace HeatTransfer::SimulationRunner
         auto residualMatrix = _solver->GetResidualMatrix();
         const auto& residualMetrics = _solver->GetResidualMetrics();
 
+        bool isConverged = _solver->IsConverged();
+
         return std::make_shared<SimulationOutput>(
-            temperatureMatrix, errorMetrics, residualMatrix, residualMetrics);
+            temperatureMatrix, errorMetrics, residualMatrix, residualMetrics, isConverged);
     }
 }
