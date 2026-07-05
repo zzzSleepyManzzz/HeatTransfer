@@ -27,6 +27,8 @@ namespace HeatTransfer::Visualisation
         double GetFinalMeanResidual();
         double GetFinal_RMS_Residual();
 
+        bool IsConverged();
+
     private:
         double _durationInSeconds;
 
@@ -42,5 +44,7 @@ namespace HeatTransfer::Visualisation
         double _finalMaxResidual;
         double _finalMeanResidual;
         double _final_RMS_Residual;
+
+        bool _isConverged;
     };
 }

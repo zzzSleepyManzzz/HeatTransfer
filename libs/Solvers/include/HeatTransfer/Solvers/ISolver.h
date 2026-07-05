@@ -24,6 +24,8 @@ namespace HeatTransfer::Solvers
         void ComputeSimulation();
         void PrintResidual();
 
+        bool IsConverged();
+
         const std::vector<std::shared_ptr<Core::ErrorMetric>>& GetErrorMetrics();
         const std::vector<std::shared_ptr<Core::ResidualMetric>>& GetResidualMetrics();
 
@@ -41,7 +43,10 @@ namespace HeatTransfer::Solvers
         ISolver(const Core::SimulationParameters& parameters,
                 const Core::BoundaryConditions& boundaryCondition);
 
-        void IterateTemperature(int maxIterations, double tolerance, int& totalIterations);
+        void IterateTemperature(int maxIterations,
+                                double residualTolerance,
+                                double errorTolerance,
+                                int& totalIterations);
         void ApplyBoundaryConditions();
         void ExpandMatrix();
 

@@ -132,6 +132,14 @@ namespace HeatTransfer::Visualisation
                                    &_settingsState->TemporaryParameters.ExpandedResidualTolerance))
             {
             }
+            if (ImGui::InputDouble("Initial error tolerance",
+                                   &_settingsState->TemporaryParameters.InitialErrorTolerance))
+            {
+            }
+            if (ImGui::InputDouble("Expanded error tolerance",
+                                   &_settingsState->TemporaryParameters.ExpandedErrorTolerance))
+            {
+            }
             if (ImGui::InputDouble("Relaxation factor",
                                    &_settingsState->TemporaryParameters.RelaxationFactor))
             {
@@ -278,6 +286,12 @@ namespace HeatTransfer::Visualisation
             auto finalMeanResidual = statisticsData->GetFinalMeanResidual();
             auto finalRMSResidual = statisticsData->GetFinal_RMS_Residual();
 
+            const char* convergenceStatement =
+                statisticsData->IsConverged()
+                    ? "Convergence achieved - residual below required tolerance value"
+                    : "Failed to converge - either stopped due to reaching max iterations "
+                      "or lack of progression (low error)";
+
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::Indent(10.0f);
 
@@ -307,6 +321,9 @@ namespace HeatTransfer::Visualisation
             ImGui::Text("Final max  residual  : %.4g", finalMaxResidual);
             ImGui::Text("Final mean residual  : %.4g", finalMeanResidual);
             ImGui::Text("Final RMS  residual  : %.4g", finalRMSResidual);
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::TextWrapped("%s", convergenceStatement);
 
             float bottomPadding = 80.0f;
             ImGui::Dummy(ImVec2(0.0f, ImGui::GetContentRegionAvail().y - bottomPadding));

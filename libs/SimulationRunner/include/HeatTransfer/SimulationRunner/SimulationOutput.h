@@ -13,5 +13,6 @@ namespace HeatTransfer::SimulationRunner
         std::vector<std::shared_ptr<HeatTransfer::Core::ErrorMetric>> ErrorMetrics;
         std::shared_ptr<Eigen::MatrixXd> ResidualMatrix;
         std::vector<std::shared_ptr<HeatTransfer::Core::ResidualMetric>> ResidualMetrics;
+        bool IsConverged;
     };
 }
