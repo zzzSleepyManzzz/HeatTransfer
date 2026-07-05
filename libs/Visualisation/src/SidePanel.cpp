@@ -288,9 +288,9 @@ namespace HeatTransfer::Visualisation
 
             const char* convergenceStatement =
                 statisticsData->IsConverged()
-                    ? "Convergence achieved - residual below required tolerance value"
+                    ? "Convergence achieved - residual metric below required tolerance value"
                     : "Failed to converge - either stopped due to reaching max iterations "
-                      "or lack of progression (low error)";
+                      "or lack of progression (low max error)";
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::Indent(10.0f);
