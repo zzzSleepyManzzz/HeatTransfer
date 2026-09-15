@@ -10,6 +10,7 @@ namespace HeatTransfer::Visualisation
     struct SettingsState
     {
         bool LightModeOn = false;
+        float FontScaling = 1.0f;
         int IterativeMethod = 2; // SOR by default
         Core::SimulationParameters TemporaryParameters = Core::SimulationParameters::Default();
         Core::BoundaryConditions TemporaryBoundaryConditions = Core::BoundaryConditions::Default();
