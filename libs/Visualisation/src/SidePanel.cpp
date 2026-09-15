@@ -53,14 +53,15 @@ namespace HeatTransfer::Visualisation
 
             // Font Scaling
 
-            if (ImGui::SliderFloat("Font Scaling", &_settingsState->FontScaling, 1.0f, 3.0f, "%.2f"))
+            if (ImGui::SliderFloat(
+                    "Font Scaling", &_settingsState->FontScaling, 1.0f, 3.0f, "%.2f"))
             {
                 ImGuiIO& io = ImGui::GetIO();
-                io.FontGlobalScale = _settingsState->FontScaling; 
+                io.FontGlobalScale = _settingsState->FontScaling;
             }
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
-            
+
             // Iterative method combo box
 
             if (ImGui::Combo("## Iterative Method",
