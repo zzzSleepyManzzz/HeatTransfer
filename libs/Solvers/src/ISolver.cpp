@@ -18,6 +18,9 @@ namespace HeatTransfer::Solvers
         _temperatureMatrix = std::make_shared<Eigen::MatrixXd>(rows, columns);
         _temperatureMatrix->setZero();
 
+        _residualMatrix = std::make_shared<Eigen::MatrixXd>(rows, columns);
+        _residualMatrix->setZero();
+
         ApplyBoundaryConditions();
         IterateTemperature(_parameters.MaxInitialIterations,
                            _parameters.InitialResidualTolerance,
