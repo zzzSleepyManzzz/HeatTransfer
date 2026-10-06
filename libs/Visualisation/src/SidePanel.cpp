@@ -195,6 +195,10 @@ namespace HeatTransfer::Visualisation
             if (ImGui::Button("Cancel", ImVec2(-1, 0)))
             {
                 _settingsState->TemporaryParameters = _model->GetSimulationConfig()->Parameters;
+                _settingsState->ResidualTrackingMetric =
+                    (int)_model->GetSimulationConfig()->Parameters.ResidualTrackingMetric;
+                _settingsState->ErrorTrackingMetric =
+                    (int)_model->GetSimulationConfig()->Parameters.ErrorTrackingMetric;
 
                 ImGui::CloseCurrentPopup();
             }
