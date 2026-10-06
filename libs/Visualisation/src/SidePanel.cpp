@@ -320,7 +320,7 @@ namespace HeatTransfer::Visualisation
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             ImGui::SeparatorText("Final error information");
-            ImGui::Text("Number of iterations : %zu", numIterations);
+            ImGui::Text("Number of iterations : %u", numIterations);
             ImGui::Text("Final max  error     : %.4g", finalMaxError);
             ImGui::Text("Final mean error     : %.4g", finalMeanError);
             ImGui::Text("Final RMS  error     : %.4g", finalRMSError);
@@ -328,7 +328,7 @@ namespace HeatTransfer::Visualisation
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             ImGui::SeparatorText("Final residual information");
-            ImGui::Text("Number of iterations : %zu", numIterations);
+            ImGui::Text("Number of iterations : %u", numIterations);
             ImGui::Text("Final max  residual  : %.4g", finalMaxResidual);
             ImGui::Text("Final mean residual  : %.4g", finalMeanResidual);
             ImGui::Text("Final RMS  residual  : %.4g", finalRMSResidual);
