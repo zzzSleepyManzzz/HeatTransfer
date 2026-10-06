@@ -1,5 +1,7 @@
 #pragma once
 
+#include "HeatTransfer/Core/TrackingMetric.h"
+
 namespace HeatTransfer::Core
 {
     struct SimulationParameters
@@ -15,6 +17,8 @@ namespace HeatTransfer::Core
         double RelaxationFactor;
         int MaxInitialIterations;
         int MaxExpandedIterations;
+        TrackingMetric ResidualTrackingMetric;
+        TrackingMetric ErrorTrackingMetric;
 
         constexpr static const SimulationParameters Default()
         {
@@ -28,7 +32,9 @@ namespace HeatTransfer::Core
                     .ExpandedErrorTolerance = 1e-6,
                     .RelaxationFactor = 1.7,
                     .MaxInitialIterations = 1000,
-                    .MaxExpandedIterations = 1000};
+                    .MaxExpandedIterations = 1000,
+                    .ResidualTrackingMetric = Core::TrackingMetric::MAX,
+                    .ErrorTrackingMetric = Core::TrackingMetric::MAX};
         }
     };
 }

@@ -163,6 +163,22 @@ namespace HeatTransfer::Visualisation
                                 &_settingsState->TemporaryParameters.MaxExpandedIterations))
             {
             }
+            if (ImGui::Combo("Residual tracking metric",
+                             &_settingsState->ResidualTrackingMetric,
+                             TRACKER_OPTIONS,
+                             IM_ARRAYSIZE(TRACKER_OPTIONS)))
+            {
+                _settingsState->TemporaryParameters.ResidualTrackingMetric =
+                    TRACKER_ARRAY[_settingsState->ResidualTrackingMetric];
+            }
+            if (ImGui::Combo("Error tracking metric",
+                             &_settingsState->ErrorTrackingMetric,
+                             TRACKER_OPTIONS,
+                             IM_ARRAYSIZE(TRACKER_OPTIONS)))
+            {
+                _settingsState->TemporaryParameters.ErrorTrackingMetric =
+                    TRACKER_ARRAY[_settingsState->ErrorTrackingMetric];
+            }
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
@@ -179,6 +195,10 @@ namespace HeatTransfer::Visualisation
             if (ImGui::Button("Cancel", ImVec2(-1, 0)))
             {
                 _settingsState->TemporaryParameters = _model->GetSimulationConfig()->Parameters;
+                _settingsState->ResidualTrackingMetric =
+                    (int)_model->GetSimulationConfig()->Parameters.ResidualTrackingMetric;
+                _settingsState->ErrorTrackingMetric =
+                    (int)_model->GetSimulationConfig()->Parameters.ErrorTrackingMetric;
 
                 ImGui::CloseCurrentPopup();
             }
@@ -320,7 +340,7 @@ namespace HeatTransfer::Visualisation
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             ImGui::SeparatorText("Final error information");
-            ImGui::Text("Number of iterations : %zu", numIterations);
+            ImGui::Text("Number of iterations : %u", numIterations);
             ImGui::Text("Final max  error     : %.4g", finalMaxError);
             ImGui::Text("Final mean error     : %.4g", finalMeanError);
             ImGui::Text("Final RMS  error     : %.4g", finalRMSError);
@@ -328,7 +348,7 @@ namespace HeatTransfer::Visualisation
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             ImGui::SeparatorText("Final residual information");
-            ImGui::Text("Number of iterations : %zu", numIterations);
+            ImGui::Text("Number of iterations : %u", numIterations);
             ImGui::Text("Final max  residual  : %.4g", finalMaxResidual);
             ImGui::Text("Final mean residual  : %.4g", finalMeanResidual);
             ImGui::Text("Final RMS  residual  : %.4g", finalRMSResidual);
