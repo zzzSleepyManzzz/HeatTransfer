@@ -11,7 +11,9 @@ namespace HeatTransfer::Visualisation
     {
         bool LightModeOn = false;
         float FontScaling = 1.0f;
-        int IterativeMethod = 2; // SOR by default
+        int IterativeMethod = 2;        // SOR by default
+        int ResidualTrackingMetric = 0; // MAX by default
+        int ErrorTrackingMetric = 0;    // MAX by default
         Core::SimulationParameters TemporaryParameters = Core::SimulationParameters::Default();
         Core::BoundaryConditions TemporaryBoundaryConditions = Core::BoundaryConditions::Default();
     };

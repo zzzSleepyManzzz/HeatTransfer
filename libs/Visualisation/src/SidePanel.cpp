@@ -163,6 +163,22 @@ namespace HeatTransfer::Visualisation
                                 &_settingsState->TemporaryParameters.MaxExpandedIterations))
             {
             }
+            if (ImGui::Combo("Residual tracking metric",
+                             &_settingsState->ResidualTrackingMetric,
+                             TRACKER_OPTIONS,
+                             IM_ARRAYSIZE(TRACKER_OPTIONS)))
+            {
+                _settingsState->TemporaryParameters.ResidualTrackingMetric =
+                    TRACKER_ARRAY[_settingsState->ResidualTrackingMetric];
+            }
+            if (ImGui::Combo("Error tracking metric",
+                             &_settingsState->ErrorTrackingMetric,
+                             TRACKER_OPTIONS,
+                             IM_ARRAYSIZE(TRACKER_OPTIONS)))
+            {
+                _settingsState->TemporaryParameters.ErrorTrackingMetric =
+                    TRACKER_ARRAY[_settingsState->ErrorTrackingMetric];
+            }
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 

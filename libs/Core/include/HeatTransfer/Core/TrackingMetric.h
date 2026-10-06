@@ -2,7 +2,7 @@
 
 namespace HeatTransfer::Core
 {
-    enum class ConvergenceMetric
+    enum class TrackingMetric
     {
         MAX,
         MEAN,

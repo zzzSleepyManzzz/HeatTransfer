@@ -1,6 +1,6 @@
 #pragma once
 
-#include "HeatTransfer/Core/ConvergenceMetric.h"
+#include "HeatTransfer/Core/TrackingMetric.h"
 
 namespace HeatTransfer::Core
 {
@@ -17,8 +17,8 @@ namespace HeatTransfer::Core
         double RelaxationFactor;
         int MaxInitialIterations;
         int MaxExpandedIterations;
-        ConvergenceMetric ResidualConvergenceMetric;
-        ConvergenceMetric ErrorConvergenceMetric;
+        TrackingMetric ResidualTrackingMetric;
+        TrackingMetric ErrorTrackingMetric;
 
         constexpr static const SimulationParameters Default()
         {
@@ -33,8 +33,8 @@ namespace HeatTransfer::Core
                     .RelaxationFactor = 1.7,
                     .MaxInitialIterations = 1000,
                     .MaxExpandedIterations = 1000,
-                    .ResidualConvergenceMetric = Core::ConvergenceMetric::MAX,
-                    .ErrorConvergenceMetric = Core::ConvergenceMetric::MAX};
+                    .ResidualTrackingMetric = Core::TrackingMetric::MAX,
+                    .ErrorTrackingMetric = Core::TrackingMetric::MAX};
         }
     };
 }

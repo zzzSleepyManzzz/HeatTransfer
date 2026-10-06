@@ -52,10 +52,28 @@ namespace HeatTransfer::Solvers
 
     bool ISolver::IsConverged()
     {
-        auto finalResidual = _residualMetrics.back();
-        auto finalMaxResidual = finalResidual->ResidualMax;
+        using enum HeatTransfer::Core::TrackingMetric;
 
-        return finalMaxResidual <= _parameters.ExpandedResidualTolerance;
+        auto finalResidual = _residualMetrics.back();
+
+        auto finalTargetResidual = finalResidual->ResidualMax;
+
+        switch (_parameters.ResidualTrackingMetric)
+        {
+            case MAX:
+                finalTargetResidual = finalResidual->ResidualMax;
+                break;
+            case MEAN:
+                finalTargetResidual = finalResidual->ResidualMean;
+                break;
+            case RMS:
+                finalTargetResidual = finalResidual->ResidualRMS;
+                break;
+            default:
+                throw std::runtime_error("Unknown residual tracking metric found");
+        }
+
+        return finalTargetResidual <= _parameters.ExpandedResidualTolerance;
     }
 
     const std::vector<std::shared_ptr<Core::ErrorMetric>>& ISolver::GetErrorMetrics()
@@ -158,8 +176,8 @@ namespace HeatTransfer::Solvers
         std::vector<double> residualTracker = {residualMax, residualMean, residualRMS};
         std::vector<double> errorTracker = {errorMax, errorMean, errorRMS};
 
-        auto indexR = (size_t)_parameters.ResidualConvergenceMetric;
-        auto indexE = (size_t)_parameters.ErrorConvergenceMetric;
+        auto indexR = (size_t)_parameters.ResidualTrackingMetric;
+        auto indexE = (size_t)_parameters.ErrorTrackingMetric;
 
         // Preallocate Eigen matrices for performance
         Eigen::MatrixXd oldTemperature(rows, cols);
