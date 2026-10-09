@@ -13,12 +13,12 @@ namespace HeatTransfer::Core
 
         constexpr static const BoundaryConditions Default()
         {
-            return {.TopEdge = 100.0,
-                    .BottomEdge = 0.0,
-                    .LeftEdge = 100.0,
-                    .RightEdge = 0.0,
-                    .InnerSquare = 50.0,
-                    .CenterPoint = -100.0};
+            return {.TopEdge = 200.0,
+                    .BottomEdge = 100.0,
+                    .LeftEdge = 200.0,
+                    .RightEdge = 100.0,
+                    .InnerSquare = 150.0,
+                    .CenterPoint = 0.0};
         }
     };
 }

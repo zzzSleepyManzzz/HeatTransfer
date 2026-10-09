@@ -333,9 +333,9 @@ namespace HeatTransfer::Visualisation
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             ImGui::SeparatorText("Temperature statistics");
-            ImGui::Text("Max Temperature  : %.2f °C", maxTemperature);
-            ImGui::Text("Min Temperature  : %.2f °C", minTemperature);
-            ImGui::Text("Mean Temperature : %.2f °C", meanTemperature);
+            ImGui::Text("Max Temperature  : %.2f K", maxTemperature);
+            ImGui::Text("Min Temperature  : %.2f K", minTemperature);
+            ImGui::Text("Mean Temperature : %.2f K", meanTemperature);
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
