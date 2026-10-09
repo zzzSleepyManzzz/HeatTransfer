@@ -122,7 +122,7 @@ namespace HeatTransfer::Visualisation
 
         if (ImPlot3D::BeginPlot("## Temperature", ImVec2(plotWindowWidth * 0.93, -1), plot3DFlags))
         {
-            ImPlot3D::SetupAxes("Width [pixels]", "Length [pixels]", "Temperature [°C]");
+            ImPlot3D::SetupAxes("Width [pixels]", "Length [pixels]", "Temperature [K]");
 
             if (_temperatureSurfacePlotState->ResetZoom)
             {
@@ -172,7 +172,7 @@ namespace HeatTransfer::Visualisation
 
         ImGui::SameLine();
         ImPlot::PushColormap(_temperatureSurfacePlotState->SelectedColorMap);
-        ImPlot::ColormapScale("Temperature [°C]",
+        ImPlot::ColormapScale("Temperature [K]",
                               plotData->Get_Temperature_Min(),
                               plotData->Get_Temperature_Max(),
                               ImVec2(-1, -1));
@@ -331,7 +331,7 @@ namespace HeatTransfer::Visualisation
         // Create color bar
 
         ImGui::SameLine();
-        ImPlot::ColormapScale("Temperature [°C]",
+        ImPlot::ColormapScale("Temperature [K]",
                               data->Get_Temperature_Min(),
                               data->Get_Temperature_Max(),
                               ImVec2(-1, -1));
