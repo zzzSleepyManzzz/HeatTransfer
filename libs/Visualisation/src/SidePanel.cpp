@@ -270,7 +270,11 @@ namespace HeatTransfer::Visualisation
                 ImGui::CloseCurrentPopup();
             }
 
-            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Dummy(ImVec2(0.0f, 15.0f));
+
+            ImGui::TextWrapped(
+                "Note: We track absolute residual, so make sure to have high residual for "
+                "high internal heat generation or low thermal conductivity!");
 
             ImGui::EndPopup();
         }
