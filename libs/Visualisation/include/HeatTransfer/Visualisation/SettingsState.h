@@ -3,6 +3,7 @@
 #include <string>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
 namespace HeatTransfer::Visualisation
@@ -15,6 +16,7 @@ namespace HeatTransfer::Visualisation
         int ResidualTrackingMetric = 0; // MAX by default
         int ErrorTrackingMetric = 0;    // MAX by default
         Core::SimulationParameters TemporaryParameters = Core::SimulationParameters::Default();
+        Core::MaterialProperties TemporaryMaterialProperties = Core::MaterialProperties::Default();
         Core::BoundaryConditions TemporaryBoundaryConditions = Core::BoundaryConditions::Default();
     };
 }

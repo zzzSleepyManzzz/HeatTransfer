@@ -90,6 +90,7 @@ namespace HeatTransfer::Visualisation
             // Add simulation parameters and boundary conditions button
 
             AddParametersButton();
+            AddMaterialPropertiesButton();
             AddBoundaryConditionsButton();
         }
     }
@@ -209,6 +210,74 @@ namespace HeatTransfer::Visualisation
         ImGui::Dummy(ImVec2(0.0f, 5.0f));
     }
 
+    void SidePanel::AddMaterialPropertiesButton()
+    {
+        if (ImGui::Button("Material Properties"))
+        {
+            ImGui::OpenPopup("Modify material properties");
+        }
+
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+        ImGui::SetNextWindowSize(ImVec2(displaySize.x * 1.0f / 3.0f, displaySize.y * 2.0f / 3.0f));
+
+        ImGui::SetNextWindowPos(
+            ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        if (ImGui::BeginPopupModal(
+                "Modify material properties", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Text("Set new material properties here");
+            ImGui::Text("Pressing OK will start a new run");
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Separator();
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            if (ImGui::InputDouble(
+                    "Thermal conductivity [W/(m K)]",
+                    &_settingsState->TemporaryMaterialProperties.ThermalConductivity))
+            {
+            }
+            if (ImGui::InputDouble(
+                    "Internal heat generation [W/m³]",
+                    &_settingsState->TemporaryMaterialProperties.InternalHeatGeneration))
+            {
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            if (ImGui::Button("OK", ImVec2(displaySize.x * 1.0f / 6.0f, 0)))
+            {
+                _model->GetSimulationConfig()->MaterialProperties =
+                    _settingsState->TemporaryMaterialProperties;
+                _model->UpdateModel();
+
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+
+            if (ImGui::Button("Cancel", ImVec2(-1, 0)))
+            {
+                _settingsState->TemporaryMaterialProperties =
+                    _model->GetSimulationConfig()->MaterialProperties;
+
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::EndPopup();
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 5.0f));
+    }
+
     void SidePanel::AddBoundaryConditionsButton()
     {
         if (ImGui::Button("Boundary Conditions"))
@@ -237,27 +306,27 @@ namespace HeatTransfer::Visualisation
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-            if (ImGui::InputDouble("Top edge temperature",
+            if (ImGui::InputDouble("Top edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.TopEdge))
             {
             }
-            if (ImGui::InputDouble("Bottom edge temperature",
+            if (ImGui::InputDouble("Bottom edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.BottomEdge))
             {
             }
-            if (ImGui::InputDouble("Left edge temperature",
+            if (ImGui::InputDouble("Left edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.LeftEdge))
             {
             }
-            if (ImGui::InputDouble("Right edge temperature",
+            if (ImGui::InputDouble("Right edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.RightEdge))
             {
             }
-            if (ImGui::InputDouble("Inner square temperature",
+            if (ImGui::InputDouble("Inner square temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.InnerSquare))
             {
             }
-            if (ImGui::InputDouble("Center point temperature",
+            if (ImGui::InputDouble("Center point temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.CenterPoint))
             {
             }
