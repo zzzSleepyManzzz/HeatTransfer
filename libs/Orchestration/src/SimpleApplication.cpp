@@ -37,7 +37,5 @@ namespace HeatTransfer::Orchestration
         std::cout << std::format("Elasped time: {} seconds", durationInSeconds) << std::endl;
         std::cout << std::format("Elasped time: {} milliseconds", durationInMilliseconds)
                   << std::endl;
-
-        system("pause > 0");
     }
 }
