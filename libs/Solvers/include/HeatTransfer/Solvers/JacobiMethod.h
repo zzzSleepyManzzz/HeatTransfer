@@ -13,6 +13,7 @@ namespace HeatTransfer::Solvers
     {
     public:
         JacobiMethod(const Core::SimulationParameters& parameters,
+                     const Core::MaterialProperties& materialProperties,
                      const Core::BoundaryConditions& boundaryCondition);
 
     private:

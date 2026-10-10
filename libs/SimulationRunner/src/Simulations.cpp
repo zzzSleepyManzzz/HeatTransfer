@@ -4,6 +4,7 @@ namespace HeatTransfer::SimulationRunner
 {
     Simulations::Simulations(std::shared_ptr<SimulationConfig> config)
         : _parameters(config->Parameters)
+        , _materialProperties(config->MaterialProperties)
         , _boundaryCondition(config->BoundaryConditions)
         , _method(config->Method)
     {
@@ -11,7 +12,8 @@ namespace HeatTransfer::SimulationRunner
 
     void Simulations::Run()
     {
-        auto solverFactory = std::make_shared<SolverFactory>(_parameters, _boundaryCondition);
+        auto solverFactory =
+            std::make_shared<SolverFactory>(_parameters, _materialProperties, _boundaryCondition);
         _solver = solverFactory->Create(_method);
         _solver->ComputeSimulation();
     }

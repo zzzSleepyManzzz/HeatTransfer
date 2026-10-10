@@ -10,6 +10,7 @@
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/ErrorMetric.h"
+#include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/ResidualMetric.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
@@ -20,6 +21,10 @@ namespace HeatTransfer::Solvers
     public:
         ISolver() = delete;
         virtual ~ISolver() = default;
+
+        ISolver(const Core::SimulationParameters& parameters,
+                const Core::MaterialProperties& materialProperties,
+                const Core::BoundaryConditions& boundaryCondition);
 
         void ComputeSimulation();
         void PrintResidual();
@@ -34,6 +39,7 @@ namespace HeatTransfer::Solvers
 
     protected:
         Core::SimulationParameters _parameters;
+        Core::MaterialProperties _materialProperties;
         Core::BoundaryConditions _boundaryCondition;
         std::vector<std::shared_ptr<Core::ErrorMetric>> _errorMetrics;
         std::vector<std::shared_ptr<Core::ResidualMetric>> _residualMetrics;

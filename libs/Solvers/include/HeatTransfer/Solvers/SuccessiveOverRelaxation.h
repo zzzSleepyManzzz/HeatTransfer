@@ -13,6 +13,7 @@ namespace HeatTransfer::Solvers
     {
     public:
         SuccessiveOverRelaxation(const Core::SimulationParameters& parameters,
+                                 const Core::MaterialProperties& materialProperties,
                                  const Core::BoundaryConditions& boundaryCondition);
 
     private:

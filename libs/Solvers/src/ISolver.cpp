@@ -3,8 +3,11 @@
 namespace HeatTransfer::Solvers
 {
     ISolver::ISolver(const Core::SimulationParameters& parameters,
+                     const Core::MaterialProperties& materialProperties,
                      const Core::BoundaryConditions& boundaryCondition)
-        : _parameters(parameters), _boundaryCondition(boundaryCondition)
+        : _parameters(parameters)
+        , _materialProperties(materialProperties)
+        , _boundaryCondition(boundaryCondition)
     {
     }
 
@@ -322,10 +325,14 @@ namespace HeatTransfer::Solvers
         auto& T = *_temperatureMatrix;
         auto& R = *_residualMatrix;
 
+        auto q_g = _materialProperties.InternalHeatGeneration;
+        auto k = _materialProperties.ThermalConductivity;
+        auto heating = Eigen::MatrixXd::Constant(rows - 2, cols - 2, q_g / k);
+
         R.block(1, 1, rows - 2, cols - 2) =
             T.block(1, 1, rows - 2, cols - 2) -
             (T.block(0, 1, rows - 2, cols - 2) + T.block(2, 1, rows - 2, cols - 2) +
-             T.block(1, 0, rows - 2, cols - 2) + T.block(1, 2, rows - 2, cols - 2)) *
+             T.block(1, 0, rows - 2, cols - 2) + T.block(1, 2, rows - 2, cols - 2) + heating) *
                 0.25f;
 
         const int h1 = std::floor(rows / 4);

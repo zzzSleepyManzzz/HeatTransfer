@@ -1,6 +1,7 @@
 #include <catch2/catch_all.hpp>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/Method.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
@@ -10,6 +11,7 @@ namespace
 {
     int NumIterations(HeatTransfer::Core::Method method,
                       HeatTransfer::Core::SimulationParameters parameters,
+                      HeatTransfer::Core::MaterialProperties materialProperties,
                       HeatTransfer::Core::BoundaryConditions boundaryCondition)
     {
         using enum HeatTransfer::Core::Method;
@@ -19,16 +21,16 @@ namespace
         switch (method)
         {
             case JACOBI:
-                solver = std::make_shared<HeatTransfer::Solvers::JacobiMethod>(parameters,
-                                                                               boundaryCondition);
+                solver = std::make_shared<HeatTransfer::Solvers::JacobiMethod>(
+                    parameters, materialProperties, boundaryCondition);
                 break;
             case GAUSS_SEIDEL:
                 solver = std::make_shared<HeatTransfer::Solvers::GaussSeidelMethod>(
-                    parameters, boundaryCondition);
+                    parameters, materialProperties, boundaryCondition);
                 break;
             case SUCCESSIVE_OVER_RELAXATION:
                 solver = std::make_shared<HeatTransfer::Solvers::SuccessiveOverRelaxation>(
-                    parameters, boundaryCondition);
+                    parameters, materialProperties, boundaryCondition);
                 break;
             default:
                 throw std::runtime_error("Unknown method");
@@ -43,12 +45,11 @@ namespace HeatTransfer::Tests
 {
     TEST_CASE("SOR converges faster than GS and Jacobi")
     {
-        HeatTransfer::Core::BoundaryConditions boundaryCondition = {.TopEdge = 100.0,
-                                                                    .BottomEdge = 0.0,
-                                                                    .LeftEdge = 100.0,
-                                                                    .RightEdge = 0.0,
-                                                                    .InnerSquare = 50.0,
-                                                                    .CenterPoint = -100.0};
+        HeatTransfer::Core::BoundaryConditions boundaryCondition =
+            HeatTransfer::Core::BoundaryConditions::Default();
+
+        HeatTransfer::Core::MaterialProperties materialProperties =
+            HeatTransfer::Core::MaterialProperties::Default();
 
         HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
                                                                .Columns = 100,
@@ -60,14 +61,19 @@ namespace HeatTransfer::Tests
                                                                .MaxInitialIterations = 1000,
                                                                .MaxExpandedIterations = 1000};
 
-        auto numIterationsJacobi =
-            NumIterations(HeatTransfer::Core::Method::JACOBI, parameters, boundaryCondition);
+        auto numIterationsJacobi = NumIterations(
+            HeatTransfer::Core::Method::JACOBI, parameters, materialProperties, boundaryCondition);
 
-        auto numIterationsGaussSeidel =
-            NumIterations(HeatTransfer::Core::Method::GAUSS_SEIDEL, parameters, boundaryCondition);
+        auto numIterationsGaussSeidel = NumIterations(HeatTransfer::Core::Method::GAUSS_SEIDEL,
+                                                      parameters,
+                                                      materialProperties,
+                                                      boundaryCondition);
 
-        auto numIterationsSuccessiveOverRelaxation = NumIterations(
-            HeatTransfer::Core::Method::SUCCESSIVE_OVER_RELAXATION, parameters, boundaryCondition);
+        auto numIterationsSuccessiveOverRelaxation =
+            NumIterations(HeatTransfer::Core::Method::SUCCESSIVE_OVER_RELAXATION,
+                          parameters,
+                          materialProperties,
+                          boundaryCondition);
 
         REQUIRE(numIterationsGaussSeidel < numIterationsJacobi);
         REQUIRE(numIterationsSuccessiveOverRelaxation < numIterationsGaussSeidel);

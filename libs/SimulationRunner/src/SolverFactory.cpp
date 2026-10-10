@@ -3,8 +3,11 @@
 namespace HeatTransfer::SimulationRunner
 {
     SolverFactory::SolverFactory(const Core::SimulationParameters& parameters,
+                                 const Core::MaterialProperties& materialProperties,
                                  const Core::BoundaryConditions& boundaryCondition)
-        : _parameters(parameters), _boundaryCondition(boundaryCondition)
+        : _parameters(parameters)
+        , _materialProperties(materialProperties)
+        , _boundaryCondition(boundaryCondition)
     {
     }
 
@@ -17,15 +20,16 @@ namespace HeatTransfer::SimulationRunner
         switch (method)
         {
             case JACOBI:
-                solver = std::make_shared<Solvers::JacobiMethod>(_parameters, _boundaryCondition);
+                solver = std::make_shared<Solvers::JacobiMethod>(
+                    _parameters, _materialProperties, _boundaryCondition);
                 break;
             case GAUSS_SEIDEL:
-                solver =
-                    std::make_shared<Solvers::GaussSeidelMethod>(_parameters, _boundaryCondition);
+                solver = std::make_shared<Solvers::GaussSeidelMethod>(
+                    _parameters, _materialProperties, _boundaryCondition);
                 break;
             case SUCCESSIVE_OVER_RELAXATION:
-                solver = std::make_shared<Solvers::SuccessiveOverRelaxation>(_parameters,
-                                                                             _boundaryCondition);
+                solver = std::make_shared<Solvers::SuccessiveOverRelaxation>(
+                    _parameters, _materialProperties, _boundaryCondition);
                 break;
             default:
                 throw std::runtime_error("Provided non-existant iterative method");

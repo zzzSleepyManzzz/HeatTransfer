@@ -1,6 +1,7 @@
 #include <catch2/catch_all.hpp>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
 #include "HeatTransfer/SimulationRunner/SolverFactory.h"
@@ -11,12 +12,11 @@ namespace HeatTransfer::Tests
     {
         using enum HeatTransfer::Core::Method;
 
-        HeatTransfer::Core::BoundaryConditions boundaryCondition = {.TopEdge = 100.0,
-                                                                    .BottomEdge = 0.0,
-                                                                    .LeftEdge = 100.0,
-                                                                    .RightEdge = 0.0,
-                                                                    .InnerSquare = 50.0,
-                                                                    .CenterPoint = -100.0};
+        HeatTransfer::Core::BoundaryConditions boundaryCondition =
+            HeatTransfer::Core::BoundaryConditions::Default();
+
+        HeatTransfer::Core::MaterialProperties materialProperties =
+            HeatTransfer::Core::MaterialProperties::Default();
 
         HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
                                                                .Columns = 100,
@@ -31,7 +31,7 @@ namespace HeatTransfer::Tests
                                                                .MaxExpandedIterations = 1000};
 
         auto solverFactory = std::make_shared<HeatTransfer::SimulationRunner::SolverFactory>(
-            parameters, boundaryCondition);
+            parameters, materialProperties, boundaryCondition);
         std::shared_ptr<HeatTransfer::Solvers::ISolver> solver;
 
         SECTION("Correct pointer for Jacobi Method")

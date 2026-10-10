@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
 #include "HeatTransfer/Solvers/GaussSeidelMethod.h"
@@ -12,12 +13,11 @@ namespace HeatTransfer::Tests
 {
     TEST_CASE("Gauss-Seidel Method converges to requested tolerance")
     {
-        HeatTransfer::Core::BoundaryConditions boundaryCondition = {.TopEdge = 100.0,
-                                                                    .BottomEdge = 0.0,
-                                                                    .LeftEdge = 100.0,
-                                                                    .RightEdge = 0.0,
-                                                                    .InnerSquare = 50.0,
-                                                                    .CenterPoint = -100.0};
+        HeatTransfer::Core::BoundaryConditions boundaryCondition =
+            HeatTransfer::Core::BoundaryConditions::Default();
+
+        HeatTransfer::Core::MaterialProperties materialProperties =
+            HeatTransfer::Core::MaterialProperties::Default();
 
         HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
                                                                .Columns = 100,
@@ -31,8 +31,8 @@ namespace HeatTransfer::Tests
                                                                .MaxInitialIterations = 1000,
                                                                .MaxExpandedIterations = 1000};
 
-        auto solver = std::make_shared<HeatTransfer::Solvers::GaussSeidelMethod>(parameters,
-                                                                                 boundaryCondition);
+        auto solver = std::make_shared<HeatTransfer::Solvers::GaussSeidelMethod>(
+            parameters, materialProperties, boundaryCondition);
 
         solver->ComputeSimulation();
 
