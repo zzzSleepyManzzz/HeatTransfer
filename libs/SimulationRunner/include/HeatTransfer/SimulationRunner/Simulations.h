@@ -1,6 +1,7 @@
 #pragma once
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/Method.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
@@ -25,6 +26,7 @@ namespace HeatTransfer::SimulationRunner
 
     private:
         Core::SimulationParameters _parameters;
+        Core::MaterialProperties _materialProperties;
         Core::BoundaryConditions _boundaryCondition;
         Core::Method _method;
         std::shared_ptr<Solvers::ISolver> _solver;

@@ -3,8 +3,9 @@
 namespace HeatTransfer::Solvers
 {
     GaussSeidelMethod::GaussSeidelMethod(const Core::SimulationParameters& parameters,
+                                         const Core::MaterialProperties& materialProperties,
                                          const Core::BoundaryConditions& boundaryCondition)
-        : ISolver(parameters, boundaryCondition)
+        : ISolver(parameters, materialProperties, boundaryCondition)
     {
     }
 
@@ -12,6 +13,9 @@ namespace HeatTransfer::Solvers
     {
         const Eigen::Index rows = _temperatureMatrix->rows();
         const Eigen::Index cols = _temperatureMatrix->cols();
+
+        auto q_g = _materialProperties.InternalHeatGeneration;
+        auto k = _materialProperties.ThermalConductivity;
 
         auto& T = *_temperatureMatrix;
 
@@ -25,7 +29,8 @@ namespace HeatTransfer::Solvers
                 }
                 else
                 {
-                    T(i, j) = 0.25f * (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1));
+                    T(i, j) =
+                        0.25f * (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1) + q_g / k);
                 }
             }
         }

@@ -36,6 +36,7 @@ namespace HeatTransfer::Visualisation
 
         void AddSettings();
         void AddParametersButton();
+        void AddMaterialPropertiesButton();
         void AddBoundaryConditionsButton();
 
         void AddStatistics();

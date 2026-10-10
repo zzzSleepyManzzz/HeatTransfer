@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
 #include "HeatTransfer/Solvers/JacobiMethod.h"
@@ -14,8 +15,9 @@ namespace
     {
     public:
         DummySolver(const HeatTransfer::Core::SimulationParameters& parameters,
+                    const HeatTransfer::Core::MaterialProperties& materialProperties,
                     const HeatTransfer::Core::BoundaryConditions& boundaryCondition)
-            : ISolver(parameters, boundaryCondition)
+            : ISolver(parameters, materialProperties, boundaryCondition)
         {
         }
 
@@ -43,12 +45,11 @@ namespace HeatTransfer::Tests
 {
     TEST_CASE("Verifying ExpandMatrix in ISolver")
     {
-        HeatTransfer::Core::BoundaryConditions boundaryCondition = {.TopEdge = 100.0,
-                                                                    .BottomEdge = 0.0,
-                                                                    .LeftEdge = 100.0,
-                                                                    .RightEdge = 0.0,
-                                                                    .InnerSquare = 50.0,
-                                                                    .CenterPoint = -100.0};
+        HeatTransfer::Core::BoundaryConditions boundaryCondition =
+            HeatTransfer::Core::BoundaryConditions::Default();
+
+        HeatTransfer::Core::MaterialProperties materialProperties =
+            HeatTransfer::Core::MaterialProperties::Default();
 
         HeatTransfer::Core::SimulationParameters parameters = {.Rows = 2,
                                                                .Columns = 2,
@@ -62,7 +63,8 @@ namespace HeatTransfer::Tests
                                                                .MaxInitialIterations = 1000,
                                                                .MaxExpandedIterations = 1000};
 
-        auto solver = std::make_shared<DummySolver>(parameters, boundaryCondition);
+        auto solver =
+            std::make_shared<DummySolver>(parameters, materialProperties, boundaryCondition);
 
         auto dummyMatrix = (Eigen::MatrixXd(2, 2) << 1, 2, 3, 4).finished();
 
