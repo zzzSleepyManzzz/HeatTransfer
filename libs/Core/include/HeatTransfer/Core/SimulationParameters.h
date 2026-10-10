@@ -26,7 +26,7 @@ namespace HeatTransfer::Core
                     .Columns = 2000,
                     .Expansion = 2,
                     .NumExpansions = 5,
-                    .InitialResidualTolerance = 1e-3,
+                    .InitialResidualTolerance = 1e-6,
                     .ExpandedResidualTolerance = 1e-3,
                     .InitialErrorTolerance = 1e-6,
                     .ExpandedErrorTolerance = 1e-6,
