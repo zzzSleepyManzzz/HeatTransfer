@@ -14,7 +14,7 @@ namespace HeatTransfer::SimulationRunner
 
     void Simulations::Run()
     {
-        ZoneScopedN("Simulation::Run");
+        ZoneScoped;
 
         auto solverFactory =
             std::make_shared<SolverFactory>(_parameters, _materialProperties, _boundaryCondition);

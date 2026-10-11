@@ -1,5 +1,7 @@
 #include "HeatTransfer/Solvers/RedBlackSOR.h"
 
+#include <tracy/Tracy.hpp>
+
 namespace HeatTransfer::Solvers
 {
     RedBlackSOR::RedBlackSOR(const Core::SimulationParameters& parameters,
@@ -11,6 +13,8 @@ namespace HeatTransfer::Solvers
 
     void RedBlackSOR::UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature)
     {
+        ZoneScoped;
+
         const Eigen::Index rows = _temperatureMatrix->rows();
         const Eigen::Index cols = _temperatureMatrix->cols();
 

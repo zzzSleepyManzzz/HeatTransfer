@@ -16,6 +16,8 @@ target_link_libraries(Solvers
     PUBLIC Core
     PUBLIC Eigen3::Eigen
     PRIVATE OpenMP::OpenMP_CXX
+
+    PRIVATE Tracy::TracyClient
 )
 
 add_library(HeatTransfer::Solvers ALIAS Solvers)

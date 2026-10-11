@@ -1,5 +1,7 @@
 #include "HeatTransfer/Solvers/GaussSeidelMethod.h"
 
+#include <tracy/Tracy.hpp>
+
 namespace HeatTransfer::Solvers
 {
     GaussSeidelMethod::GaussSeidelMethod(const Core::SimulationParameters& parameters,
@@ -11,6 +13,8 @@ namespace HeatTransfer::Solvers
 
     void GaussSeidelMethod::UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature)
     {
+        ZoneScoped;
+
         const Eigen::Index rows = _temperatureMatrix->rows();
         const Eigen::Index cols = _temperatureMatrix->cols();
 

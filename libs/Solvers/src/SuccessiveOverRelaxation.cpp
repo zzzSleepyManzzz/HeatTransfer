@@ -1,5 +1,7 @@
 #include "HeatTransfer/Solvers/SuccessiveOverRelaxation.h"
 
+#include <tracy/Tracy.hpp>
+
 namespace HeatTransfer::Solvers
 {
     SuccessiveOverRelaxation::SuccessiveOverRelaxation(
@@ -12,6 +14,8 @@ namespace HeatTransfer::Solvers
 
     void SuccessiveOverRelaxation::UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature)
     {
+        ZoneScoped;
+
         const Eigen::Index rows = _temperatureMatrix->rows();
         const Eigen::Index cols = _temperatureMatrix->cols();
 
