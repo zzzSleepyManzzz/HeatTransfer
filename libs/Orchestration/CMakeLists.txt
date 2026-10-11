@@ -10,6 +10,8 @@ target_include_directories(Orchestration
 target_link_libraries(Orchestration
     PUBLIC SimulationRunner
     PUBLIC Visualisation
+
+    PRIVATE Tracy::TracyClient
 )
 
 add_library(HeatTransfer::Orchestration ALIAS Orchestration)
