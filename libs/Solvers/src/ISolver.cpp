@@ -140,6 +140,8 @@ namespace HeatTransfer::Solvers
 
     void ISolver::ExpandMatrix()
     {
+        ZoneScoped;
+
         auto& T = *_temperatureMatrix;
 
         int expansionFactor = _parameters.Expansion;
@@ -168,6 +170,8 @@ namespace HeatTransfer::Solvers
                                      double errorTolerance,
                                      int& totalIterations)
     {
+        ZoneScoped;
+
         const Eigen::Index rows = _temperatureMatrix->rows();
         const Eigen::Index cols = _temperatureMatrix->cols();
 
@@ -320,6 +324,8 @@ namespace HeatTransfer::Solvers
 
     void ISolver::UpdateResidualMatrix()
     {
+        ZoneScoped;
+
         const Eigen::Index rows = _temperatureMatrix->rows();
         const Eigen::Index cols = _temperatureMatrix->cols();
 
