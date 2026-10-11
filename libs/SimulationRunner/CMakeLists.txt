@@ -10,6 +10,8 @@ target_include_directories(SimulationRunner
 target_link_libraries(SimulationRunner
     PUBLIC Core
     PUBLIC Solvers
+
+    PRIVATE Tracy::TracyClient
 )
 
 add_library(HeatTransfer::SimulationRunner ALIAS SimulationRunner)

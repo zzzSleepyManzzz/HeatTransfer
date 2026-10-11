@@ -1,5 +1,7 @@
 #include "HeatTransfer/SimulationRunner/Simulations.h"
 
+#include <tracy/Tracy.hpp>
+
 namespace HeatTransfer::SimulationRunner
 {
     Simulations::Simulations(std::shared_ptr<SimulationConfig> config)
@@ -12,6 +14,8 @@ namespace HeatTransfer::SimulationRunner
 
     void Simulations::Run()
     {
+        ZoneScopedN("Simulation::Run");
+
         auto solverFactory =
             std::make_shared<SolverFactory>(_parameters, _materialProperties, _boundaryCondition);
         _solver = solverFactory->Create(_method);

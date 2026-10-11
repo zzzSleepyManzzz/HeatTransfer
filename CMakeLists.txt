@@ -10,7 +10,9 @@ find_package(glfw3 REQUIRED)
 find_package(glad REQUIRED)
 find_package(imgui REQUIRED)
 find_package(implot REQUIRED)
+find_package(Tracy REQUIRED)
 
+add_compile_definitions(TRACY_ENABLE)
 
 add_subdirectory(libs/Core)
 add_subdirectory(libs/SimulationRunner)

@@ -8,6 +8,8 @@ imgui/1.92.5
 
 implot/0.17
 
+tracy/0.13.1
+
 [options]
 imgui/*:with_glfw=True
 imgui/*:with_opengl3=True
