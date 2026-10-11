@@ -6,6 +6,7 @@ namespace HeatTransfer::Core
     {
         JACOBI,
         GAUSS_SEIDEL,
-        SUCCESSIVE_OVER_RELAXATION
+        SUCCESSIVE_OVER_RELAXATION,
+        RED_BLACK_SOR
     };
 }

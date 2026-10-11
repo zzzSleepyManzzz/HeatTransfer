@@ -32,6 +32,10 @@ namespace
                 solver = std::make_shared<HeatTransfer::Solvers::SuccessiveOverRelaxation>(
                     parameters, materialProperties, boundaryCondition);
                 break;
+            case RED_BLACK_SOR:
+                solver = std::make_shared<HeatTransfer::Solvers::RedBlackSOR>(
+                    parameters, materialProperties, boundaryCondition);
+                break;
             default:
                 throw std::runtime_error("Unknown method");
         }

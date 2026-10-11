@@ -18,6 +18,7 @@ add_executable(integration_tests
     integration/JacobiMethod_Test.cpp
     integration/GaussSeidelMethod_Test.cpp
     integration/SuccessiveOverRelaxation_Test.cpp
+    integration/RedBlackSOR_Test.cpp
     integration/SolverRelativePerformance_Test.cpp
 )
 

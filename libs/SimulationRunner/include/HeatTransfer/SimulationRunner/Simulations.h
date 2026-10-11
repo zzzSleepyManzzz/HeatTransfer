@@ -7,6 +7,7 @@
 
 #include "HeatTransfer/Solvers/GaussSeidelMethod.h"
 #include "HeatTransfer/Solvers/JacobiMethod.h"
+#include "HeatTransfer/Solvers/RedBlackSOR.h"
 #include "HeatTransfer/Solvers/SuccessiveOverRelaxation.h"
 
 #include "HeatTransfer/SimulationRunner/SimulationConfig.h"

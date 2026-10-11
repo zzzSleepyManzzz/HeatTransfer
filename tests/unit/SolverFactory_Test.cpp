@@ -56,5 +56,13 @@ namespace HeatTransfer::Tests
                 std::dynamic_pointer_cast<HeatTransfer::Solvers::SuccessiveOverRelaxation>(solver);
             REQUIRE(successiveOverRelaxation);
         }
+
+        SECTION("Correct pointer for Red-Black SOR")
+        {
+            solver = solverFactory->Create(RED_BLACK_SOR);
+            auto redBlackSOR =
+                std::dynamic_pointer_cast<HeatTransfer::Solvers::RedBlackSOR>(solver);
+            REQUIRE(redBlackSOR);
+        }
     }
 }
