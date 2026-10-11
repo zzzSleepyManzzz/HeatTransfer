@@ -10,6 +10,7 @@
 #include "HeatTransfer/Solvers/GaussSeidelMethod.h"
 #include "HeatTransfer/Solvers/ISolver.h"
 #include "HeatTransfer/Solvers/JacobiMethod.h"
+#include "HeatTransfer/Solvers/RedBlackSOR.h"
 #include "HeatTransfer/Solvers/SuccessiveOverRelaxation.h"
 
 namespace HeatTransfer::SimulationRunner

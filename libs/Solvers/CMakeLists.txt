@@ -3,6 +3,7 @@ add_library(Solvers
     src/JacobiMethod.cpp
     src/GaussSeidelMethod.cpp
     src/SuccessiveOverRelaxation.cpp
+    src/RedBlackSOR.cpp
 )
 
 target_include_directories(Solvers

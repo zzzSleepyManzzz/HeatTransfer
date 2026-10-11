@@ -31,6 +31,10 @@ namespace HeatTransfer::SimulationRunner
                 solver = std::make_shared<Solvers::SuccessiveOverRelaxation>(
                     _parameters, _materialProperties, _boundaryCondition);
                 break;
+            case RED_BLACK_SOR:
+                solver = std::make_shared<Solvers::RedBlackSOR>(
+                    _parameters, _materialProperties, _boundaryCondition);
+                break;
             default:
                 throw std::runtime_error("Provided non-existant iterative method");
         };
