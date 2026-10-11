@@ -1,5 +1,7 @@
 #include "HeatTransfer/Solvers/ISolver.h"
 
+#include <tracy/Tracy.hpp>
+
 namespace HeatTransfer::Solvers
 {
     ISolver::ISolver(const Core::SimulationParameters& parameters,
@@ -13,6 +15,8 @@ namespace HeatTransfer::Solvers
 
     void ISolver::ComputeSimulation()
     {
+        ZoneScoped;
+
         int rows = _parameters.Rows / std::pow(_parameters.Expansion, _parameters.NumExpansions);
         int columns =
             _parameters.Columns / std::pow(_parameters.Expansion, _parameters.NumExpansions);

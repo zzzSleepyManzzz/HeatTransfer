@@ -1,5 +1,7 @@
 #include "HeatTransfer/Orchestration/Application.h"
 
+#include <tracy/Tracy.hpp>
+
 namespace HeatTransfer::Orchestration
 {
     Application::Application() {}
@@ -63,6 +65,8 @@ namespace HeatTransfer::Orchestration
 
             renderer->Render(rendererModel);
             renderer->PollEvents();
+
+            FrameMark;
         }
     }
 }
