@@ -21,6 +21,9 @@ namespace HeatTransfer::Solvers
         auto q_g = _materialProperties.InternalHeatGeneration;
         auto k = _materialProperties.ThermalConductivity;
 
+        auto RED = 0;
+        auto BLACK = 1;
+
         // Red squares
 
 #pragma omp parallel for schedule(static)
@@ -28,7 +31,7 @@ namespace HeatTransfer::Solvers
         {
             for (auto j = 0u; j < cols; j++)
             {
-                if ((i + j) % 2 == 1)
+                if ((i + j) % 2 == BLACK)
                     continue;
 
                 if (IsInsulated(i, j))
@@ -51,7 +54,7 @@ namespace HeatTransfer::Solvers
         {
             for (auto j = 0u; j < cols; j++)
             {
-                if ((i + j) % 2 == 0)
+                if ((i + j) % 2 == RED)
                     continue;
 
                 if (IsInsulated(i, j))
