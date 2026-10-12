@@ -12,7 +12,7 @@ namespace HeatTransfer::Visualisation
     {
         bool LightModeOn = false;
         float FontScaling = 1.0f;
-        int IterativeMethod = 2;        // SOR by default
+        int IterativeMethod = 1;        // Gauss-Seidel by default
         int ResidualTrackingMetric = 0; // MAX by default
         int ErrorTrackingMetric = 0;    // MAX by default
         Core::SimulationParameters TemporaryParameters = Core::SimulationParameters::Default();
