@@ -270,7 +270,12 @@ namespace HeatTransfer::Visualisation
                 ImGui::CloseCurrentPopup();
             }
 
-            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Dummy(ImVec2(0.0f, 35.0f));
+
+            ImGui::TextWrapped(
+                "Note: Large internal heat generation and low thermal conductivity may require "
+                "adjusting hyper-parameters, such as, grid size and number of expansions to "
+                "converge.");
 
             ImGui::EndPopup();
         }
