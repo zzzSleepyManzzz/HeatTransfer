@@ -339,20 +339,11 @@ namespace HeatTransfer::Solvers
         auto k = _materialProperties.ThermalConductivity;
         auto heating = Eigen::MatrixXd::Constant(rows - 2, cols - 2, q_g / k);
 
-        // Compute absolute residual matrix
-
         R.block(1, 1, rows - 2, cols - 2) =
             T.block(1, 1, rows - 2, cols - 2) -
             (T.block(0, 1, rows - 2, cols - 2) + T.block(2, 1, rows - 2, cols - 2) +
              T.block(1, 0, rows - 2, cols - 2) + T.block(1, 2, rows - 2, cols - 2) + heating) *
                 0.25f;
-
-        // Normalise residual matrix
-
-        const double temperatureScale = std::max(T.cwiseAbs().maxCoeff(), 1.0);
-
-        R.block(1, 1, rows - 2, cols - 2) =
-            (R.block(1, 1, rows - 2, cols - 2).array() / temperatureScale).matrix();
 
         const int h1 = std::floor(rows / 4);
         const int h2 = std::floor(3 * rows / 4);
