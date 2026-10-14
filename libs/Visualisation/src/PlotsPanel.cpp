@@ -20,7 +20,7 @@ namespace HeatTransfer::Visualisation
 
     void PlotsPanel::ShowPlotsWindow()
     {
-        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
         ImGui::SetNextWindowSize(ImVec2(displaySize.x * 4.0f / 5.0f, displaySize.y * 3.0f / 4.0f));
