@@ -15,7 +15,7 @@ namespace HeatTransfer::Visualisation
 
     void SidePanel::ShowSideBar()
     {
-        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize;
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
         ImGui::SetNextWindowSize(ImVec2(displaySize.x / 5.0f, displaySize.y));
