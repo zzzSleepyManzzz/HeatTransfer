@@ -25,6 +25,7 @@ namespace HeatTransfer::Solvers
 
         auto q_g = _materialProperties.InternalHeatGeneration;
         auto k = _materialProperties.ThermalConductivity;
+        auto h = 1.0f / std::max(rows, cols);
 
         for (auto i = 0u; i < rows; i++)
         {
@@ -38,7 +39,8 @@ namespace HeatTransfer::Solvers
                 {
                     T(i, j) = (1 - relaxationFactor) * T(i, j) +
                               relaxationFactor * 0.25f *
-                                  (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1) + q_g / k);
+                                  (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1) +
+                                   pow(h, 2) * q_g / k);
                 }
             }
         }
