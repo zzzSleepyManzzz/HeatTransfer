@@ -20,7 +20,8 @@ namespace HeatTransfer::Solvers
 
         auto q_g = _materialProperties.InternalHeatGeneration;
         auto k = _materialProperties.ThermalConductivity;
-        auto heating = Eigen::MatrixXd::Constant(rows - 2, cols - 2, q_g / k);
+        auto h = 1.0f / std::max(rows, cols);
+        auto heating = Eigen::MatrixXd::Constant(rows - 2, cols - 2, pow(h, 2) * q_g / k);
 
         _temperatureMatrix->block(1, 1, rows - 2, cols - 2) =
             (oldTemperature.block(0, 1, rows - 2, cols - 2) +

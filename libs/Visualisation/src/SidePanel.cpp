@@ -272,10 +272,10 @@ namespace HeatTransfer::Visualisation
 
             ImGui::Dummy(ImVec2(0.0f, 35.0f));
 
-            ImGui::TextWrapped(
-                "Note: High internal heat generation and low thermal conductivity lead to a stiff "
-                "source term in the steady-state conduction equation, which increases the "
-                "number of iterations needed to meet the convergence tolerance.");
+            ImGui::TextWrapped("Note: Extremely high internal heat generation and extremely low "
+                               "thermal conductivity lead to a stiff source term in the "
+                               "steady-state conduction equation, which increases the number of "
+                               "iterations needed to meet the convergence tolerance.");
 
             ImGui::EndPopup();
         }
