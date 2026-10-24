@@ -1,22 +1,43 @@
 #include "HeatTransfer/SimulationRunner/Simulations.h"
 
+#include <tracy/Tracy.hpp>
+
 namespace HeatTransfer::SimulationRunner
 {
-    Simulations::Simulations(const Core::SimulationParameters& parameters,
-                             const Core::BoundaryConditions& boundaryCondition)
-        : _parameters(parameters), _boundaryCondition(boundaryCondition) {
-
-        };
-
-    void Simulations::Run(Method method)
+    Simulations::Simulations(std::shared_ptr<SimulationConfig> config)
+        : _parameters(config->Parameters)
+        , _materialProperties(config->MaterialProperties)
+        , _boundaryCondition(config->BoundaryConditions)
+        , _method(config->Method)
     {
-        auto solverFactory = std::make_shared<SolverFactory>(_parameters, _boundaryCondition);
-        _solver = solverFactory->Create(method);
+    }
+
+    void Simulations::Run()
+    {
+        ZoneScoped;
+
+        auto solverFactory =
+            std::make_shared<SolverFactory>(_parameters, _materialProperties, _boundaryCondition);
+        _solver = solverFactory->Create(_method);
         _solver->ComputeSimulation();
     }
 
     void Simulations::Print()
     {
-        _solver->PrintError();
+        _solver->PrintResidual();
+    }
+
+    std::shared_ptr<SimulationOutput> Simulations::GetOutput()
+    {
+        auto temperatureMatrix = _solver->GetTemperatureMatrix();
+        const auto& errorMetrics = _solver->GetErrorMetrics();
+
+        auto residualMatrix = _solver->GetResidualMatrix();
+        const auto& residualMetrics = _solver->GetResidualMetrics();
+
+        bool isConverged = _solver->IsConverged();
+
+        return std::make_shared<SimulationOutput>(
+            temperatureMatrix, errorMetrics, residualMatrix, residualMetrics, isConverged);
     }
 }

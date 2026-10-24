@@ -3,5 +3,5 @@ add_executable(HeatTransferApp
 )
 
 target_link_libraries(HeatTransferApp
-    PRIVATE SimulationRunner
+    PRIVATE Orchestration
 )

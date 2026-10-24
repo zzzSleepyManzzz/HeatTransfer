@@ -1,86 +1,48 @@
 #include "HeatTransfer/Solvers/SuccessiveOverRelaxation.h"
 
+#include <tracy/Tracy.hpp>
+
 namespace HeatTransfer::Solvers
 {
     SuccessiveOverRelaxation::SuccessiveOverRelaxation(
         const Core::SimulationParameters& parameters,
+        const Core::MaterialProperties& materialProperties,
         const Core::BoundaryConditions& boundaryCondition)
-        : ISolver(parameters, boundaryCondition)
+        : ISolver(parameters, materialProperties, boundaryCondition)
     {
     }
 
-    void SuccessiveOverRelaxation::IterateTemperature(int maxIterations,
-                                                      double tolerance,
-                                                      double relaxationFactor,
-                                                      int& totalIterations)
+    void SuccessiveOverRelaxation::UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature)
     {
-        const Eigen::Index rows = T.rows();
-        const Eigen::Index cols = T.cols();
+        ZoneScoped;
 
-        int localIterations = 0;
-        double errorMax = tolerance + 1.0;
-        double errorMean = tolerance + 1.0;
-        double errorRMS = tolerance + 1.0;
+        const Eigen::Index rows = _temperatureMatrix->rows();
+        const Eigen::Index cols = _temperatureMatrix->cols();
 
-        // Preallocate Eigen matrices for performance
-        Eigen::MatrixXd oldT(rows, cols);
-        Eigen::ArrayXXd errorArray(rows, cols);
+        auto& T = *_temperatureMatrix;
 
-        while (localIterations < maxIterations && errorMax > tolerance)
+        auto relaxationFactor = _parameters.RelaxationFactor;
+
+        auto q_g = _materialProperties.InternalHeatGeneration;
+        auto k = _materialProperties.ThermalConductivity;
+        auto h = 1.0f / std::max(rows, cols);
+
+        for (auto i = 0u; i < rows; i++)
         {
-            oldT = T;
-
-            for (auto i = 1u; i < rows - 1; i++)
+            for (auto j = 0u; j < cols; j++)
             {
-                for (auto j = 1u; j < cols - 1; j++)
+                if (IsInsulated(i, j))
+                {
+                    T(i, j) = InsulatedValue(i, j);
+                }
+                else
                 {
                     T(i, j) = (1 - relaxationFactor) * T(i, j) +
                               relaxationFactor * 0.25f *
-                                  (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1));
+                                  (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1) +
+                                   pow(h, 2) * q_g / k);
                 }
             }
-
-            ApplyBoundaryConditions();
-
-            errorArray = (T - oldT).array();
-            errorMax = errorArray.abs().maxCoeff();
-            errorMean = errorArray.abs().mean();
-            errorRMS = std::sqrt(errorArray.square().mean());
-
-            localIterations++;
-            totalIterations++;
-
-            auto error = Core::IterationAndError{.iteration = totalIterations,
-                                                 .errorMax = errorMax,
-                                                 .errorMean = errorMean,
-                                                 .errorRMS = errorRMS};
-
-            _errors.push_back(std::move(error));
-        }
-    }
-
-    void SuccessiveOverRelaxation::ComputeSimulation()
-    {
-        int rows = _parameters.rows / std::pow(_parameters.expansion, _parameters.numExpansions);
-        int columns =
-            _parameters.columns / std::pow(_parameters.expansion, _parameters.numExpansions);
-        int totalIterations = 0;
-
-        T = Eigen::MatrixXd::Zero(rows, columns);
-        ApplyBoundaryConditions();
-        IterateTemperature(_parameters.maxInitialIterations,
-                           _parameters.initialTolerance,
-                           _parameters.relaxationFactor,
-                           totalIterations);
-
-        for (int i = 0; i < _parameters.numExpansions; i++)
-        {
-            ExpandMatrix();
-            ApplyBoundaryConditions();
-            IterateTemperature(_parameters.maxExpandedIterations,
-                               _parameters.expandedTolerance,
-                               _parameters.relaxationFactor,
-                               totalIterations);
         }
     }
 }

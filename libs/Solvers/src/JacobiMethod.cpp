@@ -1,73 +1,35 @@
 #include "HeatTransfer/Solvers/JacobiMethod.h"
 
+#include <tracy/Tracy.hpp>
+
 namespace HeatTransfer::Solvers
 {
     JacobiMethod::JacobiMethod(const Core::SimulationParameters& parameters,
+                               const Core::MaterialProperties& materialProperties,
                                const Core::BoundaryConditions& boundaryCondition)
-        : ISolver(parameters, boundaryCondition)
+        : ISolver(parameters, materialProperties, boundaryCondition)
     {
     }
 
-    void JacobiMethod::IterateTemperature(int maxIterations, double tolerance, int& totalIterations)
+    void JacobiMethod::UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature)
     {
-        const Eigen::Index rows = T.rows();
-        const Eigen::Index cols = T.cols();
+        ZoneScoped;
 
-        int localIterations = 0;
-        double errorMax = tolerance + 1.0;
-        double errorMean = tolerance + 1.0;
-        double errorRMS = tolerance + 1.0;
+        const Eigen::Index rows = _temperatureMatrix->rows();
+        const Eigen::Index cols = _temperatureMatrix->cols();
 
-        // Preallocate Eigen matrices for performance
-        Eigen::MatrixXd oldT(rows, cols);
-        Eigen::ArrayXXd errorArray(rows, cols);
+        auto q_g = _materialProperties.InternalHeatGeneration;
+        auto k = _materialProperties.ThermalConductivity;
+        auto h = 1.0f / std::max(rows, cols);
+        auto heating = Eigen::MatrixXd::Constant(rows - 2, cols - 2, pow(h, 2) * q_g / k);
 
-        while (localIterations < maxIterations && errorMax > tolerance)
-        {
-            oldT = T;
+        _temperatureMatrix->block(1, 1, rows - 2, cols - 2) =
+            (oldTemperature.block(0, 1, rows - 2, cols - 2) +
+             oldTemperature.block(2, 1, rows - 2, cols - 2) +
+             oldTemperature.block(1, 0, rows - 2, cols - 2) +
+             oldTemperature.block(1, 2, rows - 2, cols - 2) + heating) *
+            0.25f;
 
-            T.block(1, 1, rows - 2, cols - 2) =
-                (oldT.block(0, 1, rows - 2, cols - 2) + oldT.block(2, 1, rows - 2, cols - 2) +
-                 oldT.block(1, 0, rows - 2, cols - 2) + oldT.block(1, 2, rows - 2, cols - 2)) *
-                0.25f;
-
-            ApplyBoundaryConditions();
-
-            errorArray = (T - oldT).array();
-            errorMax = errorArray.abs().maxCoeff();
-            errorMean = errorArray.abs().mean();
-            errorRMS = std::sqrt(errorArray.square().mean());
-
-            localIterations++;
-            totalIterations++;
-
-            auto error = Core::IterationAndError{.iteration = totalIterations,
-                                                 .errorMax = errorMax,
-                                                 .errorMean = errorMean,
-                                                 .errorRMS = errorRMS};
-
-            _errors.push_back(std::move(error));
-        }
-    }
-
-    void JacobiMethod::ComputeSimulation()
-    {
-        int rows = _parameters.rows / std::pow(_parameters.expansion, _parameters.numExpansions);
-        int columns =
-            _parameters.columns / std::pow(_parameters.expansion, _parameters.numExpansions);
-        int totalIterations = 0;
-
-        T = Eigen::MatrixXd::Zero(rows, columns);
         ApplyBoundaryConditions();
-        IterateTemperature(
-            _parameters.maxInitialIterations, _parameters.initialTolerance, totalIterations);
-
-        for (int i = 0; i < _parameters.numExpansions; i++)
-        {
-            ExpandMatrix();
-            ApplyBoundaryConditions();
-            IterateTemperature(
-                _parameters.maxExpandedIterations, _parameters.expandedTolerance, totalIterations);
-        }
     }
 }

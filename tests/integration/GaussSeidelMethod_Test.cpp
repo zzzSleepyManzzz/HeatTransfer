@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
 #include "HeatTransfer/Solvers/GaussSeidelMethod.h"
@@ -12,45 +13,47 @@ namespace HeatTransfer::Tests
 {
     TEST_CASE("Gauss-Seidel Method converges to requested tolerance")
     {
-        HeatTransfer::Core::BoundaryConditions boundaryCondition = {.topEdge = 100.0,
-                                                                    .bottomEdge = 0.0,
-                                                                    .leftEdge = 100.0,
-                                                                    .rightEdge = 0.0,
-                                                                    .innerSquare = 50.0,
-                                                                    .centerPoint = -100.0};
+        HeatTransfer::Core::BoundaryConditions boundaryCondition =
+            HeatTransfer::Core::BoundaryConditions::Default();
 
-        HeatTransfer::Core::SimulationParameters parameters = {.rows = 100,
-                                                               .columns = 100,
-                                                               .expansion = 2,
-                                                               .numExpansions = 2,
-                                                               .initialTolerance = 1e-3,
-                                                               .expandedTolerance = 1e-1,
-                                                               .relaxationFactor = 1.7,
-                                                               .maxInitialIterations = 1000,
-                                                               .maxExpandedIterations = 1000};
+        HeatTransfer::Core::MaterialProperties materialProperties =
+            HeatTransfer::Core::MaterialProperties::Default();
 
-        auto solver = std::make_shared<HeatTransfer::Solvers::GaussSeidelMethod>(parameters,
-                                                                                 boundaryCondition);
+        HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
+                                                               .Columns = 100,
+                                                               .Expansion = 2,
+                                                               .NumExpansions = 2,
+                                                               .InitialResidualTolerance = 1e-3,
+                                                               .ExpandedResidualTolerance = 1e-1,
+                                                               .InitialErrorTolerance = 1e-6,
+                                                               .ExpandedErrorTolerance = 1e-6,
+                                                               .RelaxationFactor = 1.7,
+                                                               .MaxInitialIterations = 1000,
+                                                               .MaxExpandedIterations = 1000};
+
+        auto solver = std::make_shared<HeatTransfer::Solvers::GaussSeidelMethod>(
+            parameters, materialProperties, boundaryCondition);
+
         solver->ComputeSimulation();
 
-        const auto& errors = solver->GetErrors();
+        const auto& residuals = solver->GetResidualMetrics();
 
-        REQUIRE_FALSE(errors.empty());
+        REQUIRE_FALSE(residuals.empty());
 
-        SECTION("Sanity check for errors array")
+        SECTION("Sanity check for residuals array")
         {
-            for (auto i = 1u; i < errors.size(); i++)
+            for (auto i = 1u; i < residuals.size(); i++)
             {
-                REQUIRE(errors[i].iteration > errors[i - 1].iteration);
-                REQUIRE(errors[i].errorMax >= 0.0);
-                REQUIRE(errors[i].errorMean >= 0.0);
-                REQUIRE(errors[i].errorRMS >= 0.0);
+                REQUIRE(residuals[i]->Iteration > residuals[i - 1]->Iteration);
+                REQUIRE(residuals[i]->ResidualMax >= 0.0);
+                REQUIRE(residuals[i]->ResidualMean >= 0.0);
+                REQUIRE(residuals[i]->ResidualRMS >= 0.0);
             }
         }
 
-        SECTION("Max error should be below tolerance")
+        SECTION("Max residual should be below tolerance")
         {
-            REQUIRE(errors.back().errorMax <= parameters.expandedTolerance);
+            REQUIRE(residuals.back()->ResidualMax <= parameters.ExpandedResidualTolerance);
         }
     }
 

@@ -1,0 +1,441 @@
+#include "HeatTransfer/Visualisation/SidePanel.h"
+
+namespace HeatTransfer::Visualisation
+{
+    SidePanel::SidePanel(std::shared_ptr<ConsoleLogger> logger)
+        : IPanel(logger), _settingsState(std::make_shared<SettingsState>())
+    {
+    }
+
+    void SidePanel::Render(std::shared_ptr<RendererModel> model)
+    {
+        _model = model;
+        ShowSideBar();
+    }
+
+    void SidePanel::ShowSideBar()
+    {
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+        ImGui::SetNextWindowSize(ImVec2(displaySize.x / 5.0f, displaySize.y));
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+
+        ImGui::Begin("Side Bar", nullptr, windowFlags);
+        {
+            AddSettings();
+            AddStatistics();
+        }
+        ImGui::End();
+    }
+
+    void SidePanel::AddSettings()
+    {
+        if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            // Light mode check box
+
+            ImGui::Text("Turn light mode on");
+
+            ImGui::SameLine();
+
+            if (ImGui::Checkbox("##Turn light mode on", &_settingsState->LightModeOn))
+            {
+                if (_settingsState->LightModeOn)
+                    ImGui::StyleColorsLight();
+                else
+                    ImGui::StyleColorsDark();
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            // Font Scaling
+
+            if (ImGui::SliderFloat(
+                    "Font Scaling", &_settingsState->FontScaling, 1.0f, 3.0f, "%.2f"))
+            {
+                ImGuiIO& io = ImGui::GetIO();
+                io.FontGlobalScale = _settingsState->FontScaling;
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            // Iterative method combo box
+
+            if (ImGui::Combo("## Iterative Method",
+                             &_settingsState->IterativeMethod,
+                             METHOD_OPTIONS,
+                             IM_ARRAYSIZE(METHOD_OPTIONS)))
+            {
+                _model->GetSimulationConfig()->Method =
+                    METHOD_ARRAY[_settingsState->IterativeMethod];
+
+                if (_model->GetSimulationConfig()->Method == HeatTransfer::Core::Method::JACOBI)
+                {
+                    _logger->Add(
+                        "Jacobi method utilizes very efficient Eigen block operations, "
+                        "thus may be faster than Gauss-Seidel and "
+                        "Successive-Over-Relaxation even with higher number of iterations!");
+
+                    _logger->AddSpace();
+                }
+
+                _model->UpdateModel();
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            // Add simulation parameters and boundary conditions button
+
+            AddParametersButton();
+            AddMaterialPropertiesButton();
+            AddBoundaryConditionsButton();
+        }
+    }
+
+    void SidePanel::AddParametersButton()
+    {
+        if (ImGui::Button("Simulation Parameters"))
+        {
+            ImGui::OpenPopup("Modify simulation parameters");
+        }
+
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+        ImGui::SetNextWindowSize(ImVec2(displaySize.x * 1.0f / 3.0f, displaySize.y * 2.0f / 3.0f));
+
+        ImGui::SetNextWindowPos(
+            ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        if (ImGui::BeginPopupModal(
+                "Modify simulation parameters", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Text("Set new simulation parameters here");
+            ImGui::Text("Pressing OK will start a new run");
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Separator();
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            if (ImGui::InputInt("Number of rows", &_settingsState->TemporaryParameters.Rows))
+            {
+            }
+            if (ImGui::InputInt("Number of columns", &_settingsState->TemporaryParameters.Columns))
+            {
+            }
+            if (ImGui::InputInt("Expansion factor", &_settingsState->TemporaryParameters.Expansion))
+            {
+            }
+            if (ImGui::InputInt("Num of expansions",
+                                &_settingsState->TemporaryParameters.NumExpansions))
+            {
+            }
+            if (ImGui::InputDouble("Initial residual tolerance",
+                                   &_settingsState->TemporaryParameters.InitialResidualTolerance))
+            {
+            }
+            if (ImGui::InputDouble("Expanded residual tolerance",
+                                   &_settingsState->TemporaryParameters.ExpandedResidualTolerance))
+            {
+            }
+            if (ImGui::InputDouble("Initial error tolerance",
+                                   &_settingsState->TemporaryParameters.InitialErrorTolerance))
+            {
+            }
+            if (ImGui::InputDouble("Expanded error tolerance",
+                                   &_settingsState->TemporaryParameters.ExpandedErrorTolerance))
+            {
+            }
+            if (ImGui::InputDouble("Relaxation factor",
+                                   &_settingsState->TemporaryParameters.RelaxationFactor))
+            {
+            }
+            if (ImGui::InputInt("Max initial iterations",
+                                &_settingsState->TemporaryParameters.MaxInitialIterations))
+            {
+            }
+            if (ImGui::InputInt("Max expanded iterations",
+                                &_settingsState->TemporaryParameters.MaxExpandedIterations))
+            {
+            }
+            if (ImGui::Combo("Residual tracking metric",
+                             &_settingsState->ResidualTrackingMetric,
+                             TRACKER_OPTIONS,
+                             IM_ARRAYSIZE(TRACKER_OPTIONS)))
+            {
+                _settingsState->TemporaryParameters.ResidualTrackingMetric =
+                    TRACKER_ARRAY[_settingsState->ResidualTrackingMetric];
+            }
+            if (ImGui::Combo("Error tracking metric",
+                             &_settingsState->ErrorTrackingMetric,
+                             TRACKER_OPTIONS,
+                             IM_ARRAYSIZE(TRACKER_OPTIONS)))
+            {
+                _settingsState->TemporaryParameters.ErrorTrackingMetric =
+                    TRACKER_ARRAY[_settingsState->ErrorTrackingMetric];
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            if (ImGui::Button("OK", ImVec2(displaySize.x * 1.0f / 6.0f, 0)))
+            {
+                _model->GetSimulationConfig()->Parameters = _settingsState->TemporaryParameters;
+                _model->UpdateModel();
+
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+
+            if (ImGui::Button("Cancel", ImVec2(-1, 0)))
+            {
+                _settingsState->TemporaryParameters = _model->GetSimulationConfig()->Parameters;
+                _settingsState->ResidualTrackingMetric =
+                    (int)_model->GetSimulationConfig()->Parameters.ResidualTrackingMetric;
+                _settingsState->ErrorTrackingMetric =
+                    (int)_model->GetSimulationConfig()->Parameters.ErrorTrackingMetric;
+
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 5.0f));
+    }
+
+    void SidePanel::AddMaterialPropertiesButton()
+    {
+        if (ImGui::Button("Material Properties"))
+        {
+            ImGui::OpenPopup("Modify material properties");
+        }
+
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+        ImGui::SetNextWindowSize(ImVec2(displaySize.x * 1.0f / 3.0f, displaySize.y * 2.0f / 3.0f));
+
+        ImGui::SetNextWindowPos(
+            ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        if (ImGui::BeginPopupModal(
+                "Modify material properties", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Text("Set new material properties here");
+            ImGui::Text("Pressing OK will start a new run");
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Separator();
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            if (ImGui::InputDouble(
+                    "Thermal conductivity [W/(m K)]",
+                    &_settingsState->TemporaryMaterialProperties.ThermalConductivity))
+            {
+            }
+            if (ImGui::InputDouble(
+                    "Internal heat generation [W/m³]",
+                    &_settingsState->TemporaryMaterialProperties.InternalHeatGeneration))
+            {
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            if (ImGui::Button("OK", ImVec2(displaySize.x * 1.0f / 6.0f, 0)))
+            {
+                _model->GetSimulationConfig()->MaterialProperties =
+                    _settingsState->TemporaryMaterialProperties;
+                _model->UpdateModel();
+
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+
+            if (ImGui::Button("Cancel", ImVec2(-1, 0)))
+            {
+                _settingsState->TemporaryMaterialProperties =
+                    _model->GetSimulationConfig()->MaterialProperties;
+
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 35.0f));
+
+            ImGui::TextWrapped("Note: Extremely high internal heat generation and extremely low "
+                               "thermal conductivity lead to a stiff source term in the "
+                               "steady-state conduction equation, which increases the number of "
+                               "iterations needed to meet the convergence tolerance.");
+
+            ImGui::EndPopup();
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 5.0f));
+    }
+
+    void SidePanel::AddBoundaryConditionsButton()
+    {
+        if (ImGui::Button("Boundary Conditions"))
+        {
+            ImGui::OpenPopup("Modify boundary conditions");
+        }
+
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+        ImGui::SetNextWindowSize(ImVec2(displaySize.x * 1.0f / 3.0f, displaySize.y * 2.0f / 3.0f));
+
+        ImGui::SetNextWindowPos(
+            ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        if (ImGui::BeginPopupModal(
+                "Modify boundary conditions", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Text("Set new boundary conditions here");
+            ImGui::Text("Pressing OK will start a new run");
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Separator();
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            if (ImGui::InputDouble("Top edge temperature [K]",
+                                   &_settingsState->TemporaryBoundaryConditions.TopEdge))
+            {
+            }
+            if (ImGui::InputDouble("Bottom edge temperature [K]",
+                                   &_settingsState->TemporaryBoundaryConditions.BottomEdge))
+            {
+            }
+            if (ImGui::InputDouble("Left edge temperature [K]",
+                                   &_settingsState->TemporaryBoundaryConditions.LeftEdge))
+            {
+            }
+            if (ImGui::InputDouble("Right edge temperature [K]",
+                                   &_settingsState->TemporaryBoundaryConditions.RightEdge))
+            {
+            }
+            if (ImGui::InputDouble("Inner square temperature [K]",
+                                   &_settingsState->TemporaryBoundaryConditions.InnerSquare))
+            {
+            }
+            if (ImGui::InputDouble("Center point temperature [K]",
+                                   &_settingsState->TemporaryBoundaryConditions.CenterPoint))
+            {
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            if (ImGui::Button("OK", ImVec2(displaySize.x * 1.0f / 6.0f, 0)))
+            {
+                _model->GetSimulationConfig()->BoundaryConditions =
+                    _settingsState->TemporaryBoundaryConditions;
+                _model->UpdateModel();
+
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+
+            if (ImGui::Button("Cancel", ImVec2(-1, 0)))
+            {
+                _settingsState->TemporaryBoundaryConditions =
+                    _model->GetSimulationConfig()->BoundaryConditions;
+
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::Text("Note: In the future we'll allow arbitrary boundary conditions!");
+
+            ImGui::EndPopup();
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 5.0f));
+    }
+
+    void SidePanel::AddStatistics()
+    {
+        if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // For now, statistics will use big Temperature matrix, not small field vector
+
+            auto statisticsData = _model->GetStatisticsData();
+
+            auto durationInSeconds = statisticsData->GetDurationInSeconds();
+
+            auto minTemperature = statisticsData->GetMinTemperature();
+            auto maxTemperature = statisticsData->GetMaxTemperature();
+            auto meanTemperature = statisticsData->GetMeanTemperature();
+
+            auto numIterations = statisticsData->GetNumIterations();
+
+            auto finalMaxError = statisticsData->GetFinalMaxError();
+            auto finalMeanError = statisticsData->GetFinalMeanError();
+            auto finalRMSError = statisticsData->GetFinal_RMS_Error();
+
+            auto finalMaxResidual = statisticsData->GetFinalMaxResidual();
+            auto finalMeanResidual = statisticsData->GetFinalMeanResidual();
+            auto finalRMSResidual = statisticsData->GetFinal_RMS_Residual();
+
+            const char* convergenceStatement =
+                statisticsData->IsConverged()
+                    ? "Convergence achieved - residual metric below required tolerance value"
+                    : "Failed to converge - either stopped due to reaching max iterations "
+                      "or lack of progression (low max error)";
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Indent(10.0f);
+
+            ImGui::SeparatorText("Performance");
+            ImGui::Text("FPS : %.1f FPS", ImGui::GetIO().Framerate);
+            ImGui::Text("Simulation duration : %.2f seconds", durationInSeconds);
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::SeparatorText("Temperature statistics");
+            ImGui::Text("Max Temperature  : %.2f K", maxTemperature);
+            ImGui::Text("Min Temperature  : %.2f K", minTemperature);
+            ImGui::Text("Mean Temperature : %.2f K", meanTemperature);
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::SeparatorText("Final error information");
+            ImGui::Text("Number of iterations : %u", numIterations);
+            ImGui::Text("Final max  error     : %.4g", finalMaxError);
+            ImGui::Text("Final mean error     : %.4g", finalMeanError);
+            ImGui::Text("Final RMS  error     : %.4g", finalRMSError);
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::SeparatorText("Final residual information");
+            ImGui::Text("Number of iterations : %u", numIterations);
+            ImGui::Text("Final max  residual  : %.4g", finalMaxResidual);
+            ImGui::Text("Final mean residual  : %.4g", finalMeanResidual);
+            ImGui::Text("Final RMS  residual  : %.4g", finalRMSResidual);
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::TextWrapped("%s", convergenceStatement);
+
+            float bottomPadding = 80.0f;
+            ImGui::Dummy(ImVec2(0.0f, ImGui::GetContentRegionAvail().y - bottomPadding));
+            ImGui::TextWrapped("Note: Error refers to the per-iteration temperature change (update "
+                               "difference) for brevity");
+
+            ImGui::Unindent(10.0f);
+        }
+    }
+}

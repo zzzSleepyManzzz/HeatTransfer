@@ -1,41 +1,47 @@
 #include <catch2/catch_all.hpp>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/MaterialProperties.h"
+#include "HeatTransfer/Core/Method.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
-#include "HeatTransfer/SimulationRunner/Method.h"
 #include "HeatTransfer/SimulationRunner/Simulations.h"
 
 namespace
 {
-    int NumIterations(HeatTransfer::SimulationRunner::Method method,
+    int NumIterations(HeatTransfer::Core::Method method,
                       HeatTransfer::Core::SimulationParameters parameters,
+                      HeatTransfer::Core::MaterialProperties materialProperties,
                       HeatTransfer::Core::BoundaryConditions boundaryCondition)
     {
-        using enum HeatTransfer::SimulationRunner::Method;
+        using enum HeatTransfer::Core::Method;
 
         std::shared_ptr<HeatTransfer::Solvers::ISolver> solver;
 
         switch (method)
         {
             case JACOBI:
-                solver = std::make_shared<HeatTransfer::Solvers::JacobiMethod>(parameters,
-                                                                               boundaryCondition);
+                solver = std::make_shared<HeatTransfer::Solvers::JacobiMethod>(
+                    parameters, materialProperties, boundaryCondition);
                 break;
             case GAUSS_SEIDEL:
                 solver = std::make_shared<HeatTransfer::Solvers::GaussSeidelMethod>(
-                    parameters, boundaryCondition);
+                    parameters, materialProperties, boundaryCondition);
                 break;
             case SUCCESSIVE_OVER_RELAXATION:
                 solver = std::make_shared<HeatTransfer::Solvers::SuccessiveOverRelaxation>(
-                    parameters, boundaryCondition);
+                    parameters, materialProperties, boundaryCondition);
+                break;
+            case RED_BLACK_SOR:
+                solver = std::make_shared<HeatTransfer::Solvers::RedBlackSOR>(
+                    parameters, materialProperties, boundaryCondition);
                 break;
             default:
                 throw std::runtime_error("Unknown method");
         }
 
         solver->ComputeSimulation();
-        return solver->GetErrors().size();
+        return solver->GetResidualMetrics().size();
     }
 }
 
@@ -43,32 +49,34 @@ namespace HeatTransfer::Tests
 {
     TEST_CASE("SOR converges faster than GS and Jacobi")
     {
-        HeatTransfer::Core::BoundaryConditions boundaryCondition = {.topEdge = 100.0,
-                                                                    .bottomEdge = 0.0,
-                                                                    .leftEdge = 100.0,
-                                                                    .rightEdge = 0.0,
-                                                                    .innerSquare = 50.0,
-                                                                    .centerPoint = -100.0};
+        HeatTransfer::Core::BoundaryConditions boundaryCondition =
+            HeatTransfer::Core::BoundaryConditions::Default();
 
-        HeatTransfer::Core::SimulationParameters parameters = {.rows = 100,
-                                                               .columns = 100,
-                                                               .expansion = 2,
-                                                               .numExpansions = 2,
-                                                               .initialTolerance = 1e-3,
-                                                               .expandedTolerance = 1e-1,
-                                                               .relaxationFactor = 1.7,
-                                                               .maxInitialIterations = 1000,
-                                                               .maxExpandedIterations = 1000};
+        HeatTransfer::Core::MaterialProperties materialProperties =
+            HeatTransfer::Core::MaterialProperties::Default();
+
+        HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
+                                                               .Columns = 100,
+                                                               .Expansion = 2,
+                                                               .NumExpansions = 2,
+                                                               .InitialResidualTolerance = 1e-3,
+                                                               .ExpandedResidualTolerance = 1e-1,
+                                                               .RelaxationFactor = 1.7,
+                                                               .MaxInitialIterations = 1000,
+                                                               .MaxExpandedIterations = 1000};
 
         auto numIterationsJacobi = NumIterations(
-            HeatTransfer::SimulationRunner::Method::JACOBI, parameters, boundaryCondition);
+            HeatTransfer::Core::Method::JACOBI, parameters, materialProperties, boundaryCondition);
 
-        auto numIterationsGaussSeidel = NumIterations(
-            HeatTransfer::SimulationRunner::Method::GAUSS_SEIDEL, parameters, boundaryCondition);
+        auto numIterationsGaussSeidel = NumIterations(HeatTransfer::Core::Method::GAUSS_SEIDEL,
+                                                      parameters,
+                                                      materialProperties,
+                                                      boundaryCondition);
 
         auto numIterationsSuccessiveOverRelaxation =
-            NumIterations(HeatTransfer::SimulationRunner::Method::SUCCESSIVE_OVER_RELAXATION,
+            NumIterations(HeatTransfer::Core::Method::SUCCESSIVE_OVER_RELAXATION,
                           parameters,
+                          materialProperties,
                           boundaryCondition);
 
         REQUIRE(numIterationsGaussSeidel < numIterationsJacobi);

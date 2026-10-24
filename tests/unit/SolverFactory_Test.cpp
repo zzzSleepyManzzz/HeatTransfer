@@ -1,6 +1,7 @@
 #include <catch2/catch_all.hpp>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
 #include "HeatTransfer/SimulationRunner/SolverFactory.h"
@@ -9,27 +10,28 @@ namespace HeatTransfer::Tests
 {
     TEST_CASE("Solver factory should give correct solver")
     {
-        using enum HeatTransfer::SimulationRunner::Method;
+        using enum HeatTransfer::Core::Method;
 
-        HeatTransfer::Core::BoundaryConditions boundaryCondition = {.topEdge = 100.0,
-                                                                    .bottomEdge = 0.0,
-                                                                    .leftEdge = 100.0,
-                                                                    .rightEdge = 0.0,
-                                                                    .innerSquare = 50.0,
-                                                                    .centerPoint = -100.0};
+        HeatTransfer::Core::BoundaryConditions boundaryCondition =
+            HeatTransfer::Core::BoundaryConditions::Default();
 
-        HeatTransfer::Core::SimulationParameters parameters = {.rows = 100,
-                                                               .columns = 100,
-                                                               .expansion = 2,
-                                                               .numExpansions = 2,
-                                                               .initialTolerance = 1e-3,
-                                                               .expandedTolerance = 1e-1,
-                                                               .relaxationFactor = 1.7,
-                                                               .maxInitialIterations = 1000,
-                                                               .maxExpandedIterations = 1000};
+        HeatTransfer::Core::MaterialProperties materialProperties =
+            HeatTransfer::Core::MaterialProperties::Default();
+
+        HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
+                                                               .Columns = 100,
+                                                               .Expansion = 2,
+                                                               .NumExpansions = 2,
+                                                               .InitialResidualTolerance = 1e-3,
+                                                               .ExpandedResidualTolerance = 1e-1,
+                                                               .InitialErrorTolerance = 1e-6,
+                                                               .ExpandedErrorTolerance = 1e-6,
+                                                               .RelaxationFactor = 1.7,
+                                                               .MaxInitialIterations = 1000,
+                                                               .MaxExpandedIterations = 1000};
 
         auto solverFactory = std::make_shared<HeatTransfer::SimulationRunner::SolverFactory>(
-            parameters, boundaryCondition);
+            parameters, materialProperties, boundaryCondition);
         std::shared_ptr<HeatTransfer::Solvers::ISolver> solver;
 
         SECTION("Correct pointer for Jacobi Method")
@@ -53,6 +55,14 @@ namespace HeatTransfer::Tests
             auto successiveOverRelaxation =
                 std::dynamic_pointer_cast<HeatTransfer::Solvers::SuccessiveOverRelaxation>(solver);
             REQUIRE(successiveOverRelaxation);
+        }
+
+        SECTION("Correct pointer for Red-Black SOR")
+        {
+            solver = solverFactory->Create(RED_BLACK_SOR);
+            auto redBlackSOR =
+                std::dynamic_pointer_cast<HeatTransfer::Solvers::RedBlackSOR>(solver);
+            REQUIRE(redBlackSOR);
         }
     }
 }

@@ -1,0 +1,50 @@
+#pragma once
+
+#include <memory>
+
+#include "HeatTransfer/SimulationRunner/SimulationOutput.h"
+
+namespace HeatTransfer::Visualisation
+{
+    class StatisticsData
+    {
+    public:
+        StatisticsData(std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output,
+                       double durationInSeconds);
+
+        double GetDurationInSeconds();
+
+        double GetMaxTemperature();
+        double GetMinTemperature();
+        double GetMeanTemperature();
+
+        int GetNumIterations();
+        double GetFinalMaxError();
+        double GetFinalMeanError();
+        double GetFinal_RMS_Error();
+
+        double GetFinalMaxResidual();
+        double GetFinalMeanResidual();
+        double GetFinal_RMS_Residual();
+
+        bool IsConverged();
+
+    private:
+        double _durationInSeconds;
+
+        double _maxTemperature;
+        double _minTemperature;
+        double _meanTemperature;
+
+        int _numIterations;
+        double _finalMaxError;
+        double _finalMeanError;
+        double _final_RMS_Error;
+
+        double _finalMaxResidual;
+        double _finalMeanResidual;
+        double _final_RMS_Residual;
+
+        bool _isConverged;
+    };
+}

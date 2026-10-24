@@ -6,13 +6,22 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Eigen3 REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(glad REQUIRED)
+find_package(imgui REQUIRED)
+find_package(implot REQUIRED)
+find_package(Tracy REQUIRED)
+
+add_compile_definitions(TRACY_ENABLE)
 
 add_subdirectory(libs/Core)
 add_subdirectory(libs/SimulationRunner)
 add_subdirectory(libs/Solvers)
+add_subdirectory(libs/Visualisation)
+add_subdirectory(libs/Orchestration)
 
+add_subdirectory(apps/HeatTransferRunner)
 add_subdirectory(apps/HeatTransferApp)
-#add_subdirectory(apps/HeatTransferRender)
 
 enable_testing()
 add_subdirectory(tests)

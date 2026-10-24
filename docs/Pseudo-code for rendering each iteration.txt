@@ -1,0 +1,16 @@
+
+Renderer renderer;
+renderer.Init();
+
+while (!renderer.ShouldClose())
+{
+    simulations.Step();                 // advance simulation
+
+    const auto& state = simulations.State();
+
+    renderer.Render(state);             // draw frame
+
+    renderer.PollEvents();              // input + OS events
+}
+
+renderer.Shutdown();

@@ -1,0 +1,64 @@
+#include <catch2/catch_all.hpp>
+#include <cmath>
+#include <iostream>
+#include <memory>
+
+#include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/MaterialProperties.h"
+#include "HeatTransfer/Core/SimulationParameters.h"
+
+#include "HeatTransfer/Solvers/RedBlackSOR.h"
+
+namespace HeatTransfer::Tests
+{
+    TEST_CASE("Red-Black SOR converges to requested tolerance")
+    {
+        HeatTransfer::Core::BoundaryConditions boundaryCondition =
+            HeatTransfer::Core::BoundaryConditions::Default();
+
+        HeatTransfer::Core::MaterialProperties materialProperties =
+            HeatTransfer::Core::MaterialProperties::Default();
+
+        HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
+                                                               .Columns = 100,
+                                                               .Expansion = 2,
+                                                               .NumExpansions = 2,
+                                                               .InitialResidualTolerance = 1e-3,
+                                                               .ExpandedResidualTolerance = 1e-1,
+                                                               .InitialErrorTolerance = 1e-6,
+                                                               .ExpandedErrorTolerance = 1e-6,
+                                                               .RelaxationFactor = 1.7,
+                                                               .MaxInitialIterations = 1000,
+                                                               .MaxExpandedIterations = 1000};
+
+        auto solver = std::make_shared<HeatTransfer::Solvers::RedBlackSOR>(
+            parameters, materialProperties, boundaryCondition);
+
+        solver->ComputeSimulation();
+
+        const auto& residuals = solver->GetResidualMetrics();
+
+        REQUIRE_FALSE(residuals.empty());
+
+        SECTION("Sanity check for residuals array")
+        {
+            for (auto i = 1u; i < residuals.size(); i++)
+            {
+                REQUIRE(residuals[i]->Iteration > residuals[i - 1]->Iteration);
+                REQUIRE(residuals[i]->ResidualMax >= 0.0);
+                REQUIRE(residuals[i]->ResidualMean >= 0.0);
+                REQUIRE(residuals[i]->ResidualRMS >= 0.0);
+            }
+        }
+
+        SECTION("Max residual should be below tolerance")
+        {
+            REQUIRE(residuals.back()->ResidualMax <= parameters.ExpandedResidualTolerance);
+        }
+    }
+
+    TEST_CASE("Red-Black SOR with Dirichlet Conditions compared with analytical solution")
+    {
+        // Not implemented yet
+    }
+}
