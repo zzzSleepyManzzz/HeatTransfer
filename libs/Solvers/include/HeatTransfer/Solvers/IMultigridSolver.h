@@ -7,15 +7,17 @@ namespace HeatTransfer::Solvers
     class IMultigridSolver : public ISolver
     {
     public:
+        IMultigridSolver() = delete;
+
+    protected:
         IMultigridSolver(const Core::SimulationParameters& parameters,
                          const Core::MaterialProperties& materialProperties,
                          const Core::BoundaryConditions& boundaryCondition);
 
-    protected:
-        static constexpr int PreSmoothingSweeps = 2;
-        static constexpr int PostSmoothingSweeps = 2;
-        static constexpr int CoarseSweeps = 100;
-        static constexpr Eigen::Index MinCoarseSize = 8;
+        static constexpr int PRE_SMOOTHING_SWEEPS = 3;
+        static constexpr int POST_SMOOTHING_SWEEPS = 3;
+        static constexpr int COARSE_SWEEPS = 100;
+        static constexpr Eigen::Index MIN_COARSE_SIZE = 8;
 
         std::vector<Eigen::MatrixXd> _errorStack;
         std::vector<Eigen::MatrixXd> _residualStack;

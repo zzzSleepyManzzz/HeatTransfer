@@ -19,11 +19,8 @@ namespace HeatTransfer::Solvers
     class ISolver
     {
     public:
+        ISolver() = delete;
         virtual ~ISolver() = default;
-
-        ISolver(const Core::SimulationParameters& parameters,
-                const Core::MaterialProperties& materialProperties,
-                const Core::BoundaryConditions& boundaryCondition);
 
         void ComputeSimulation();
         void PrintResidual();
@@ -38,6 +35,10 @@ namespace HeatTransfer::Solvers
 
     protected:
         using InsulatedMask = Eigen::Array<bool, Eigen::Dynamic, Eigen::Dynamic>;
+
+        ISolver(const Core::SimulationParameters& parameters,
+                const Core::MaterialProperties& materialProperties,
+                const Core::BoundaryConditions& boundaryCondition);
 
         Core::SimulationParameters _parameters;
         Core::MaterialProperties _materialProperties;

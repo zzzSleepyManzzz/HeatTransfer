@@ -17,11 +17,15 @@ namespace HeatTransfer::Solvers
         const Eigen::Index cols = _temperatureMatrix->cols();
 
         InsulatedMask insulated(rows, cols);
-        for (Eigen::Index j = 0; j < cols; j++)
-            for (Eigen::Index i = 0; i < rows; i++)
-                insulated(i, j) = IsInsulated(i, j, rows, cols);
 
-        // Level 0: the heat source term, on free nodes only
+        for (Eigen::Index j = 0; j < cols; j++)
+        {
+            for (Eigen::Index i = 0; i < rows; i++)
+            {
+                insulated(i, j) = IsInsulated(i, j, rows, cols);
+            }
+        }
+
         auto q_g = _materialProperties.InternalHeatGeneration;
         auto k = _materialProperties.ThermalConductivity;
         auto h = 1.0 / std::max(rows, cols);
@@ -33,13 +37,13 @@ namespace HeatTransfer::Solvers
         _residualStack = {heating};
         _insulatedStack = {insulated};
 
-        // Coarser levels, halving until the next grid would be too small
-        while (CoarseSize(_insulatedStack.back().rows()) >= MinCoarseSize &&
-               CoarseSize(_insulatedStack.back().cols()) >= MinCoarseSize)
+        while (CoarseSize(_insulatedStack.back().rows()) >= MIN_COARSE_SIZE &&
+               CoarseSize(_insulatedStack.back().cols()) >= MIN_COARSE_SIZE)
         {
             _insulatedStack.push_back(CoarsenMask(_insulatedStack.back()));
 
             const auto& mask = _insulatedStack.back();
+
             _errorStack.push_back(Eigen::MatrixXd::Zero(mask.rows(), mask.cols()));
             _residualStack.push_back(Eigen::MatrixXd::Zero(mask.rows(), mask.cols()));
         }
@@ -62,7 +66,7 @@ namespace HeatTransfer::Solvers
         {
             auto& E = LevelMatrix(i);
 
-            for (int s = 0; s < PreSmoothingSweeps; s++)
+            for (int s = 0; s < PRE_SMOOTHING_SWEEPS; s++)
                 Smoothen(E, _residualStack[i], _insulatedStack[i]);
 
             auto& R = _residualStack[i + 1];
@@ -86,7 +90,7 @@ namespace HeatTransfer::Solvers
             correction.array() = _insulatedStack[i].select(0.0, correction.array());
             E += correction;
 
-            for (int s = 0; s < PostSmoothingSweeps; s++)
+            for (int s = 0; s < POST_SMOOTHING_SWEEPS; s++)
                 Smoothen(E, _residualStack[i], _insulatedStack[i]);
         }
     }
@@ -97,22 +101,17 @@ namespace HeatTransfer::Solvers
         const auto& R = _residualStack.back();
         const auto& insulated = _insulatedStack.back();
 
-        for (int s = 0; s < CoarseSweeps; s++)
+        for (int s = 0; s < COARSE_SWEEPS; s++)
         {
             Smoothen(E, R, insulated);
         }
     }
 
-    // Coarse node I sits on fine node 2I, so the outer boundary (and any line at an even
-    // index) lands on the coarse grid. For even n the coarse grid ends one fine step past
-    // the edge, which is close enough for a correction.
     Eigen::Index IMultigridSolver::CoarseSize(Eigen::Index n)
     {
         return n / 2 + 1;
     }
 
-    // A coarse node is insulated if any fine node around it (2I +/- 1, 2J +/- 1) is, so a
-    // line at an odd fine index becomes two coarse lines instead of vanishing
     ISolver::InsulatedMask IMultigridSolver::CoarsenMask(const InsulatedMask& mask)
     {
         const Eigen::Index rows = CoarseSize(mask.rows());
@@ -169,7 +168,6 @@ namespace HeatTransfer::Solvers
         return restricted;
     }
 
-    // Bilinear interpolation: even fine nodes copy a coarse node, odd ones average neighbours
     Eigen::MatrixXd IMultigridSolver::Prolongate(const Eigen::MatrixXd& matrix,
                                                  Eigen::Index rows,
                                                  Eigen::Index cols)
