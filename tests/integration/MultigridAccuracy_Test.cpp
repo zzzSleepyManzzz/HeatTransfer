@@ -93,9 +93,9 @@ namespace HeatTransfer::Tests
         auto parameters = Core::SimulationParameters::Default();
         parameters.Rows = rows;
         parameters.Columns = cols;
-        parameters.ExpandedResidualTolerance = 1e-10;
-        parameters.ExpandedErrorTolerance = 0.0; // stop on the residual only
-        parameters.MaxExpandedIterations = 2000;
+        parameters.ResidualTolerance = 1e-10;
+        parameters.ErrorTolerance = 0.0; // stop on the residual only
+        parameters.MaxIterations = 2000;
 
         SimulationRunner::SolverFactory factory(parameters, material, bc);
         auto solver = factory.Create(method);

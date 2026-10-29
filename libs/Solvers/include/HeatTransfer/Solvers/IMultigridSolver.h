@@ -7,9 +7,6 @@ namespace HeatTransfer::Solvers
     class IMultigridSolver : public ISolver
     {
     public:
-        IMultigridSolver() = delete;
-        virtual ~IMultigridSolver() = default;
-
         IMultigridSolver(const Core::SimulationParameters& parameters,
                          const Core::MaterialProperties& materialProperties,
                          const Core::BoundaryConditions& boundaryCondition);

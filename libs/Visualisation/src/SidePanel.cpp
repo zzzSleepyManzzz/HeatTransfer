@@ -72,16 +72,6 @@ namespace HeatTransfer::Visualisation
                 _model->GetSimulationConfig()->Method =
                     METHOD_ARRAY[_settingsState->IterativeMethod];
 
-                if (_model->GetSimulationConfig()->Method == HeatTransfer::Core::Method::JACOBI)
-                {
-                    _logger->Add(
-                        "Jacobi method utilizes very efficient Eigen block operations, "
-                        "thus may be faster than Gauss-Seidel and "
-                        "Successive-Over-Relaxation even with higher number of iterations!");
-
-                    _logger->AddSpace();
-                }
-
                 _model->UpdateModel();
             }
 
@@ -129,39 +119,20 @@ namespace HeatTransfer::Visualisation
             if (ImGui::InputInt("Number of columns", &_settingsState->TemporaryParameters.Columns))
             {
             }
-            if (ImGui::InputInt("Expansion factor", &_settingsState->TemporaryParameters.Expansion))
+            if (ImGui::InputDouble("Residual tolerance",
+                                   &_settingsState->TemporaryParameters.ResidualTolerance))
             {
             }
-            if (ImGui::InputInt("Num of expansions",
-                                &_settingsState->TemporaryParameters.NumExpansions))
-            {
-            }
-            if (ImGui::InputDouble("Initial residual tolerance",
-                                   &_settingsState->TemporaryParameters.InitialResidualTolerance))
-            {
-            }
-            if (ImGui::InputDouble("Expanded residual tolerance",
-                                   &_settingsState->TemporaryParameters.ExpandedResidualTolerance))
-            {
-            }
-            if (ImGui::InputDouble("Initial error tolerance",
-                                   &_settingsState->TemporaryParameters.InitialErrorTolerance))
-            {
-            }
-            if (ImGui::InputDouble("Expanded error tolerance",
-                                   &_settingsState->TemporaryParameters.ExpandedErrorTolerance))
+            if (ImGui::InputDouble("Error tolerance",
+                                   &_settingsState->TemporaryParameters.ErrorTolerance))
             {
             }
             if (ImGui::InputDouble("Relaxation factor",
                                    &_settingsState->TemporaryParameters.RelaxationFactor))
             {
             }
-            if (ImGui::InputInt("Max initial iterations",
-                                &_settingsState->TemporaryParameters.MaxInitialIterations))
-            {
-            }
-            if (ImGui::InputInt("Max expanded iterations",
-                                &_settingsState->TemporaryParameters.MaxExpandedIterations))
+            if (ImGui::InputInt("Max iterations",
+                                &_settingsState->TemporaryParameters.MaxIterations))
             {
             }
             if (ImGui::Combo("Residual tracking metric",
@@ -269,13 +240,6 @@ namespace HeatTransfer::Visualisation
 
                 ImGui::CloseCurrentPopup();
             }
-
-            ImGui::Dummy(ImVec2(0.0f, 35.0f));
-
-            ImGui::TextWrapped("Note: Extremely high internal heat generation and extremely low "
-                               "thermal conductivity lead to a stiff source term in the "
-                               "steady-state conduction equation, which increases the number of "
-                               "iterations needed to meet the convergence tolerance.");
 
             ImGui::EndPopup();
         }

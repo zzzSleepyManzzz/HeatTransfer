@@ -97,9 +97,6 @@ namespace HeatTransfer::Solvers
         const auto& R = _residualStack.back();
         const auto& insulated = _insulatedStack.back();
 
-        const Eigen::Index rows = E.rows();
-        const Eigen::Index cols = E.cols();
-
         for (int s = 0; s < CoarseSweeps; s++)
         {
             Smoothen(E, R, insulated);

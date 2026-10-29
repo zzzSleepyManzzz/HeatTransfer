@@ -19,7 +19,6 @@ namespace HeatTransfer::Solvers
     class ISolver
     {
     public:
-        ISolver() = delete;
         virtual ~ISolver() = default;
 
         ISolver(const Core::SimulationParameters& parameters,
@@ -48,10 +47,7 @@ namespace HeatTransfer::Solvers
         std::shared_ptr<Eigen::MatrixXd> _temperatureMatrix;
         std::shared_ptr<Eigen::MatrixXd> _residualMatrix;
 
-        void IterateTemperature(int maxIterations,
-                                double residualTolerance,
-                                double errorTolerance,
-                                int& totalIterations);
+        void IterateTemperature();
         void ApplyBoundaryConditions();
 
         static bool

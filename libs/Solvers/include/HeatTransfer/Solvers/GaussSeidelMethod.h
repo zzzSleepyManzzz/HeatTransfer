@@ -1,10 +1,5 @@
 #pragma once
 
-#include <Eigen/Dense>
-
-#include "HeatTransfer/Core/BoundaryConditions.h"
-#include "HeatTransfer/Core/SimulationParameters.h"
-
 #include "HeatTransfer/Solvers/IMultigridSolver.h"
 
 namespace HeatTransfer::Solvers

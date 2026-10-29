@@ -21,7 +21,6 @@ namespace HeatTransfer::Solvers
 
         int rows = _parameters.Rows;
         int columns = _parameters.Columns;
-        int totalIterations = 0;
 
         _temperatureMatrix = std::make_shared<Eigen::MatrixXd>(rows, columns);
         _temperatureMatrix->setZero();
@@ -32,10 +31,7 @@ namespace HeatTransfer::Solvers
         ApplyBoundaryConditions();
         BuildLevels();
 
-        IterateTemperature(_parameters.MaxExpandedIterations,
-                           _parameters.ExpandedResidualTolerance,
-                           _parameters.ExpandedErrorTolerance,
-                           totalIterations);
+        IterateTemperature();
     }
 
     void ISolver::PrintResidual()
@@ -56,7 +52,7 @@ namespace HeatTransfer::Solvers
 
         auto finalResidual = _residualMetrics.back();
 
-        auto finalTargetResidual = finalResidual->ResidualMax;
+        double finalTargetResidual;
 
         switch (_parameters.ResidualTrackingMetric)
         {
@@ -73,7 +69,7 @@ namespace HeatTransfer::Solvers
                 throw std::runtime_error("Unknown residual tracking metric found");
         }
 
-        return finalTargetResidual <= _parameters.ExpandedResidualTolerance;
+        return finalTargetResidual <= _parameters.ResidualTolerance;
     }
 
     const std::vector<std::shared_ptr<Core::ErrorMetric>>& ISolver::GetErrorMetrics()
@@ -131,27 +127,22 @@ namespace HeatTransfer::Solvers
         T(c1, c2) = _boundaryCondition.CenterPoint;
     }
 
-    void ISolver::IterateTemperature(int maxIterations,
-                                     double residualTolerance,
-                                     double errorTolerance,
-                                     int& totalIterations)
+    void ISolver::IterateTemperature()
     {
         ZoneScoped;
 
         const Eigen::Index rows = _temperatureMatrix->rows();
         const Eigen::Index cols = _temperatureMatrix->cols();
 
-        int localIterations = 0;
-        double errorMax = errorTolerance + 1.0;
-        double errorMean = errorTolerance + 1.0;
-        double errorRMS = errorTolerance + 1.0;
+        const int maxIterations = _parameters.MaxIterations;
+        const double residualTolerance = _parameters.ResidualTolerance;
+        const double errorTolerance = _parameters.ErrorTolerance;
 
-        double residualMax = residualTolerance + 1.0;
-        double residualMean = residualTolerance + 1.0;
-        double residualRMS = residualTolerance + 1.0;
+        int iterations = 0;
 
-        std::vector<double> residualTracker = {residualMax, residualMean, residualRMS};
-        std::vector<double> errorTracker = {errorMax, errorMean, errorRMS};
+        // Start above the tolerances so the loop runs at least once
+        std::vector<double> residualTracker(3, residualTolerance + 1.0);
+        std::vector<double> errorTracker(3, errorTolerance + 1.0);
 
         auto indexR = (size_t)_parameters.ResidualTrackingMetric;
         auto indexE = (size_t)_parameters.ErrorTrackingMetric;
@@ -161,7 +152,7 @@ namespace HeatTransfer::Solvers
         Eigen::ArrayXXd errorArray(rows, cols);
         Eigen::ArrayXXd residualArray(rows, cols);
 
-        while (localIterations < maxIterations && residualTracker[indexR] > residualTolerance &&
+        while (iterations < maxIterations && residualTracker[indexR] > residualTolerance &&
                errorTracker[indexE] > errorTolerance)
         {
             oldTemperature = *_temperatureMatrix;
@@ -171,28 +162,27 @@ namespace HeatTransfer::Solvers
             UpdateResidualMatrix();
 
             errorArray = (*_temperatureMatrix - oldTemperature).array();
-            errorMax = errorArray.abs().maxCoeff();
-            errorMean = errorArray.abs().mean();
-            errorRMS = std::sqrt(errorArray.square().mean());
+            const double errorMax = errorArray.abs().maxCoeff();
+            const double errorMean = errorArray.abs().mean();
+            const double errorRMS = std::sqrt(errorArray.square().mean());
 
             residualArray = (*_residualMatrix).array();
-            residualMax = residualArray.abs().maxCoeff();
-            residualMean = residualArray.abs().mean();
-            residualRMS = std::sqrt(residualArray.square().mean());
+            const double residualMax = residualArray.abs().maxCoeff();
+            const double residualMean = residualArray.abs().mean();
+            const double residualRMS = std::sqrt(residualArray.square().mean());
 
             residualTracker = {residualMax, residualMean, residualRMS};
             errorTracker = {errorMax, errorMean, errorRMS};
 
-            localIterations++;
-            totalIterations++;
+            iterations++;
 
             auto error =
-                std::make_shared<Core::ErrorMetric>(totalIterations, errorMax, errorMean, errorRMS);
+                std::make_shared<Core::ErrorMetric>(iterations, errorMax, errorMean, errorRMS);
 
             _errorMetrics.push_back(error);
 
             auto residual = std::make_shared<Core::ResidualMetric>(
-                totalIterations, residualMax, residualMean, residualRMS);
+                iterations, residualMax, residualMean, residualRMS);
 
             _residualMetrics.push_back(residual);
         }
