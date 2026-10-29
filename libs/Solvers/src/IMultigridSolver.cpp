@@ -102,16 +102,7 @@ namespace HeatTransfer::Solvers
 
         for (int s = 0; s < CoarseSweeps; s++)
         {
-            for (Eigen::Index j = 1; j < cols - 1; j++)
-            {
-                for (Eigen::Index i = 1; i < rows - 1; i++)
-                {
-                    if (!insulated(i, j))
-                    {
-                        Smoothen(E, R, insulated);
-                    }
-                }
-            }
+            Smoothen(E, R, insulated);
         }
     }
 
