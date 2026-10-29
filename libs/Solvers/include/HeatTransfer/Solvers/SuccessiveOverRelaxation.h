@@ -5,11 +5,11 @@
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
-#include "HeatTransfer/Solvers/ISolver.h"
+#include "HeatTransfer/Solvers/IMultigridSolver.h"
 
 namespace HeatTransfer::Solvers
 {
-    class SuccessiveOverRelaxation : public ISolver
+    class SuccessiveOverRelaxation : public IMultigridSolver
     {
     public:
         SuccessiveOverRelaxation(const Core::SimulationParameters& parameters,

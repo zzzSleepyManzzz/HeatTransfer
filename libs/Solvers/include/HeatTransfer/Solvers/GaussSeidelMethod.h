@@ -5,11 +5,11 @@
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
-#include "HeatTransfer/Solvers/ISolver.h"
+#include "HeatTransfer/Solvers/IMultigridSolver.h"
 
 namespace HeatTransfer::Solvers
 {
-    class GaussSeidelMethod : public ISolver
+    class GaussSeidelMethod : public IMultigridSolver
     {
     public:
         GaussSeidelMethod(const Core::SimulationParameters& parameters,

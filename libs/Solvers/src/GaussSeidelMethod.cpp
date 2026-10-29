@@ -7,7 +7,7 @@ namespace HeatTransfer::Solvers
     GaussSeidelMethod::GaussSeidelMethod(const Core::SimulationParameters& parameters,
                                          const Core::MaterialProperties& materialProperties,
                                          const Core::BoundaryConditions& boundaryCondition)
-        : ISolver(parameters, materialProperties, boundaryCondition)
+        : IMultigridSolver(parameters, materialProperties, boundaryCondition)
     {
     }
 

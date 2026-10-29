@@ -4,19 +4,20 @@
 #include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
+#include "HeatTransfer/Solvers/IMultigridSolver.h"
 #include "HeatTransfer/Solvers/ISolver.h"
 
 namespace
 {
     // Exposes ISolver's protected multigrid helpers
-    class DummySolver : public HeatTransfer::Solvers::ISolver
+    class DummySolver : public HeatTransfer::Solvers::IMultigridSolver
     {
     public:
-        using ISolver::CoarsenMask;
+        using IMultigridSolver::CoarsenMask;
+        using IMultigridSolver::Prolongate;
+        using IMultigridSolver::Restrict;
         using ISolver::InsulatedMask;
         using ISolver::IsInsulated;
-        using ISolver::Prolongate;
-        using ISolver::Restrict;
 
     private:
         void Smoothen(Eigen::MatrixXd&, const Eigen::MatrixXd&, const InsulatedMask&) override {}
