@@ -17,6 +17,8 @@ namespace HeatTransfer::Solvers
                                  const Core::BoundaryConditions& boundaryCondition);
 
     private:
-        void UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature) override;
+        void Smoothen(Eigen::MatrixXd& matrix,
+                      const Eigen::MatrixXd& rhs,
+                      const InsulatedMask& insulated) override;
     };
 }

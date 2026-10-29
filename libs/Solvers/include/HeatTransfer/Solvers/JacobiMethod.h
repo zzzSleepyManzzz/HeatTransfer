@@ -17,6 +17,11 @@ namespace HeatTransfer::Solvers
                      const Core::BoundaryConditions& boundaryCondition);
 
     private:
-        void UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature) override;
+        // Undamped Jacobi never reduces the checkerboard error, so it cannot smooth
+        static constexpr double DampingFactor = 0.8;
+
+        void Smoothen(Eigen::MatrixXd& matrix,
+                      const Eigen::MatrixXd& rhs,
+                      const InsulatedMask& insulated) override;
     };
 }
