@@ -57,13 +57,9 @@ namespace HeatTransfer::Tests
 
         HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
                                                                .Columns = 100,
-                                                               .Expansion = 2,
-                                                               .NumExpansions = 2,
-                                                               .InitialResidualTolerance = 1e-3,
-                                                               .ExpandedResidualTolerance = 1e-1,
+                                                               .ResidualTolerance = 1e-1,
                                                                .RelaxationFactor = 1.7,
-                                                               .MaxInitialIterations = 1000,
-                                                               .MaxExpandedIterations = 1000};
+                                                               .MaxIterations = 1000};
 
         auto numIterationsJacobi = NumIterations(
             HeatTransfer::Core::Method::JACOBI, parameters, materialProperties, boundaryCondition);

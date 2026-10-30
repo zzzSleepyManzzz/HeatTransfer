@@ -7,72 +7,42 @@ namespace HeatTransfer::Solvers
     RedBlackSOR::RedBlackSOR(const Core::SimulationParameters& parameters,
                              const Core::MaterialProperties& materialProperties,
                              const Core::BoundaryConditions& boundaryCondition)
-        : ISolver(parameters, materialProperties, boundaryCondition)
+        : IMultigridSolver(parameters, materialProperties, boundaryCondition)
     {
     }
 
-    void RedBlackSOR::UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature)
+    void RedBlackSOR::Smoothen(Eigen::MatrixXd& matrix,
+                               const Eigen::MatrixXd& rhs,
+                               const Eigen::MatrixXd& insulated)
     {
         ZoneScoped;
 
-        const Eigen::Index rows = _temperatureMatrix->rows();
-        const Eigen::Index cols = _temperatureMatrix->cols();
+        const Eigen::Index rows = matrix.rows();
+        const Eigen::Index cols = matrix.cols();
 
-        auto& T = *_temperatureMatrix;
+        auto& T = matrix;
 
         auto relaxationFactor = _parameters.RelaxationFactor;
-
-        auto q_g = _materialProperties.InternalHeatGeneration;
-        auto k = _materialProperties.ThermalConductivity;
-        auto h = 1.0f / std::max(rows, cols);
 
         auto RED = 0;
         auto BLACK = 1;
 
-        // Red squares
-
-#pragma omp parallel for schedule(static)
-        for (auto i = 0u; i < rows; i++)
+        for (auto colour : {RED, BLACK})
         {
-            for (auto j = 0u; j < cols; j++)
-            {
-                if ((i + j) % 2 == BLACK)
-                    continue;
-
-                if (IsInsulated(i, j))
-                {
-                    T(i, j) = InsulatedValue(i, j);
-                }
-                else
-                {
-                    T(i, j) = (1 - relaxationFactor) * T(i, j) +
-                              relaxationFactor * 0.25f *
-                                  (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1) +
-                                   pow(h, 2) * q_g / k);
-                }
-            }
-        }
-
-        // Black squares
-
 #pragma omp parallel for schedule(static)
-        for (auto i = 0u; i < rows; i++)
-        {
-            for (auto j = 0u; j < cols; j++)
+            for (Eigen::Index j = 1; j < cols - 1; j++)
             {
-                if ((i + j) % 2 == RED)
-                    continue;
+                const Eigen::Index start = 1 + ((1 + j + colour) % 2);
 
-                if (IsInsulated(i, j))
+                for (Eigen::Index i = start; i < rows - 1; i += 2)
                 {
-                    T(i, j) = InsulatedValue(i, j);
-                }
-                else
-                {
+                    if (insulated(i, j))
+                        continue;
+
                     T(i, j) = (1 - relaxationFactor) * T(i, j) +
-                              relaxationFactor * 0.25f *
-                                  (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1) +
-                                   pow(h, 2) * q_g / k);
+                              relaxationFactor *
+                                  (0.25 * (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1)) +
+                                   rhs(i, j));
                 }
             }
         }

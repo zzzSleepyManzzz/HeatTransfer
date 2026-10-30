@@ -17,10 +17,8 @@ namespace HeatTransfer::Solvers
     {
         ZoneScoped;
 
-        int rows = _parameters.Rows / std::pow(_parameters.Expansion, _parameters.NumExpansions);
-        int columns =
-            _parameters.Columns / std::pow(_parameters.Expansion, _parameters.NumExpansions);
-        int totalIterations = 0;
+        int rows = _parameters.Rows;
+        int columns = _parameters.Columns;
 
         _temperatureMatrix = std::make_shared<Eigen::MatrixXd>(rows, columns);
         _temperatureMatrix->setZero();
@@ -29,20 +27,9 @@ namespace HeatTransfer::Solvers
         _residualMatrix->setZero();
 
         ApplyBoundaryConditions();
-        IterateTemperature(_parameters.MaxInitialIterations,
-                           _parameters.InitialResidualTolerance,
-                           _parameters.InitialErrorTolerance,
-                           totalIterations);
+        BuildLevels();
 
-        for (int i = 0; i < _parameters.NumExpansions; i++)
-        {
-            ExpandMatrix();
-            ApplyBoundaryConditions();
-            IterateTemperature(_parameters.MaxExpandedIterations,
-                               _parameters.ExpandedResidualTolerance,
-                               _parameters.ExpandedErrorTolerance,
-                               totalIterations);
-        }
+        IterateTemperature();
     }
 
     void ISolver::PrintResidual()
@@ -63,7 +50,7 @@ namespace HeatTransfer::Solvers
 
         auto finalResidual = _residualMetrics.back();
 
-        auto finalTargetResidual = finalResidual->ResidualMax;
+        double finalTargetResidual;
 
         switch (_parameters.ResidualTrackingMetric)
         {
@@ -80,7 +67,7 @@ namespace HeatTransfer::Solvers
                 throw std::runtime_error("Unknown residual tracking metric found");
         }
 
-        return finalTargetResidual <= _parameters.ExpandedResidualTolerance;
+        return finalTargetResidual <= _parameters.ResidualTolerance;
     }
 
     const std::vector<std::shared_ptr<Core::ErrorMetric>>& ISolver::GetErrorMetrics()
@@ -138,54 +125,21 @@ namespace HeatTransfer::Solvers
         T(c1, c2) = _boundaryCondition.CenterPoint;
     }
 
-    void ISolver::ExpandMatrix()
-    {
-        ZoneScoped;
-
-        auto& T = *_temperatureMatrix;
-
-        int expansionFactor = _parameters.Expansion;
-
-        const Eigen::Index rows = T.rows();
-        const Eigen::Index cols = T.cols();
-        const Eigen::Index newRows = rows * expansionFactor;
-        const Eigen::Index newCols = cols * expansionFactor;
-
-        Eigen::MatrixXd oldTemperature = T;
-        T = Eigen::MatrixXd(newRows, newCols);
-
-        // Use block operations for efficiency
-        for (auto i = 0u; i < rows; i++)
-        {
-            for (auto j = 0u; j < cols; j++)
-            {
-                T.block(i * expansionFactor, j * expansionFactor, expansionFactor, expansionFactor)
-                    .setConstant(oldTemperature(i, j));
-            }
-        }
-    }
-
-    void ISolver::IterateTemperature(int maxIterations,
-                                     double residualTolerance,
-                                     double errorTolerance,
-                                     int& totalIterations)
+    void ISolver::IterateTemperature()
     {
         ZoneScoped;
 
         const Eigen::Index rows = _temperatureMatrix->rows();
         const Eigen::Index cols = _temperatureMatrix->cols();
 
-        int localIterations = 0;
-        double errorMax = errorTolerance + 1.0;
-        double errorMean = errorTolerance + 1.0;
-        double errorRMS = errorTolerance + 1.0;
+        const int maxIterations = _parameters.MaxIterations;
+        const double residualTolerance = _parameters.ResidualTolerance;
+        const double errorTolerance = _parameters.ErrorTolerance;
 
-        double residualMax = residualTolerance + 1.0;
-        double residualMean = residualTolerance + 1.0;
-        double residualRMS = residualTolerance + 1.0;
+        int iterations = 0;
 
-        std::vector<double> residualTracker = {residualMax, residualMean, residualRMS};
-        std::vector<double> errorTracker = {errorMax, errorMean, errorRMS};
+        std::vector<double> residualTracker(3, residualTolerance + 1.0);
+        std::vector<double> errorTracker(3, errorTolerance + 1.0);
 
         auto indexR = (size_t)_parameters.ResidualTrackingMetric;
         auto indexE = (size_t)_parameters.ErrorTrackingMetric;
@@ -195,63 +149,51 @@ namespace HeatTransfer::Solvers
         Eigen::ArrayXXd errorArray(rows, cols);
         Eigen::ArrayXXd residualArray(rows, cols);
 
-        while (localIterations < maxIterations && residualTracker[indexR] > residualTolerance &&
+        while (iterations < maxIterations && residualTracker[indexR] > residualTolerance &&
                errorTracker[indexE] > errorTolerance)
         {
             oldTemperature = *_temperatureMatrix;
 
-            UpdateTemperatureMatrix(oldTemperature);
+            VCycle();
 
             UpdateResidualMatrix();
 
             errorArray = (*_temperatureMatrix - oldTemperature).array();
-            errorMax = errorArray.abs().maxCoeff();
-            errorMean = errorArray.abs().mean();
-            errorRMS = std::sqrt(errorArray.square().mean());
+            const double errorMax = errorArray.abs().maxCoeff();
+            const double errorMean = errorArray.abs().mean();
+            const double errorRMS = std::sqrt(errorArray.square().mean());
 
             residualArray = (*_residualMatrix).array();
-            residualMax = residualArray.abs().maxCoeff();
-            residualMean = residualArray.abs().mean();
-            residualRMS = std::sqrt(residualArray.square().mean());
+            const double residualMax = residualArray.abs().maxCoeff();
+            const double residualMean = residualArray.abs().mean();
+            const double residualRMS = std::sqrt(residualArray.square().mean());
 
             residualTracker = {residualMax, residualMean, residualRMS};
             errorTracker = {errorMax, errorMean, errorRMS};
 
-            localIterations++;
-            totalIterations++;
+            iterations++;
 
             auto error =
-                std::make_shared<Core::ErrorMetric>(totalIterations, errorMax, errorMean, errorRMS);
+                std::make_shared<Core::ErrorMetric>(iterations, errorMax, errorMean, errorRMS);
 
             _errorMetrics.push_back(error);
 
             auto residual = std::make_shared<Core::ResidualMetric>(
-                totalIterations, residualMax, residualMean, residualRMS);
+                iterations, residualMax, residualMean, residualRMS);
 
             _residualMetrics.push_back(residual);
         }
     }
 
-    bool ISolver::IsInsulated(Eigen::Index row, Eigen::Index col)
+    bool ISolver::IsInsulated(Eigen::Index row,
+                              Eigen::Index col,
+                              Eigen::Index numRows,
+                              Eigen::Index numCols)
     {
-        auto& T = *_temperatureMatrix;
-
-        const Eigen::Index numRows = T.rows();
-        const Eigen::Index numCols = T.cols();
-
-        if (row == 0 && col >= 0 && col < numCols)
+        if (row == 0 || row == numRows - 1 || col == 0 || col == numCols - 1)
             return true;
 
-        if (row == numRows - 1 && col >= 0 && col < numCols)
-            return true;
-
-        if (col == 0 && row >= 0 && row < numRows)
-            return true;
-
-        if (col == numCols - 1 && row >= 0 && row < numRows)
-            return true;
-
-        // Set inner square
+        // Inner square
         const int h1 = std::floor(numRows / 4);
         const int h2 = std::floor(3 * numRows / 4);
         const int h3 = std::floor(numCols / 4);
@@ -259,67 +201,13 @@ namespace HeatTransfer::Solvers
         const int c1 = std::floor(numRows / 2) - 1;
         const int c2 = std::floor(numCols / 2) - 1;
 
-        if (row == h1 && col >= h3 && col <= h4)
+        if ((row == h1 || row == h2) && col >= h3 && col <= h4)
             return true;
 
-        if (row == h2 && col >= h3 && col <= h4)
+        if ((col == h3 || col == h4) && row >= h1 && row <= h2)
             return true;
 
-        if (col == h3 && row >= h1 && row <= h2)
-            return true;
-
-        if (col == h4 && row >= h1 && row <= h2)
-            return true;
-
-        if (row == c1 && col == c2)
-            return true;
-
-        return false;
-    }
-
-    double ISolver::InsulatedValue(Eigen::Index row, Eigen::Index col)
-    {
-        auto& T = *_temperatureMatrix;
-
-        const Eigen::Index numRows = T.rows();
-        const Eigen::Index numCols = T.cols();
-
-        if (row == 0 && col >= 0 && col < numCols)
-            return _boundaryCondition.TopEdge;
-
-        if (row == numRows - 1 && col >= 0 && col < numCols)
-            return _boundaryCondition.BottomEdge;
-
-        if (col == 0 && row >= 0 && row < numRows)
-            return _boundaryCondition.LeftEdge;
-
-        if (col == numCols - 1 && row >= 0 && row < numRows)
-            return _boundaryCondition.RightEdge;
-
-        // Set inner square
-        const int h1 = std::floor(numRows / 4);
-        const int h2 = std::floor(3 * numRows / 4);
-        const int h3 = std::floor(numCols / 4);
-        const int h4 = std::floor(3 * numCols / 4);
-        const int c1 = std::floor(numRows / 2) - 1;
-        const int c2 = std::floor(numCols / 2) - 1;
-
-        if (row == h1 && col >= h3 && col <= h4)
-            return _boundaryCondition.InnerSquare;
-
-        if (row == h2 && col >= h3 && col <= h4)
-            return _boundaryCondition.InnerSquare;
-
-        if (col == h3 && row >= h1 && row <= h2)
-            return _boundaryCondition.InnerSquare;
-
-        if (col == h4 && row >= h1 && row <= h2)
-            return _boundaryCondition.InnerSquare;
-
-        if (row == c1 && col == c2)
-            return _boundaryCondition.CenterPoint;
-
-        throw std::runtime_error("Asking for insulated value from non-insulated edge");
+        return row == c1 && col == c2;
     }
 
     void ISolver::UpdateResidualMatrix()
@@ -337,7 +225,7 @@ namespace HeatTransfer::Solvers
 
         auto q_g = _materialProperties.InternalHeatGeneration;
         auto k = _materialProperties.ThermalConductivity;
-        auto h = 1.0f / std::max(rows, cols);
+        auto h = 1.0 / std::max(rows, cols);
         auto heating = Eigen::MatrixXd::Constant(rows - 2, cols - 2, pow(h, 2) * q_g / k);
 
         R.block(1, 1, rows - 2, cols - 2) =

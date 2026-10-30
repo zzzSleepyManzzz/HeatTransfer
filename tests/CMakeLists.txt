@@ -2,7 +2,6 @@ find_package(Catch2 REQUIRED)
 
 # Unit tests
 add_executable(unit_tests
-    unit/ExpandMatrix_Test.cpp
     unit/SolverFactory_Test.cpp
 )
 

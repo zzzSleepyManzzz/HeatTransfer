@@ -21,15 +21,10 @@ namespace HeatTransfer::Tests
 
         HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
                                                                .Columns = 100,
-                                                               .Expansion = 2,
-                                                               .NumExpansions = 2,
-                                                               .InitialResidualTolerance = 1e-3,
-                                                               .ExpandedResidualTolerance = 1e-1,
-                                                               .InitialErrorTolerance = 1e-6,
-                                                               .ExpandedErrorTolerance = 1e-6,
+                                                               .ResidualTolerance = 1e-1,
+                                                               .ErrorTolerance = 1e-6,
                                                                .RelaxationFactor = 1.7,
-                                                               .MaxInitialIterations = 1000,
-                                                               .MaxExpandedIterations = 1000};
+                                                               .MaxIterations = 1000};
 
         auto solver = std::make_shared<HeatTransfer::Solvers::JacobiMethod>(
             parameters, materialProperties, boundaryCondition);
@@ -53,7 +48,7 @@ namespace HeatTransfer::Tests
 
         SECTION("Max residual should be below tolerance")
         {
-            REQUIRE(residuals.back()->ResidualMax <= parameters.ExpandedResidualTolerance);
+            REQUIRE(residuals.back()->ResidualMax <= parameters.ResidualTolerance);
         }
     }
 

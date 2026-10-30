@@ -1,15 +1,10 @@
 #pragma once
 
-#include <Eigen/Dense>
-
-#include "HeatTransfer/Core/BoundaryConditions.h"
-#include "HeatTransfer/Core/SimulationParameters.h"
-
-#include "HeatTransfer/Solvers/ISolver.h"
+#include "HeatTransfer/Solvers/IMultigridSolver.h"
 
 namespace HeatTransfer::Solvers
 {
-    class JacobiMethod : public ISolver
+    class JacobiMethod : public IMultigridSolver
     {
     public:
         JacobiMethod(const Core::SimulationParameters& parameters,
@@ -17,6 +12,12 @@ namespace HeatTransfer::Solvers
                      const Core::BoundaryConditions& boundaryCondition);
 
     private:
-        void UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature) override;
+        // Undamped Jacobi never reduces the checkerboard error, so it cannot smooth
+        // Damping factor must be used for Jacobi to be a smoother
+        static constexpr double DampingFactor = 0.8;
+
+        void Smoothen(Eigen::MatrixXd& matrix,
+                      const Eigen::MatrixXd& rhs,
+                      const Eigen::MatrixXd& insulated) override;
     };
 }

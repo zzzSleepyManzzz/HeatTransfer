@@ -22,10 +22,6 @@ namespace HeatTransfer::Solvers
         ISolver() = delete;
         virtual ~ISolver() = default;
 
-        ISolver(const Core::SimulationParameters& parameters,
-                const Core::MaterialProperties& materialProperties,
-                const Core::BoundaryConditions& boundaryCondition);
-
         void ComputeSimulation();
         void PrintResidual();
 
@@ -47,20 +43,17 @@ namespace HeatTransfer::Solvers
         std::shared_ptr<Eigen::MatrixXd> _residualMatrix;
 
         ISolver(const Core::SimulationParameters& parameters,
+                const Core::MaterialProperties& materialProperties,
                 const Core::BoundaryConditions& boundaryCondition);
 
-        void IterateTemperature(int maxIterations,
-                                double residualTolerance,
-                                double errorTolerance,
-                                int& totalIterations);
+        void IterateTemperature();
         void ApplyBoundaryConditions();
-        void ExpandMatrix();
 
-        bool IsInsulated(Eigen::Index row, Eigen::Index col);
-        double InsulatedValue(Eigen::Index row, Eigen::Index col);
-
-        virtual void UpdateTemperatureMatrix(const Eigen::MatrixXd& oldTemperature) = 0;
+        bool IsInsulated(Eigen::Index row, Eigen::Index col, Eigen::Index rows, Eigen::Index cols);
 
         void UpdateResidualMatrix();
+
+        virtual void BuildLevels() = 0;
+        virtual void VCycle() = 0;
     };
 }
