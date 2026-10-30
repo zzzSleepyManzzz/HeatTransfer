@@ -1,7 +1,5 @@
 #include "HeatTransfer/Solvers/ISolver.h"
 
-#include <algorithm>
-
 #include <tracy/Tracy.hpp>
 
 namespace HeatTransfer::Solvers
@@ -140,7 +138,6 @@ namespace HeatTransfer::Solvers
 
         int iterations = 0;
 
-        // Start above the tolerances so the loop runs at least once
         std::vector<double> residualTracker(3, residualTolerance + 1.0);
         std::vector<double> errorTracker(3, errorTolerance + 1.0);
 
@@ -257,25 +254,5 @@ namespace HeatTransfer::Solvers
         R(c1, c2) = 0;
 
         R = R.cwiseAbs().eval();
-    }
-
-    Eigen::MatrixXd ISolver::ComputeResidual(const Eigen::MatrixXd& matrix,
-                                             const Eigen::MatrixXd& rhs,
-                                             const InsulatedMask& insulated)
-    {
-        const Eigen::Index rows = matrix.rows();
-        const Eigen::Index cols = matrix.cols();
-
-        const auto& E = matrix;
-        Eigen::MatrixXd R = Eigen::MatrixXd::Zero(rows, cols);
-
-        R.block(1, 1, rows - 2, cols - 2) =
-            rhs.block(1, 1, rows - 2, cols - 2) - E.block(1, 1, rows - 2, cols - 2) +
-            (E.block(0, 1, rows - 2, cols - 2) + E.block(2, 1, rows - 2, cols - 2) +
-             E.block(1, 0, rows - 2, cols - 2) + E.block(1, 2, rows - 2, cols - 2)) *
-                0.25;
-
-        R.array() = insulated.select(0.0, R.array());
-        return R;
     }
 }

@@ -17,6 +17,6 @@ namespace HeatTransfer::Solvers
 
         void Smoothen(Eigen::MatrixXd& matrix,
                       const Eigen::MatrixXd& rhs,
-                      const InsulatedMask& insulated) override;
+                      const Eigen::MatrixXd& insulated) override;
     };
 }

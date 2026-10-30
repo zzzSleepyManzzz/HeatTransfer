@@ -13,10 +13,10 @@ namespace HeatTransfer::Solvers
 
     void IMultigridSolver::BuildLevels()
     {
-        const Eigen::Index rows = _temperatureMatrix->rows();
-        const Eigen::Index cols = _temperatureMatrix->cols();
+        const auto rows = _temperatureMatrix->rows();
+        const auto cols = _temperatureMatrix->cols();
 
-        InsulatedMask insulated(rows, cols);
+        auto insulated = Eigen::MatrixXd(rows, cols);
 
         for (Eigen::Index j = 0; j < cols; j++)
         {
@@ -30,10 +30,12 @@ namespace HeatTransfer::Solvers
         auto k = _materialProperties.ThermalConductivity;
         auto h = 1.0 / std::max(rows, cols);
 
-        Eigen::MatrixXd heating = Eigen::MatrixXd::Constant(rows, cols, 0.25 * pow(h, 2) * q_g / k);
-        heating.array() = insulated.select(0.0, heating.array());
+        Eigen::MatrixXd heating =
+            Eigen::MatrixXd::Constant(rows, cols, 0.25f * pow(h, 2) * q_g / k);
 
-        _errorStack = {Eigen::MatrixXd()};
+        heating.array() = insulated.array().select(0.0, heating.array());
+
+        _errorStack = {Eigen::MatrixXd()}; // Never touched - empty matrix
         _residualStack = {heating};
         _insulatedStack = {insulated};
 
@@ -43,10 +45,32 @@ namespace HeatTransfer::Solvers
             _insulatedStack.push_back(CoarsenMask(_insulatedStack.back()));
 
             const auto& mask = _insulatedStack.back();
+            const auto courseRows = mask.rows();
+            const auto courseCols = mask.cols();
 
-            _errorStack.push_back(Eigen::MatrixXd::Zero(mask.rows(), mask.cols()));
-            _residualStack.push_back(Eigen::MatrixXd::Zero(mask.rows(), mask.cols()));
+            _errorStack.push_back(Eigen::MatrixXd::Zero(courseRows, courseCols));
+            _residualStack.push_back(Eigen::MatrixXd::Zero(courseRows, courseCols));
         }
+    }
+
+    Eigen::MatrixXd IMultigridSolver::ComputeResidual(const Eigen::MatrixXd& matrix,
+                                                      const Eigen::MatrixXd& rhs,
+                                                      const Eigen::MatrixXd& insulated)
+    {
+        const Eigen::Index rows = matrix.rows();
+        const Eigen::Index cols = matrix.cols();
+
+        const auto& E = matrix;
+        Eigen::MatrixXd R = Eigen::MatrixXd::Zero(rows, cols);
+
+        R.block(1, 1, rows - 2, cols - 2) =
+            rhs.block(1, 1, rows - 2, cols - 2) - E.block(1, 1, rows - 2, cols - 2) +
+            (E.block(0, 1, rows - 2, cols - 2) + E.block(2, 1, rows - 2, cols - 2) +
+             E.block(1, 0, rows - 2, cols - 2) + E.block(1, 2, rows - 2, cols - 2)) *
+                0.25;
+
+        R.array() = insulated.array().select(0.0, R.array());
+        return R;
     }
 
     Eigen::MatrixXd& IMultigridSolver::LevelMatrix(std::size_t level)
@@ -58,40 +82,45 @@ namespace HeatTransfer::Solvers
     {
         ZoneScoped;
 
-        const std::size_t numLevels = _insulatedStack.size();
+        const auto numLevels = _insulatedStack.size();
 
-        // Down: smooth, then restrict the residual to the next level. The equation is
-        // scaled by h^2 / 4 and h doubles, so the coarse right-hand side is 4x the residual.
-        for (std::size_t i = 0; i + 1 < numLevels; i++)
+        // Down V-Cycle
+
+        for (auto i = 0; i < numLevels - 1; i++)
         {
             auto& E = LevelMatrix(i);
 
-            for (int s = 0; s < PRE_SMOOTHING_SWEEPS; s++)
+            for (auto s = 0; s < PRE_SMOOTHING_SWEEPS; s++)
                 Smoothen(E, _residualStack[i], _insulatedStack[i]);
 
             auto& R = _residualStack[i + 1];
+
             R = 4.0 * Restrict(ComputeResidual(E, _residualStack[i], _insulatedStack[i]));
-            R.array() = _insulatedStack[i + 1].select(0.0, R.array());
+            R.array() = _insulatedStack[i + 1].array().select(0.0, R.array());
 
             _errorStack[i + 1].setZero();
         }
+
+        // Solve coarsest grid
 
         if (numLevels > 1)
             SolveCoarsest();
         else
             Smoothen(*_temperatureMatrix, _residualStack[0], _insulatedStack[0]);
 
-        // Up: add the interpolated correction (never on insulated nodes), then smooth
-        for (std::size_t i = numLevels - 1; i-- > 0;)
-        {
-            auto& E = LevelMatrix(i);
+        // Up V-Cycle
 
-            Eigen::MatrixXd correction = Prolongate(_errorStack[i + 1], E.rows(), E.cols());
-            correction.array() = _insulatedStack[i].select(0.0, correction.array());
+        for (auto i = numLevels - 1; i > 0; i--)
+        {
+            auto& E = LevelMatrix(i - 1);
+
+            Eigen::MatrixXd correction = Prolongate(_errorStack[i], E.rows(), E.cols());
+            correction.array() = _insulatedStack[i - 1].array().select(0.0, correction.array());
+
             E += correction;
 
-            for (int s = 0; s < POST_SMOOTHING_SWEEPS; s++)
-                Smoothen(E, _residualStack[i], _insulatedStack[i]);
+            for (auto s = 0; s < POST_SMOOTHING_SWEEPS; s++)
+                Smoothen(E, _residualStack[i - 1], _insulatedStack[i - 1]);
         }
     }
 
@@ -112,60 +141,63 @@ namespace HeatTransfer::Solvers
         return n / 2 + 1;
     }
 
-    ISolver::InsulatedMask IMultigridSolver::CoarsenMask(const InsulatedMask& mask)
+    Eigen::MatrixXd IMultigridSolver::CoarsenMask(const Eigen::MatrixXd& mask)
     {
-        const Eigen::Index rows = CoarseSize(mask.rows());
-        const Eigen::Index cols = CoarseSize(mask.cols());
+        const auto rows = CoarseSize(mask.rows());
+        const auto cols = CoarseSize(mask.cols());
 
-        InsulatedMask coarse = InsulatedMask::Constant(rows, cols, false);
-        coarse.row(0).setConstant(true);
-        coarse.row(rows - 1).setConstant(true);
-        coarse.col(0).setConstant(true);
-        coarse.col(cols - 1).setConstant(true);
+        Eigen::MatrixXd coarseMask = Eigen::MatrixXd::Zero(rows, cols);
 
-        for (Eigen::Index J = 1; J < cols - 1; J++)
+        coarseMask.row(0).setConstant(1.0);
+        coarseMask.row(rows - 1).setConstant(1.0);
+        coarseMask.col(0).setConstant(1.0);
+        coarseMask.col(cols - 1).setConstant(1.0);
+
+        for (Eigen::Index j = 1; j < cols - 1; j++)
         {
-            for (Eigen::Index I = 1; I < rows - 1; I++)
+            for (Eigen::Index i = 1; i < rows - 1; i++)
             {
-                const Eigen::Index numRows = std::min<Eigen::Index>(3, mask.rows() - (2 * I - 1));
-                const Eigen::Index numCols = std::min<Eigen::Index>(3, mask.cols() - (2 * J - 1));
-
-                coarse(I, J) = mask.block(2 * I - 1, 2 * J - 1, numRows, numCols).any();
+                coarseMask(i, j) = mask.block(2 * i - 1, 2 * j - 1, 3, 3).any();
             }
         }
 
-        return coarse;
+        return coarseMask;
     }
 
-    // Full weighting: 1/16 [1 2 1; 2 4 2; 1 2 1] around fine node (2I, 2J)
     Eigen::MatrixXd IMultigridSolver::Restrict(const Eigen::MatrixXd& matrix)
     {
+        // The standard weighting is given by:
+        //
+        // 1/16 * [1, 2, 1]
+        //        [2, 4, 2]
+        //        [1, 2, 1]
+
         ZoneScoped;
 
         const Eigen::Index rows = matrix.rows();
         const Eigen::Index cols = matrix.cols();
 
-        Eigen::MatrixXd restricted = Eigen::MatrixXd::Zero(CoarseSize(rows), CoarseSize(cols));
+        Eigen::MatrixXd restrictedMatrix =
+            Eigen::MatrixXd::Zero(CoarseSize(rows), CoarseSize(cols));
 
-        // Fine nodes past the edge (even sizes only) count as 0
-        auto M = [&](Eigen::Index i, Eigen::Index j)
-        { return (i < rows && j < cols) ? matrix(i, j) : 0.0; };
+        auto M = [&](Eigen::Index I, Eigen::Index J)
+        { return (I < rows && J < cols) ? matrix(I, J) : 0.0; };
 
-        for (Eigen::Index J = 1; J < restricted.cols() - 1; J++)
+        for (Eigen::Index j = 1; j < restrictedMatrix.cols() - 1; j++)
         {
-            for (Eigen::Index I = 1; I < restricted.rows() - 1; I++)
+            for (Eigen::Index i = 1; i < restrictedMatrix.rows() - 1; i++)
             {
-                const Eigen::Index i = 2 * I;
-                const Eigen::Index j = 2 * J;
+                const auto I = 2 * i;
+                const auto J = 2 * j;
 
-                restricted(I, J) =
-                    (4.0 * M(i, j) + 2.0 * (M(i - 1, j) + M(i + 1, j) + M(i, j - 1) + M(i, j + 1)) +
-                     M(i - 1, j - 1) + M(i - 1, j + 1) + M(i + 1, j - 1) + M(i + 1, j + 1)) /
+                restrictedMatrix(i, j) =
+                    (4.0 * M(I, J) + 2.0 * (M(I - 1, J) + M(I + 1, J) + M(I, J - 1) + M(I, J + 1)) +
+                     M(I - 1, J - 1) + M(I - 1, J + 1) + M(I + 1, J - 1) + M(I + 1, J + 1)) /
                     16.0;
             }
         }
 
-        return restricted;
+        return restrictedMatrix;
     }
 
     Eigen::MatrixXd IMultigridSolver::Prolongate(const Eigen::MatrixXd& matrix,
@@ -174,23 +206,23 @@ namespace HeatTransfer::Solvers
     {
         ZoneScoped;
 
-        Eigen::MatrixXd prolongated(rows, cols);
+        Eigen::MatrixXd prolongatedMatrix(rows, cols);
 
         for (Eigen::Index j = 0; j < cols; j++)
         {
-            const Eigen::Index J0 = j / 2;
-            const Eigen::Index J1 = (j % 2 == 0) ? J0 : J0 + 1;
+            const auto J0 = j / 2;
+            const auto J1 = (j % 2 == 0) ? J0 : J0 + 1;
 
             for (Eigen::Index i = 0; i < rows; i++)
             {
-                const Eigen::Index I0 = i / 2;
-                const Eigen::Index I1 = (i % 2 == 0) ? I0 : I0 + 1;
+                const auto I0 = i / 2;
+                const auto I1 = (i % 2 == 0) ? I0 : I0 + 1;
 
-                prolongated(i, j) =
+                prolongatedMatrix(i, j) =
                     0.25 * (matrix(I0, J0) + matrix(I1, J0) + matrix(I0, J1) + matrix(I1, J1));
             }
         }
 
-        return prolongated;
+        return prolongatedMatrix;
     }
 }

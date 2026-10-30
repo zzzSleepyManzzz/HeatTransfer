@@ -16,11 +16,10 @@ namespace
         using IMultigridSolver::CoarsenMask;
         using IMultigridSolver::Prolongate;
         using IMultigridSolver::Restrict;
-        using ISolver::InsulatedMask;
         using ISolver::IsInsulated;
 
     private:
-        void Smoothen(Eigen::MatrixXd&, const Eigen::MatrixXd&, const InsulatedMask&) override {}
+        void Smoothen(Eigen::MatrixXd&, const Eigen::MatrixXd&, const Eigen::MatrixXd&) override {}
     };
 }
 
@@ -84,13 +83,13 @@ namespace HeatTransfer::Tests
 
     TEST_CASE("CoarsenMask keeps even lines and thickens odd ones")
     {
-        DummySolver::InsulatedMask fine = DummySolver::InsulatedMask::Constant(33, 33, false);
-        fine.row(0).setConstant(true);
-        fine.row(32).setConstant(true);
-        fine.col(0).setConstant(true);
-        fine.col(32).setConstant(true);
-        fine.block(8, 4, 1, 20).setConstant(true);  // even row: one coarse line
-        fine.block(4, 15, 20, 1).setConstant(true); // odd column: two coarse lines
+        Eigen::MatrixXd fine = Eigen::MatrixXd::Zero(33, 33);
+        fine.row(0).setConstant(1.0);
+        fine.row(32).setConstant(1.0);
+        fine.col(0).setConstant(1.0);
+        fine.col(32).setConstant(1.0);
+        fine.block(8, 4, 1, 20).setConstant(1.0);  // even row: one coarse line
+        fine.block(4, 15, 20, 1).setConstant(1.0); // odd column: two coarse lines
 
         const auto coarse = DummySolver::CoarsenMask(fine);
 

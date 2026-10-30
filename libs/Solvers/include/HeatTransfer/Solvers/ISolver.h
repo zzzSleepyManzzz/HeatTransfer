@@ -34,12 +34,6 @@ namespace HeatTransfer::Solvers
         std::shared_ptr<Eigen::MatrixXd> GetResidualMatrix();
 
     protected:
-        using InsulatedMask = Eigen::Array<bool, Eigen::Dynamic, Eigen::Dynamic>;
-
-        ISolver(const Core::SimulationParameters& parameters,
-                const Core::MaterialProperties& materialProperties,
-                const Core::BoundaryConditions& boundaryCondition);
-
         Core::SimulationParameters _parameters;
         Core::MaterialProperties _materialProperties;
         Core::BoundaryConditions _boundaryCondition;
@@ -48,23 +42,22 @@ namespace HeatTransfer::Solvers
         std::shared_ptr<Eigen::MatrixXd> _temperatureMatrix;
         std::shared_ptr<Eigen::MatrixXd> _residualMatrix;
 
+        ISolver(const Core::SimulationParameters& parameters,
+                const Core::MaterialProperties& materialProperties,
+                const Core::BoundaryConditions& boundaryCondition);
+
         void IterateTemperature();
         void ApplyBoundaryConditions();
 
-        static bool
-        IsInsulated(Eigen::Index row, Eigen::Index col, Eigen::Index rows, Eigen::Index cols);
+        bool IsInsulated(Eigen::Index row, Eigen::Index col, Eigen::Index rows, Eigen::Index cols);
 
         virtual void Smoothen(Eigen::MatrixXd& matrix,
                               const Eigen::MatrixXd& rhs,
-                              const InsulatedMask& insulated) = 0;
+                              const Eigen::MatrixXd& insulated) = 0;
 
         void UpdateResidualMatrix();
 
         virtual void BuildLevels() = 0;
         virtual void VCycle() = 0;
-
-        static Eigen::MatrixXd ComputeResidual(const Eigen::MatrixXd& matrix,
-                                               const Eigen::MatrixXd& rhs,
-                                               const InsulatedMask& insulated);
     };
 }

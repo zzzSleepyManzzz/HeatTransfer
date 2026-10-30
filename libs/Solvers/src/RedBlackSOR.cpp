@@ -13,7 +13,7 @@ namespace HeatTransfer::Solvers
 
     void RedBlackSOR::Smoothen(Eigen::MatrixXd& matrix,
                                const Eigen::MatrixXd& rhs,
-                               const InsulatedMask& insulated)
+                               const Eigen::MatrixXd& insulated)
     {
         ZoneScoped;
 

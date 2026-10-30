@@ -13,7 +13,7 @@ namespace HeatTransfer::Solvers
 
     void JacobiMethod::Smoothen(Eigen::MatrixXd& matrix,
                                 const Eigen::MatrixXd& rhs,
-                                const InsulatedMask& insulated)
+                                const Eigen::MatrixXd& insulated)
     {
         ZoneScoped;
 
@@ -31,6 +31,6 @@ namespace HeatTransfer::Solvers
                  rhs.block(1, 1, rows - 2, cols - 2));
 
         // Put back the insulated nodes inside the domain (inner square, centre point)
-        matrix.array() = insulated.select(old.array(), matrix.array());
+        matrix.array() = insulated.array().select(old.array(), matrix.array());
     }
 }
