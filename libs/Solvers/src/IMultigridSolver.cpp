@@ -97,6 +97,8 @@ namespace HeatTransfer::Solvers
 
             auto& R = _residualStack[i + 1];
 
+            // Correction factor of 4.0 is used to account for the fact that the coarse grid has
+            // half the resolution of the fine grid
             R = 4.0 * Restrict(ComputeResidual(E, _residualStack[i], _insulatedStack[i]));
             R.array() = _insulatedStack[i + 1].array().select(0.0, R.array());
 
