@@ -38,10 +38,10 @@ namespace HeatTransfer::Solvers
 
         Eigen::MatrixXd& LevelMatrix(std::size_t level);
 
-        static Eigen::Index CoarseSize(Eigen::Index n);
-        static Eigen::MatrixXd CoarsenMask(const Eigen::MatrixXd& mask);
-        static Eigen::MatrixXd Restrict(const Eigen::MatrixXd& matrix);
-        static Eigen::MatrixXd
+        Eigen::Index CoarseSize(Eigen::Index n);
+        Eigen::MatrixXd CoarsenMask(const Eigen::MatrixXd& mask);
+        Eigen::MatrixXd Restrict(const Eigen::MatrixXd& matrix);
+        Eigen::MatrixXd
         Prolongate(const Eigen::MatrixXd& matrix, Eigen::Index rows, Eigen::Index cols);
     };
 }
