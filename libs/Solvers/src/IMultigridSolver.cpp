@@ -13,6 +13,8 @@ namespace HeatTransfer::Solvers
 
     void IMultigridSolver::BuildLevels()
     {
+        ZoneScoped;
+
         const auto rows = _temperatureMatrix->rows();
         const auto cols = _temperatureMatrix->cols();
 
@@ -143,23 +145,12 @@ namespace HeatTransfer::Solvers
 
     Eigen::MatrixXd IMultigridSolver::CoarsenMask(const Eigen::MatrixXd& mask)
     {
-        const auto rows = CoarseSize(mask.rows());
-        const auto cols = CoarseSize(mask.cols());
-
-        Eigen::MatrixXd coarseMask = Eigen::MatrixXd::Zero(rows, cols);
+        Eigen::MatrixXd coarseMask = (Restrict(mask).array() > 0.0).cast<double>();
 
         coarseMask.row(0).setConstant(1.0);
-        coarseMask.row(rows - 1).setConstant(1.0);
+        coarseMask.row(coarseMask.rows() - 1).setConstant(1.0);
         coarseMask.col(0).setConstant(1.0);
-        coarseMask.col(cols - 1).setConstant(1.0);
-
-        for (Eigen::Index j = 1; j < cols - 1; j++)
-        {
-            for (Eigen::Index i = 1; i < rows - 1; i++)
-            {
-                coarseMask(i, j) = mask.block(2 * i - 1, 2 * j - 1, 3, 3).any();
-            }
-        }
+        coarseMask.col(coarseMask.cols() - 1).setConstant(1.0);
 
         return coarseMask;
     }
