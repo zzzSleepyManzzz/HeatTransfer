@@ -51,10 +51,6 @@ namespace HeatTransfer::Solvers
 
         bool IsInsulated(Eigen::Index row, Eigen::Index col, Eigen::Index rows, Eigen::Index cols);
 
-        virtual void Smoothen(Eigen::MatrixXd& matrix,
-                              const Eigen::MatrixXd& rhs,
-                              const Eigen::MatrixXd& insulated) = 0;
-
         void UpdateResidualMatrix();
 
         virtual void BuildLevels() = 0;

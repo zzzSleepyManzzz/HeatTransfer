@@ -28,6 +28,10 @@ namespace HeatTransfer::Solvers
         void VCycle() override;
         void SolveCoarsest();
 
+        virtual void Smoothen(Eigen::MatrixXd& matrix,
+                              const Eigen::MatrixXd& rhs,
+                              const Eigen::MatrixXd& insulated) = 0;
+
         Eigen::MatrixXd ComputeResidual(const Eigen::MatrixXd& matrix,
                                         const Eigen::MatrixXd& rhs,
                                         const Eigen::MatrixXd& insulated);
