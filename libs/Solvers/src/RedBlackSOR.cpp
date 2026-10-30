@@ -29,11 +29,9 @@ namespace HeatTransfer::Solvers
 
         for (auto colour : {RED, BLACK})
         {
-            // A node only reads nodes of the other colour, so columns are independent
 #pragma omp parallel for schedule(static)
             for (Eigen::Index j = 1; j < cols - 1; j++)
             {
-                // First interior row of this colour in column j, then every other row
                 const Eigen::Index start = 1 + ((1 + j + colour) % 2);
 
                 for (Eigen::Index i = start; i < rows - 1; i += 2)

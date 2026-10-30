@@ -22,7 +22,6 @@ namespace HeatTransfer::Solvers
 
         auto& T = matrix;
 
-        // Eigen is column-major, so walk down each column
         for (Eigen::Index j = 1; j < cols - 1; j++)
         {
             for (Eigen::Index i = 1; i < rows - 1; i++)
