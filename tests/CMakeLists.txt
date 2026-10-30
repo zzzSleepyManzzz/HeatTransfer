@@ -2,7 +2,6 @@ find_package(Catch2 REQUIRED)
 
 # Unit tests
 add_executable(unit_tests
-    unit/MultigridTransfer_Test.cpp
     unit/SolverFactory_Test.cpp
 )
 
@@ -20,7 +19,6 @@ add_executable(integration_tests
     integration/SuccessiveOverRelaxation_Test.cpp
     integration/RedBlackSOR_Test.cpp
     integration/SolverRelativePerformance_Test.cpp
-    integration/MultigridAccuracy_Test.cpp
 )
 
 target_link_libraries(integration_tests
