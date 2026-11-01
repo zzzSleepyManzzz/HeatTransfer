@@ -20,7 +20,7 @@ A modular C++ project for solving heat transfer problems using iterative numeric
 
 ### 1. Install dependencies
 ```bash
-conan install . --output-folder=build --build=missing -s build_type=Release
+conan install . --profile=./conan_profile --output-folder=build --build=missing -s build_type=Release
 ```
 
 ### 2. Configure project
