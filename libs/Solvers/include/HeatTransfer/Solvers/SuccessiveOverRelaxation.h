@@ -1,10 +1,10 @@
 #pragma once
 
-#include "HeatTransfer/Solvers/IMultigridSolver.h"
+#include "HeatTransfer/Solvers/IConjugateGradientSolver.h"
 
 namespace HeatTransfer::Solvers
 {
-    class SuccessiveOverRelaxation : public IMultigridSolver
+    class SuccessiveOverRelaxation : public IConjugateGradientSolver
     {
     public:
         SuccessiveOverRelaxation(const Core::SimulationParameters& parameters,
@@ -14,6 +14,7 @@ namespace HeatTransfer::Solvers
     private:
         void Smoothen(Eigen::MatrixXd& matrix,
                       const Eigen::MatrixXd& rhs,
-                      const Eigen::MatrixXd& insulated) override;
+                      const Eigen::MatrixXd& insulated,
+                      SweepDirection direction) override;
     };
 }

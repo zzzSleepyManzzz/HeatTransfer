@@ -3,6 +3,7 @@ find_package(OpenMP REQUIRED)
 add_library(Solvers
     src/ISolver.cpp
     src/IMultigridSolver.cpp
+    src/IConjugateGradientSolver.cpp
     src/JacobiMethod.cpp
     src/GaussSeidelMethod.cpp
     src/SuccessiveOverRelaxation.cpp

@@ -1,5 +1,7 @@
 #include "HeatTransfer/Solvers/RedBlackSOR.h"
 
+#include <array>
+
 #include <tracy/Tracy.hpp>
 
 namespace HeatTransfer::Solvers
@@ -7,13 +9,14 @@ namespace HeatTransfer::Solvers
     RedBlackSOR::RedBlackSOR(const Core::SimulationParameters& parameters,
                              const Core::MaterialProperties& materialProperties,
                              const Core::BoundaryConditions& boundaryCondition)
-        : IMultigridSolver(parameters, materialProperties, boundaryCondition)
+        : IConjugateGradientSolver(parameters, materialProperties, boundaryCondition)
     {
     }
 
     void RedBlackSOR::Smoothen(Eigen::MatrixXd& matrix,
                                const Eigen::MatrixXd& rhs,
-                               const Eigen::MatrixXd& insulated)
+                               const Eigen::MatrixXd& insulated,
+                               SweepDirection direction)
     {
         ZoneScoped;
 
@@ -27,7 +30,12 @@ namespace HeatTransfer::Solvers
         auto RED = 0;
         auto BLACK = 1;
 
-        for (auto colour : {RED, BLACK})
+        // Reversing the colour order gives the transpose of the sweep, so pairing them keeps the
+        // V-cycle symmetric
+        const auto colours =
+            direction == SweepDirection::FORWARD ? std::array{RED, BLACK} : std::array{BLACK, RED};
+
+        for (auto colour : colours)
         {
 #pragma omp parallel for schedule(static)
             for (Eigen::Index j = 1; j < cols - 1; j++)
