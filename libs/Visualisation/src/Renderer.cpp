@@ -1,5 +1,7 @@
 #include "HeatTransfer/Visualisation/Renderer.h"
 
+static_assert(sizeof(ImDrawIdx) == 4, "ImDrawIdx must be 32-bit to match conan_profile");
+
 namespace HeatTransfer::Visualisation
 {
     Renderer::Renderer()
