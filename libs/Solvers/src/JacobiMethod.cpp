@@ -7,19 +7,22 @@ namespace HeatTransfer::Solvers
     JacobiMethod::JacobiMethod(const Core::SimulationParameters& parameters,
                                const Core::MaterialProperties& materialProperties,
                                const Core::BoundaryConditions& boundaryCondition)
-        : IMultigridSolver(parameters, materialProperties, boundaryCondition)
+        : IConjugateGradientSolver(parameters, materialProperties, boundaryCondition)
     {
     }
 
     void JacobiMethod::Smoothen(Eigen::MatrixXd& matrix,
                                 const Eigen::MatrixXd& rhs,
-                                const Eigen::MatrixXd& insulated)
+                                const Eigen::MatrixXd& insulated,
+                                [[maybe_unused]] SweepDirection direction)
     {
         ZoneScoped;
 
         const Eigen::Index rows = matrix.rows();
         const Eigen::Index cols = matrix.cols();
 
+        // Every point is updated from the old values, so the sweep is already symmetric and the
+        // direction does not matter
         const Eigen::MatrixXd old = matrix;
 
         matrix.block(1, 1, rows - 2, cols - 2) =

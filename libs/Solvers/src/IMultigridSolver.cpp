@@ -53,6 +53,8 @@ namespace HeatTransfer::Solvers
             _errorStack.push_back(Eigen::MatrixXd::Zero(courseRows, courseCols));
             _residualStack.push_back(Eigen::MatrixXd::Zero(courseRows, courseCols));
         }
+
+        InitialiseConjugateGradientVariables();
     }
 
     Eigen::MatrixXd IMultigridSolver::ComputeResidual(const Eigen::MatrixXd& matrix,
@@ -75,31 +77,33 @@ namespace HeatTransfer::Solvers
         return R;
     }
 
-    Eigen::MatrixXd& IMultigridSolver::LevelMatrix(std::size_t level)
-    {
-        return level == 0 ? *_temperatureMatrix : _errorStack[level];
-    }
-
-    void IMultigridSolver::VCycle()
+    void IMultigridSolver::VCycle(Eigen::MatrixXd& matrix, const Eigen::MatrixXd& rhs)
     {
         ZoneScoped;
 
         const auto numLevels = _insulatedStack.size();
 
+        // The finest level uses the matrix and rhs passed in, the coarser levels use the stacks
+        auto levelMatrix = [&](std::size_t level) -> Eigen::MatrixXd&
+        { return level == 0 ? matrix : _errorStack[level]; };
+
+        auto levelRhs = [&](std::size_t level) -> const Eigen::MatrixXd&
+        { return level == 0 ? rhs : _residualStack[level]; };
+
         // Down V-Cycle
 
         for (auto i = 0; i < numLevels - 1; i++)
         {
-            auto& E = LevelMatrix(i);
+            auto& E = levelMatrix(i);
 
             for (auto s = 0; s < PRE_SMOOTHING_SWEEPS; s++)
-                Smoothen(E, _residualStack[i], _insulatedStack[i]);
+                Smoothen(E, levelRhs(i), _insulatedStack[i], SweepDirection::FORWARD);
 
             auto& R = _residualStack[i + 1];
 
             // Correction factor of 4.0 is used to account for the fact that the coarse grid has
             // half the resolution of the fine grid
-            R = 4.0 * Restrict(ComputeResidual(E, _residualStack[i], _insulatedStack[i]));
+            R = 4.0 * Restrict(ComputeResidual(E, levelRhs(i), _insulatedStack[i]));
             R.array() = _insulatedStack[i + 1].array().select(0.0, R.array());
 
             _errorStack[i + 1].setZero();
@@ -110,21 +114,25 @@ namespace HeatTransfer::Solvers
         if (numLevels > 1)
             SolveCoarsest();
         else
-            Smoothen(*_temperatureMatrix, _residualStack[0], _insulatedStack[0]);
+        {
+            Smoothen(matrix, rhs, _insulatedStack[0], SweepDirection::FORWARD);
+            Smoothen(matrix, rhs, _insulatedStack[0], SweepDirection::BACKWARD);
+        }
 
         // Up V-Cycle
 
         for (auto i = numLevels - 1; i > 0; i--)
         {
-            auto& E = LevelMatrix(i - 1);
+            auto& E = levelMatrix(i - 1);
 
             Eigen::MatrixXd correction = Prolongate(_errorStack[i], E.rows(), E.cols());
             correction.array() = _insulatedStack[i - 1].array().select(0.0, correction.array());
 
             E += correction;
 
+            // Post-smoothing sweeps backward so that it is the transpose of pre-smoothing
             for (auto s = 0; s < POST_SMOOTHING_SWEEPS; s++)
-                Smoothen(E, _residualStack[i - 1], _insulatedStack[i - 1]);
+                Smoothen(E, levelRhs(i - 1), _insulatedStack[i - 1], SweepDirection::BACKWARD);
         }
     }
 
@@ -134,9 +142,13 @@ namespace HeatTransfer::Solvers
         const auto& R = _residualStack.back();
         const auto& insulated = _insulatedStack.back();
 
-        for (int s = 0; s < COARSE_SWEEPS; s++)
+        // Solving H * E = R, where H is the Hessian of f(E) = 0.5 * E^T H E - R^T E
+        // The Hessian must remain symmetric positive definitie (SPD) for the conjugate gradient
+        // method to converge. Alternating sweeps keeps the coarse solve symmetric
+        for (int s = 0; s < COARSE_SWEEPS / 2; s++)
         {
-            Smoothen(E, R, insulated);
+            Smoothen(E, R, insulated, SweepDirection::FORWARD);
+            Smoothen(E, R, insulated, SweepDirection::BACKWARD);
         }
     }
 

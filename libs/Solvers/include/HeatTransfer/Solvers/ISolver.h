@@ -54,6 +54,6 @@ namespace HeatTransfer::Solvers
         void UpdateResidualMatrix();
 
         virtual void BuildLevels() = 0;
-        virtual void VCycle() = 0;
+        virtual void Iterate() = 0;
     };
 }

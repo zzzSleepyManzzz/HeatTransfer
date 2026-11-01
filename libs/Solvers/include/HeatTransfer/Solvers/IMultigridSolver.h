@@ -11,6 +11,12 @@ namespace HeatTransfer::Solvers
         virtual ~IMultigridSolver() = default;
 
     protected:
+        enum class SweepDirection
+        {
+            FORWARD,
+            BACKWARD
+        };
+
         static constexpr int PRE_SMOOTHING_SWEEPS = 3;
         static constexpr int POST_SMOOTHING_SWEEPS = 3;
         static constexpr int COARSE_SWEEPS = 100;
@@ -25,18 +31,19 @@ namespace HeatTransfer::Solvers
                          const Core::BoundaryConditions& boundaryCondition);
 
         void BuildLevels() override;
-        void VCycle() override;
+        virtual void InitialiseConjugateGradientVariables() = 0;
+
+        void VCycle(Eigen::MatrixXd& matrix, const Eigen::MatrixXd& rhs);
         void SolveCoarsest();
 
         virtual void Smoothen(Eigen::MatrixXd& matrix,
                               const Eigen::MatrixXd& rhs,
-                              const Eigen::MatrixXd& insulated) = 0;
+                              const Eigen::MatrixXd& insulated,
+                              SweepDirection direction) = 0;
 
         Eigen::MatrixXd ComputeResidual(const Eigen::MatrixXd& matrix,
                                         const Eigen::MatrixXd& rhs,
                                         const Eigen::MatrixXd& insulated);
-
-        Eigen::MatrixXd& LevelMatrix(std::size_t level);
 
         Eigen::Index CoarseSize(Eigen::Index n);
         Eigen::MatrixXd CoarsenMask(const Eigen::MatrixXd& mask);

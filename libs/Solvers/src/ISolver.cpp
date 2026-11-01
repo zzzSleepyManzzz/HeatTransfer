@@ -154,7 +154,7 @@ namespace HeatTransfer::Solvers
         {
             oldTemperature = *_temperatureMatrix;
 
-            VCycle();
+            Iterate();
 
             UpdateResidualMatrix();
 

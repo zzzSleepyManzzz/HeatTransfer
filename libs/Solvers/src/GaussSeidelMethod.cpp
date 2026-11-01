@@ -7,13 +7,14 @@ namespace HeatTransfer::Solvers
     GaussSeidelMethod::GaussSeidelMethod(const Core::SimulationParameters& parameters,
                                          const Core::MaterialProperties& materialProperties,
                                          const Core::BoundaryConditions& boundaryCondition)
-        : IMultigridSolver(parameters, materialProperties, boundaryCondition)
+        : IConjugateGradientSolver(parameters, materialProperties, boundaryCondition)
     {
     }
 
     void GaussSeidelMethod::Smoothen(Eigen::MatrixXd& matrix,
                                      const Eigen::MatrixXd& rhs,
-                                     const Eigen::MatrixXd& insulated)
+                                     const Eigen::MatrixXd& insulated,
+                                     SweepDirection direction)
     {
         ZoneScoped;
 
@@ -22,10 +23,18 @@ namespace HeatTransfer::Solvers
 
         auto& T = matrix;
 
-        for (Eigen::Index j = 1; j < cols - 1; j++)
+        // A backward sweep is the transpose of a forward sweep, so pairing them keeps the
+        // V-cycle symmetric
+        const bool forward = direction == SweepDirection::FORWARD;
+
+        for (Eigen::Index n = 1; n < cols - 1; n++)
         {
-            for (Eigen::Index i = 1; i < rows - 1; i++)
+            const Eigen::Index j = forward ? n : cols - 1 - n;
+
+            for (Eigen::Index m = 1; m < rows - 1; m++)
             {
+                const Eigen::Index i = forward ? m : rows - 1 - m;
+
                 if (insulated(i, j))
                     continue;
 
