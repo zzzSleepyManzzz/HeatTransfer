@@ -7,7 +7,6 @@
 #include "HeatTransfer/Core/Smoother.h"
 
 #include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
-#include "HeatTransfer/Solvers/Smoothers/SmootherFactory.h"
 
 namespace
 {
@@ -16,13 +15,11 @@ namespace
                       HeatTransfer::Core::MaterialProperties materialProperties,
                       HeatTransfer::Core::BoundaryConditions boundaryCondition)
     {
-        HeatTransfer::Solvers::Smoothers::SmootherFactory smootherFactory(
-            type, parameters.RelaxationFactor);
-        auto smoother = smootherFactory.Create();
+        parameters.Smoother = type;
 
         auto solver =
             std::make_shared<HeatTransfer::Solvers::MultigridPreconditionedConjugateGradientSolver>(
-                parameters, materialProperties, boundaryCondition, smoother);
+                parameters, materialProperties, boundaryCondition);
 
         solver->ComputeSimulation();
         return solver->GetResidualMetrics().size();

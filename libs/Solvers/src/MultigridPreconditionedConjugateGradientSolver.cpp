@@ -1,7 +1,5 @@
 #include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
 
-#include <utility>
-
 #include <tracy/Tracy.hpp>
 
 namespace HeatTransfer::Solvers
@@ -9,9 +7,8 @@ namespace HeatTransfer::Solvers
     MultigridPreconditionedConjugateGradientSolver::MultigridPreconditionedConjugateGradientSolver(
         const Core::SimulationParameters& parameters,
         const Core::MaterialProperties& materialProperties,
-        const Core::BoundaryConditions& boundaryCondition,
-        std::shared_ptr<const Smoothers::ISmoother> smoother)
-        : IMultigrid(parameters, materialProperties, boundaryCondition, std::move(smoother))
+        const Core::BoundaryConditions& boundaryCondition)
+        : IMultigrid(parameters, materialProperties, boundaryCondition)
     {
     }
 

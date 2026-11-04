@@ -25,8 +25,7 @@ namespace HeatTransfer::Solvers
 
         IMultigrid(const Core::SimulationParameters& parameters,
                    const Core::MaterialProperties& materialProperties,
-                   const Core::BoundaryConditions& boundaryCondition,
-                   std::shared_ptr<const Smoothers::ISmoother> smoother);
+                   const Core::BoundaryConditions& boundaryCondition);
 
         void BuildLevels() override;
         virtual void InitialiseConjugateGradientVariables() = 0;

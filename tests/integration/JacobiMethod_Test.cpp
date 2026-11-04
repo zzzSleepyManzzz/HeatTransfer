@@ -8,7 +8,6 @@
 #include "HeatTransfer/Core/SimulationParameters.h"
 
 #include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
-#include "HeatTransfer/Solvers/Smoothers/Jacobi.h"
 
 namespace HeatTransfer::Tests
 {
@@ -20,18 +19,18 @@ namespace HeatTransfer::Tests
         HeatTransfer::Core::MaterialProperties materialProperties =
             HeatTransfer::Core::MaterialProperties::Default();
 
-        HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
-                                                               .Columns = 100,
-                                                               .ResidualTolerance = 1e-1,
-                                                               .ErrorTolerance = 1e-6,
-                                                               .RelaxationFactor = 1.7,
-                                                               .MaxIterations = 1000};
-
-        auto smoother = std::make_shared<HeatTransfer::Solvers::Smoothers::Jacobi>();
+        HeatTransfer::Core::SimulationParameters parameters = {
+            .Rows = 100,
+            .Columns = 100,
+            .ResidualTolerance = 1e-1,
+            .ErrorTolerance = 1e-6,
+            .RelaxationFactor = 1.7,
+            .MaxIterations = 1000,
+            .Smoother = HeatTransfer::Core::Smoother::JACOBI};
 
         auto solver =
             std::make_shared<HeatTransfer::Solvers::MultigridPreconditionedConjugateGradientSolver>(
-                parameters, materialProperties, boundaryCondition, smoother);
+                parameters, materialProperties, boundaryCondition);
 
         solver->ComputeSimulation();
 

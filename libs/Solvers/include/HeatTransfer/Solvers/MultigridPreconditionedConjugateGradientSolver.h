@@ -10,8 +10,7 @@ namespace HeatTransfer::Solvers
         MultigridPreconditionedConjugateGradientSolver(
             const Core::SimulationParameters& parameters,
             const Core::MaterialProperties& materialProperties,
-            const Core::BoundaryConditions& boundaryCondition,
-            std::shared_ptr<const Smoothers::ISmoother> smoother);
+            const Core::BoundaryConditions& boundaryCondition);
         virtual ~MultigridPreconditionedConjugateGradientSolver() = default;
 
     protected:

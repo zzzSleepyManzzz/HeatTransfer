@@ -1,16 +1,18 @@
 #include "HeatTransfer/Solvers/IMultigrid.h"
 
-#include <utility>
-
 #include <tracy/Tracy.hpp>
+
+#include "HeatTransfer/Solvers/Smoothers/SmootherFactory.h"
 
 namespace HeatTransfer::Solvers
 {
     IMultigrid::IMultigrid(const Core::SimulationParameters& parameters,
                            const Core::MaterialProperties& materialProperties,
-                           const Core::BoundaryConditions& boundaryCondition,
-                           std::shared_ptr<const Smoothers::ISmoother> smoother)
-        : ISolver(parameters, materialProperties, boundaryCondition), _smoother(std::move(smoother))
+                           const Core::BoundaryConditions& boundaryCondition)
+        : ISolver(parameters, materialProperties, boundaryCondition)
+        , _smoother(std::shared_ptr<Smoothers::SmootherFactory>(parameters.Smoother,
+                                                                parameters.RelaxationFactor)
+                        ->Create())
     {
     }
 
