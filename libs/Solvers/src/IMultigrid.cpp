@@ -14,11 +14,6 @@ namespace HeatTransfer::Solvers
     {
     }
 
-    std::shared_ptr<const Smoothers::ISmoother> IMultigrid::GetSmoother() const
-    {
-        return _smoother;
-    }
-
     void IMultigrid::BuildLevels()
     {
         ZoneScoped;

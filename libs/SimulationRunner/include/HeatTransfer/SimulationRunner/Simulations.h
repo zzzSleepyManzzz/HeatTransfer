@@ -1,12 +1,15 @@
 #pragma once
 
+#include <memory>
+
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
 #include "HeatTransfer/SimulationRunner/SimulationConfig.h"
 #include "HeatTransfer/SimulationRunner/SimulationOutput.h"
-#include "HeatTransfer/SimulationRunner/SolverFactory.h"
+
+#include "HeatTransfer/Solvers/ISolver.h"
 
 namespace HeatTransfer::SimulationRunner
 {

@@ -1,5 +1,4 @@
 add_library(SimulationRunner
-    src/SolverFactory.cpp
     src/Simulations.cpp
 )
 

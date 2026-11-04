@@ -2,6 +2,9 @@
 
 #include <tracy/Tracy.hpp>
 
+#include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
+#include "HeatTransfer/Solvers/Smoothers/SmootherFactory.h"
+
 namespace HeatTransfer::SimulationRunner
 {
     Simulations::Simulations(std::shared_ptr<SimulationConfig> config)
@@ -15,9 +18,13 @@ namespace HeatTransfer::SimulationRunner
     {
         ZoneScoped;
 
-        auto solverFactory =
-            std::make_shared<SolverFactory>(_parameters, _materialProperties, _boundaryCondition);
-        _solver = solverFactory->Create();
+        Solvers::Smoothers::SmootherFactory smootherFactory(_parameters.Smoother,
+                                                            _parameters.RelaxationFactor);
+        auto smoother = smootherFactory.Create();
+
+        _solver = std::make_shared<Solvers::MultigridPreconditionedConjugateGradientSolver>(
+            _parameters, _materialProperties, _boundaryCondition, smoother);
+
         _solver->ComputeSimulation();
     }
 

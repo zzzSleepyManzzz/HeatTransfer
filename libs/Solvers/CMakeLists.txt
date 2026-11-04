@@ -8,6 +8,7 @@ add_library(Solvers
     src/Smoothers/GaussSeidel.cpp
     src/Smoothers/SuccessiveOverRelaxation.cpp
     src/Smoothers/RedBlackSOR.cpp
+    src/Smoothers/SmootherFactory.cpp
 )
 
 target_include_directories(Solvers

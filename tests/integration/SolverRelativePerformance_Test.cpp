@@ -1,6 +1,5 @@
 #include <catch2/catch_all.hpp>
 #include <memory>
-#include <stdexcept>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/MaterialProperties.h"
@@ -8,10 +7,7 @@
 #include "HeatTransfer/Core/Smoother.h"
 
 #include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
-#include "HeatTransfer/Solvers/Smoothers/GaussSeidel.h"
-#include "HeatTransfer/Solvers/Smoothers/Jacobi.h"
-#include "HeatTransfer/Solvers/Smoothers/RedBlackSOR.h"
-#include "HeatTransfer/Solvers/Smoothers/SuccessiveOverRelaxation.h"
+#include "HeatTransfer/Solvers/Smoothers/SmootherFactory.h"
 
 namespace
 {
@@ -20,30 +16,9 @@ namespace
                       HeatTransfer::Core::MaterialProperties materialProperties,
                       HeatTransfer::Core::BoundaryConditions boundaryCondition)
     {
-        using enum HeatTransfer::Core::Smoother;
-
-        std::shared_ptr<const HeatTransfer::Solvers::Smoothers::ISmoother> smoother;
-
-        switch (type)
-        {
-            case JACOBI:
-                smoother = std::make_shared<HeatTransfer::Solvers::Smoothers::Jacobi>();
-                break;
-            case GAUSS_SEIDEL:
-                smoother = std::make_shared<HeatTransfer::Solvers::Smoothers::GaussSeidel>();
-                break;
-            case SUCCESSIVE_OVER_RELAXATION:
-                smoother =
-                    std::make_shared<HeatTransfer::Solvers::Smoothers::SuccessiveOverRelaxation>(
-                        parameters.RelaxationFactor);
-                break;
-            case RED_BLACK_SOR:
-                smoother = std::make_shared<HeatTransfer::Solvers::Smoothers::RedBlackSOR>(
-                    parameters.RelaxationFactor);
-                break;
-            default:
-                throw std::runtime_error("Unknown smoother");
-        }
+        HeatTransfer::Solvers::Smoothers::SmootherFactory smootherFactory(
+            type, parameters.RelaxationFactor);
+        auto smoother = smootherFactory.Create();
 
         auto solver =
             std::make_shared<HeatTransfer::Solvers::MultigridPreconditionedConjugateGradientSolver>(

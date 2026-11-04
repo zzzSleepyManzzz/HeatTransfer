@@ -13,8 +13,6 @@ namespace HeatTransfer::Solvers
         IMultigrid() = delete;
         virtual ~IMultigrid() = default;
 
-        std::shared_ptr<const Smoothers::ISmoother> GetSmoother() const;
-
     protected:
         static constexpr int PRE_SMOOTHING_SWEEPS = 3;
         static constexpr int POST_SMOOTHING_SWEEPS = 3;

@@ -2,7 +2,7 @@ find_package(Catch2 REQUIRED)
 
 # Unit tests
 add_executable(unit_tests
-    unit/SolverFactory_Test.cpp
+    unit/SmootherFactory_Test.cpp
 )
 
 target_link_libraries(unit_tests
