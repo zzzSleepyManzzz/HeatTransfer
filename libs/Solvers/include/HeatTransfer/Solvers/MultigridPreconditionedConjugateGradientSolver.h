@@ -13,7 +13,7 @@ namespace HeatTransfer::Solvers
             const Core::BoundaryConditions& boundaryCondition);
         virtual ~MultigridPreconditionedConjugateGradientSolver() = default;
 
-    protected:
+    private:
         Eigen::MatrixXd _gradient;               // grad f_k
         Eigen::MatrixXd _preconditionedGradient; // d_k = B * grad f_k
         Eigen::MatrixXd _searchDirection;        // s_k
@@ -21,7 +21,8 @@ namespace HeatTransfer::Solvers
 
         void Iterate() override;
 
-        void InitialiseConjugateGradientVariables() override;
+        void Initialise() override;
+        void InitialiseConjugateGradientVariables();
         void PreconditionGradient();
         Eigen::MatrixXd ApplyHessian(const Eigen::MatrixXd& matrix);
 

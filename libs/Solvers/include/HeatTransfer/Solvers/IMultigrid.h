@@ -27,8 +27,8 @@ namespace HeatTransfer::Solvers
                    const Core::MaterialProperties& materialProperties,
                    const Core::BoundaryConditions& boundaryCondition);
 
-        void BuildLevels() override;
-        virtual void InitialiseConjugateGradientVariables() = 0;
+        void Initialise() override;
+        void BuildLevels();
 
         void VCycle(Eigen::MatrixXd& matrix, const Eigen::MatrixXd& rhs);
         void SolveCoarsest();

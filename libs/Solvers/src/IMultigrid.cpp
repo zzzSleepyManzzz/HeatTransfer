@@ -10,10 +10,15 @@ namespace HeatTransfer::Solvers
                            const Core::MaterialProperties& materialProperties,
                            const Core::BoundaryConditions& boundaryCondition)
         : ISolver(parameters, materialProperties, boundaryCondition)
-        , _smoother(std::shared_ptr<Smoothers::SmootherFactory>(parameters.Smoother,
-                                                                parameters.RelaxationFactor)
+        , _smoother(std::make_shared<Smoothers::SmootherFactory>(parameters.Smoother,
+                                                                 parameters.RelaxationFactor)
                         ->Create())
     {
+    }
+
+    void IMultigrid::Initialise()
+    {
+        BuildLevels();
     }
 
     void IMultigrid::BuildLevels()
@@ -58,8 +63,6 @@ namespace HeatTransfer::Solvers
             _errorStack.push_back(Eigen::MatrixXd::Zero(courseRows, courseCols));
             _residualStack.push_back(Eigen::MatrixXd::Zero(courseRows, courseCols));
         }
-
-        InitialiseConjugateGradientVariables();
     }
 
     Eigen::MatrixXd IMultigrid::ComputeResidual(const Eigen::MatrixXd& matrix,

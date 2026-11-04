@@ -12,6 +12,12 @@ namespace HeatTransfer::Solvers
     {
     }
 
+    void MultigridPreconditionedConjugateGradientSolver::Initialise()
+    {
+        IMultigrid::Initialise();
+        InitialiseConjugateGradientVariables();
+    }
+
     void MultigridPreconditionedConjugateGradientSolver::InitialiseConjugateGradientVariables()
     {
         // We need to compute 4 textbook variables: grad f_0, d_0, s_0, and grad f_0^T * d_0
