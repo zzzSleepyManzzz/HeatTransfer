@@ -1,5 +1,13 @@
 #include "HeatTransfer/SimulationRunner/SolverFactory.h"
 
+#include <stdexcept>
+
+#include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
+#include "HeatTransfer/Solvers/Smoothers/GaussSeidel.h"
+#include "HeatTransfer/Solvers/Smoothers/Jacobi.h"
+#include "HeatTransfer/Solvers/Smoothers/RedBlackSOR.h"
+#include "HeatTransfer/Solvers/Smoothers/SuccessiveOverRelaxation.h"
+
 namespace HeatTransfer::SimulationRunner
 {
     SolverFactory::SolverFactory(const Core::SimulationParameters& parameters,
@@ -11,34 +19,33 @@ namespace HeatTransfer::SimulationRunner
     {
     }
 
-    std::shared_ptr<Solvers::ISolver> SolverFactory::Create(HeatTransfer::Core::Method method)
+    std::shared_ptr<Solvers::ISolver> SolverFactory::Create()
     {
-        using enum HeatTransfer::Core::Method;
+        using enum HeatTransfer::Core::Smoother;
 
-        std::shared_ptr<Solvers::ISolver> solver;
+        std::shared_ptr<const Solvers::Smoothers::ISmoother> smoother;
 
-        switch (method)
+        switch (_parameters.Smoother)
         {
             case JACOBI:
-                solver = std::make_shared<Solvers::JacobiMethod>(
-                    _parameters, _materialProperties, _boundaryCondition);
+                smoother = std::make_shared<Solvers::Smoothers::Jacobi>();
                 break;
             case GAUSS_SEIDEL:
-                solver = std::make_shared<Solvers::GaussSeidelMethod>(
-                    _parameters, _materialProperties, _boundaryCondition);
+                smoother = std::make_shared<Solvers::Smoothers::GaussSeidel>();
                 break;
             case SUCCESSIVE_OVER_RELAXATION:
-                solver = std::make_shared<Solvers::SuccessiveOverRelaxation>(
-                    _parameters, _materialProperties, _boundaryCondition);
+                smoother = std::make_shared<Solvers::Smoothers::SuccessiveOverRelaxation>(
+                    _parameters.RelaxationFactor);
                 break;
             case RED_BLACK_SOR:
-                solver = std::make_shared<Solvers::RedBlackSOR>(
-                    _parameters, _materialProperties, _boundaryCondition);
+                smoother =
+                    std::make_shared<Solvers::Smoothers::RedBlackSOR>(_parameters.RelaxationFactor);
                 break;
             default:
-                throw std::runtime_error("Provided non-existant iterative method");
+                throw std::runtime_error("Provided non-existant smoother");
         };
 
-        return solver;
+        return std::make_shared<Solvers::MultigridPreconditionedConjugateGradientSolver>(
+            _parameters, _materialProperties, _boundaryCondition, smoother);
     }
 }

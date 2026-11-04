@@ -7,7 +7,8 @@
 #include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
-#include "HeatTransfer/Solvers/RedBlackSOR.h"
+#include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
+#include "HeatTransfer/Solvers/Smoothers/RedBlackSOR.h"
 
 namespace HeatTransfer::Tests
 {
@@ -26,8 +27,12 @@ namespace HeatTransfer::Tests
                                                                .RelaxationFactor = 1.7,
                                                                .MaxIterations = 1000};
 
-        auto solver = std::make_shared<HeatTransfer::Solvers::RedBlackSOR>(
-            parameters, materialProperties, boundaryCondition);
+        auto smoother = std::make_shared<HeatTransfer::Solvers::Smoothers::RedBlackSOR>(
+            parameters.RelaxationFactor);
+
+        auto solver =
+            std::make_shared<HeatTransfer::Solvers::MultigridPreconditionedConjugateGradientSolver>(
+                parameters, materialProperties, boundaryCondition, smoother);
 
         solver->ComputeSimulation();
 

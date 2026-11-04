@@ -1,20 +1,13 @@
-#include "HeatTransfer/Solvers/GaussSeidelMethod.h"
+#include "HeatTransfer/Solvers/Smoothers/GaussSeidel.h"
 
 #include <tracy/Tracy.hpp>
 
-namespace HeatTransfer::Solvers
+namespace HeatTransfer::Solvers::Smoothers
 {
-    GaussSeidelMethod::GaussSeidelMethod(const Core::SimulationParameters& parameters,
-                                         const Core::MaterialProperties& materialProperties,
-                                         const Core::BoundaryConditions& boundaryCondition)
-        : IConjugateGradientSolver(parameters, materialProperties, boundaryCondition)
-    {
-    }
-
-    void GaussSeidelMethod::Smoothen(Eigen::MatrixXd& matrix,
-                                     const Eigen::MatrixXd& rhs,
-                                     const Eigen::MatrixXd& insulated,
-                                     SweepDirection direction)
+    void GaussSeidel::Smooth(Eigen::MatrixXd& matrix,
+                             const Eigen::MatrixXd& rhs,
+                             const Eigen::MatrixXd& insulated,
+                             SweepDirection direction) const
     {
         ZoneScoped;
 

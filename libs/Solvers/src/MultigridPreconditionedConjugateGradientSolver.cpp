@@ -1,18 +1,21 @@
-#include "HeatTransfer/Solvers/IConjugateGradientSolver.h"
+#include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
+
+#include <utility>
 
 #include <tracy/Tracy.hpp>
 
 namespace HeatTransfer::Solvers
 {
-    IConjugateGradientSolver::IConjugateGradientSolver(
+    MultigridPreconditionedConjugateGradientSolver::MultigridPreconditionedConjugateGradientSolver(
         const Core::SimulationParameters& parameters,
         const Core::MaterialProperties& materialProperties,
-        const Core::BoundaryConditions& boundaryCondition)
-        : IMultigridSolver(parameters, materialProperties, boundaryCondition)
+        const Core::BoundaryConditions& boundaryCondition,
+        std::shared_ptr<const Smoothers::ISmoother> smoother)
+        : IMultigrid(parameters, materialProperties, boundaryCondition, std::move(smoother))
     {
     }
 
-    void IConjugateGradientSolver::InitialiseConjugateGradientVariables()
+    void MultigridPreconditionedConjugateGradientSolver::InitialiseConjugateGradientVariables()
     {
         // We need to compute 4 textbook variables: grad f_0, d_0, s_0, and grad f_0^T * d_0
 
@@ -32,7 +35,7 @@ namespace HeatTransfer::Solvers
         _gradientDotPreconditioned = Dot(_gradient, _preconditionedGradient);
     }
 
-    void IConjugateGradientSolver::Iterate()
+    void MultigridPreconditionedConjugateGradientSolver::Iterate()
     {
         ZoneScoped;
 
@@ -65,7 +68,7 @@ namespace HeatTransfer::Solvers
         _gradientDotPreconditioned = gradientDotPreconditioned;
     }
 
-    void IConjugateGradientSolver::PreconditionGradient()
+    void MultigridPreconditionedConjugateGradientSolver::PreconditionGradient()
     {
         // Say we have a linear system H * x = b, where H is the Hessian of f(x) = 0.5 * x^T H x -
         // b^T x. V-Cycle solves H * x = b, to get x = H^-1 * b.
@@ -75,7 +78,8 @@ namespace HeatTransfer::Solvers
         VCycle(_preconditionedGradient, _gradient);
     }
 
-    Eigen::MatrixXd IConjugateGradientSolver::ApplyHessian(const Eigen::MatrixXd& matrix)
+    Eigen::MatrixXd
+    MultigridPreconditionedConjugateGradientSolver::ApplyHessian(const Eigen::MatrixXd& matrix)
     {
         // For a linear system H * x = b, compute residual returns r = b - H * x
         // Setting b = 0, gives r = - H * x or H * x = -r
@@ -85,7 +89,8 @@ namespace HeatTransfer::Solvers
             matrix, Eigen::MatrixXd::Zero(matrix.rows(), matrix.cols()), _insulatedStack[0]);
     }
 
-    double IConjugateGradientSolver::Dot(const Eigen::MatrixXd& a, const Eigen::MatrixXd& b)
+    double MultigridPreconditionedConjugateGradientSolver::Dot(const Eigen::MatrixXd& a,
+                                                               const Eigen::MatrixXd& b)
     {
         return (a.array() * b.array()).sum();
     }

@@ -6,11 +6,17 @@
 
 #include "HeatTransfer/SimulationRunner/SolverFactory.h"
 
+#include "HeatTransfer/Solvers/IMultigrid.h"
+#include "HeatTransfer/Solvers/Smoothers/GaussSeidel.h"
+#include "HeatTransfer/Solvers/Smoothers/Jacobi.h"
+#include "HeatTransfer/Solvers/Smoothers/RedBlackSOR.h"
+#include "HeatTransfer/Solvers/Smoothers/SuccessiveOverRelaxation.h"
+
 namespace HeatTransfer::Tests
 {
     TEST_CASE("Solver factory should give correct solver")
     {
-        using enum HeatTransfer::Core::Method;
+        using enum HeatTransfer::Core::Smoother;
 
         HeatTransfer::Core::BoundaryConditions boundaryCondition =
             HeatTransfer::Core::BoundaryConditions::Default();
@@ -25,39 +31,49 @@ namespace HeatTransfer::Tests
                                                                .RelaxationFactor = 1.7,
                                                                .MaxIterations = 1000};
 
-        auto solverFactory = std::make_shared<HeatTransfer::SimulationRunner::SolverFactory>(
-            parameters, materialProperties, boundaryCondition);
-        std::shared_ptr<HeatTransfer::Solvers::ISolver> solver;
-
-        SECTION("Correct pointer for Jacobi Method")
+        auto smootherFor = [&](HeatTransfer::Core::Smoother type)
         {
-            solver = solverFactory->Create(JACOBI);
-            auto jacobi = std::dynamic_pointer_cast<HeatTransfer::Solvers::JacobiMethod>(solver);
-            REQUIRE(jacobi);
+            parameters.Smoother = type;
+
+            HeatTransfer::SimulationRunner::SolverFactory solverFactory(
+                parameters, materialProperties, boundaryCondition);
+
+            auto solver = std::dynamic_pointer_cast<HeatTransfer::Solvers::IMultigrid>(
+                solverFactory.Create());
+            REQUIRE(solver);
+            return solver->GetSmoother();
+        };
+
+        SECTION("Correct smoother for Jacobi Method")
+        {
+            auto smoother =
+                std::dynamic_pointer_cast<const HeatTransfer::Solvers::Smoothers::Jacobi>(
+                    smootherFor(JACOBI));
+            REQUIRE(smoother);
         }
 
-        SECTION("Correct pointer for Gauss-Seidel Method")
+        SECTION("Correct smoother for Gauss-Seidel Method")
         {
-            solver = solverFactory->Create(GAUSS_SEIDEL);
-            auto gaussSeidel =
-                std::dynamic_pointer_cast<HeatTransfer::Solvers::GaussSeidelMethod>(solver);
-            REQUIRE(gaussSeidel);
+            auto smoother =
+                std::dynamic_pointer_cast<const HeatTransfer::Solvers::Smoothers::GaussSeidel>(
+                    smootherFor(GAUSS_SEIDEL));
+            REQUIRE(smoother);
         }
 
-        SECTION("Correct pointer for successive over relaxation")
+        SECTION("Correct smoother for successive over relaxation")
         {
-            solver = solverFactory->Create(SUCCESSIVE_OVER_RELAXATION);
-            auto successiveOverRelaxation =
-                std::dynamic_pointer_cast<HeatTransfer::Solvers::SuccessiveOverRelaxation>(solver);
-            REQUIRE(successiveOverRelaxation);
+            auto smoother = std::dynamic_pointer_cast<
+                const HeatTransfer::Solvers::Smoothers::SuccessiveOverRelaxation>(
+                smootherFor(SUCCESSIVE_OVER_RELAXATION));
+            REQUIRE(smoother);
         }
 
-        SECTION("Correct pointer for Red-Black SOR")
+        SECTION("Correct smoother for Red-Black SOR")
         {
-            solver = solverFactory->Create(RED_BLACK_SOR);
-            auto redBlackSOR =
-                std::dynamic_pointer_cast<HeatTransfer::Solvers::RedBlackSOR>(solver);
-            REQUIRE(redBlackSOR);
+            auto smoother =
+                std::dynamic_pointer_cast<const HeatTransfer::Solvers::Smoothers::RedBlackSOR>(
+                    smootherFor(RED_BLACK_SOR));
+            REQUIRE(smoother);
         }
     }
 }

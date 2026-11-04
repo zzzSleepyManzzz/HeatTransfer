@@ -4,14 +4,9 @@
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/MaterialProperties.h"
-#include "HeatTransfer/Core/Method.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
-#include "HeatTransfer/Solvers/GaussSeidelMethod.h"
 #include "HeatTransfer/Solvers/ISolver.h"
-#include "HeatTransfer/Solvers/JacobiMethod.h"
-#include "HeatTransfer/Solvers/RedBlackSOR.h"
-#include "HeatTransfer/Solvers/SuccessiveOverRelaxation.h"
 
 namespace HeatTransfer::SimulationRunner
 {
@@ -21,7 +16,7 @@ namespace HeatTransfer::SimulationRunner
         SolverFactory(const Core::SimulationParameters& parameters,
                       const Core::MaterialProperties& materialProperties,
                       const Core::BoundaryConditions& boundaryCondition);
-        std::shared_ptr<Solvers::ISolver> Create(Core::Method method);
+        std::shared_ptr<Solvers::ISolver> Create();
 
     private:
         Core::SimulationParameters _parameters;

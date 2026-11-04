@@ -1,6 +1,6 @@
 #pragma once
 
-#include "HeatTransfer/Core/Method.h"
+#include "HeatTransfer/Core/Smoother.h"
 #include "HeatTransfer/Core/TrackingMetric.h"
 
 #include "HeatTransfer/Visualisation/IPanel.h"
@@ -15,14 +15,14 @@ namespace HeatTransfer::Visualisation
         void Render(std::shared_ptr<RendererModel> model) override;
 
     private:
-        static constexpr const char* METHOD_OPTIONS[4] = {
+        static constexpr const char* SMOOTHER_OPTIONS[4] = {
             "Jacobi", "Gauss-Seidel", "Successive over relaxation", "Red-Black SOR"};
 
-        static constexpr const HeatTransfer::Core::Method METHOD_ARRAY[4] = {
-            HeatTransfer::Core::Method::JACOBI,
-            HeatTransfer::Core::Method::GAUSS_SEIDEL,
-            HeatTransfer::Core::Method::SUCCESSIVE_OVER_RELAXATION,
-            HeatTransfer::Core::Method::RED_BLACK_SOR};
+        static constexpr const HeatTransfer::Core::Smoother SMOOTHER_ARRAY[4] = {
+            HeatTransfer::Core::Smoother::JACOBI,
+            HeatTransfer::Core::Smoother::GAUSS_SEIDEL,
+            HeatTransfer::Core::Smoother::SUCCESSIVE_OVER_RELAXATION,
+            HeatTransfer::Core::Smoother::RED_BLACK_SOR};
 
         static constexpr const char* TRACKER_OPTIONS[3] = {"Max", "Mean", "RMS"};
 

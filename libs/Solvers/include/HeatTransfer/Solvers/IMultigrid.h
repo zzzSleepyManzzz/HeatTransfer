@@ -1,22 +1,21 @@
 #pragma once
 
+#include <memory>
+
 #include "HeatTransfer/Solvers/ISolver.h"
+#include "HeatTransfer/Solvers/Smoothers/ISmoother.h"
 
 namespace HeatTransfer::Solvers
 {
-    class IMultigridSolver : public ISolver
+    class IMultigrid : public ISolver
     {
     public:
-        IMultigridSolver() = delete;
-        virtual ~IMultigridSolver() = default;
+        IMultigrid() = delete;
+        virtual ~IMultigrid() = default;
+
+        std::shared_ptr<const Smoothers::ISmoother> GetSmoother() const;
 
     protected:
-        enum class SweepDirection
-        {
-            FORWARD,
-            BACKWARD
-        };
-
         static constexpr int PRE_SMOOTHING_SWEEPS = 3;
         static constexpr int POST_SMOOTHING_SWEEPS = 3;
         static constexpr int COARSE_SWEEPS = 100;
@@ -26,20 +25,16 @@ namespace HeatTransfer::Solvers
         std::vector<Eigen::MatrixXd> _residualStack;
         std::vector<Eigen::MatrixXd> _insulatedStack;
 
-        IMultigridSolver(const Core::SimulationParameters& parameters,
-                         const Core::MaterialProperties& materialProperties,
-                         const Core::BoundaryConditions& boundaryCondition);
+        IMultigrid(const Core::SimulationParameters& parameters,
+                   const Core::MaterialProperties& materialProperties,
+                   const Core::BoundaryConditions& boundaryCondition,
+                   std::shared_ptr<const Smoothers::ISmoother> smoother);
 
         void BuildLevels() override;
         virtual void InitialiseConjugateGradientVariables() = 0;
 
         void VCycle(Eigen::MatrixXd& matrix, const Eigen::MatrixXd& rhs);
         void SolveCoarsest();
-
-        virtual void Smoothen(Eigen::MatrixXd& matrix,
-                              const Eigen::MatrixXd& rhs,
-                              const Eigen::MatrixXd& insulated,
-                              SweepDirection direction) = 0;
 
         Eigen::MatrixXd ComputeResidual(const Eigen::MatrixXd& matrix,
                                         const Eigen::MatrixXd& rhs,
@@ -50,5 +45,8 @@ namespace HeatTransfer::Solvers
         Eigen::MatrixXd Restrict(const Eigen::MatrixXd& matrix);
         Eigen::MatrixXd
         Prolongate(const Eigen::MatrixXd& matrix, Eigen::Index rows, Eigen::Index cols);
+
+    private:
+        std::shared_ptr<const Smoothers::ISmoother> _smoother;
     };
 }

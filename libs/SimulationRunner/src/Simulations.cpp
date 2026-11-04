@@ -8,7 +8,6 @@ namespace HeatTransfer::SimulationRunner
         : _parameters(config->Parameters)
         , _materialProperties(config->MaterialProperties)
         , _boundaryCondition(config->BoundaryConditions)
-        , _method(config->Method)
     {
     }
 
@@ -18,7 +17,7 @@ namespace HeatTransfer::SimulationRunner
 
         auto solverFactory =
             std::make_shared<SolverFactory>(_parameters, _materialProperties, _boundaryCondition);
-        _solver = solverFactory->Create(_method);
+        _solver = solverFactory->Create();
         _solver->ComputeSimulation();
     }
 

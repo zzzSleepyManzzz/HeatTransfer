@@ -1,21 +1,18 @@
-#include "HeatTransfer/Solvers/SuccessiveOverRelaxation.h"
+#include "HeatTransfer/Solvers/Smoothers/SuccessiveOverRelaxation.h"
 
 #include <tracy/Tracy.hpp>
 
-namespace HeatTransfer::Solvers
+namespace HeatTransfer::Solvers::Smoothers
 {
-    SuccessiveOverRelaxation::SuccessiveOverRelaxation(
-        const Core::SimulationParameters& parameters,
-        const Core::MaterialProperties& materialProperties,
-        const Core::BoundaryConditions& boundaryCondition)
-        : IConjugateGradientSolver(parameters, materialProperties, boundaryCondition)
+    SuccessiveOverRelaxation::SuccessiveOverRelaxation(double relaxationFactor)
+        : _relaxationFactor(relaxationFactor)
     {
     }
 
-    void SuccessiveOverRelaxation::Smoothen(Eigen::MatrixXd& matrix,
-                                            const Eigen::MatrixXd& rhs,
-                                            const Eigen::MatrixXd& insulated,
-                                            SweepDirection direction)
+    void SuccessiveOverRelaxation::Smooth(Eigen::MatrixXd& matrix,
+                                          const Eigen::MatrixXd& rhs,
+                                          const Eigen::MatrixXd& insulated,
+                                          SweepDirection direction) const
     {
         ZoneScoped;
 
@@ -23,8 +20,6 @@ namespace HeatTransfer::Solvers
         const Eigen::Index cols = matrix.cols();
 
         auto& T = matrix;
-
-        auto relaxationFactor = _parameters.RelaxationFactor;
 
         // A backward sweep is the transpose of a forward sweep, so pairing them keeps the
         // V-cycle symmetric
@@ -41,8 +36,8 @@ namespace HeatTransfer::Solvers
                 if (insulated(i, j))
                     continue;
 
-                T(i, j) = (1 - relaxationFactor) * T(i, j) +
-                          relaxationFactor *
+                T(i, j) = (1 - _relaxationFactor) * T(i, j) +
+                          _relaxationFactor *
                               (0.25 * (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1)) +
                                rhs(i, j));
             }

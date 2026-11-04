@@ -1,17 +1,25 @@
-#include "HeatTransfer/Solvers/IMultigridSolver.h"
+#include "HeatTransfer/Solvers/IMultigrid.h"
+
+#include <utility>
 
 #include <tracy/Tracy.hpp>
 
 namespace HeatTransfer::Solvers
 {
-    IMultigridSolver::IMultigridSolver(const Core::SimulationParameters& parameters,
-                                       const Core::MaterialProperties& materialProperties,
-                                       const Core::BoundaryConditions& boundaryCondition)
-        : ISolver(parameters, materialProperties, boundaryCondition)
+    IMultigrid::IMultigrid(const Core::SimulationParameters& parameters,
+                           const Core::MaterialProperties& materialProperties,
+                           const Core::BoundaryConditions& boundaryCondition,
+                           std::shared_ptr<const Smoothers::ISmoother> smoother)
+        : ISolver(parameters, materialProperties, boundaryCondition), _smoother(std::move(smoother))
     {
     }
 
-    void IMultigridSolver::BuildLevels()
+    std::shared_ptr<const Smoothers::ISmoother> IMultigrid::GetSmoother() const
+    {
+        return _smoother;
+    }
+
+    void IMultigrid::BuildLevels()
     {
         ZoneScoped;
 
@@ -57,9 +65,9 @@ namespace HeatTransfer::Solvers
         InitialiseConjugateGradientVariables();
     }
 
-    Eigen::MatrixXd IMultigridSolver::ComputeResidual(const Eigen::MatrixXd& matrix,
-                                                      const Eigen::MatrixXd& rhs,
-                                                      const Eigen::MatrixXd& insulated)
+    Eigen::MatrixXd IMultigrid::ComputeResidual(const Eigen::MatrixXd& matrix,
+                                                const Eigen::MatrixXd& rhs,
+                                                const Eigen::MatrixXd& insulated)
     {
         const Eigen::Index rows = matrix.rows();
         const Eigen::Index cols = matrix.cols();
@@ -77,7 +85,7 @@ namespace HeatTransfer::Solvers
         return R;
     }
 
-    void IMultigridSolver::VCycle(Eigen::MatrixXd& matrix, const Eigen::MatrixXd& rhs)
+    void IMultigrid::VCycle(Eigen::MatrixXd& matrix, const Eigen::MatrixXd& rhs)
     {
         ZoneScoped;
 
@@ -97,7 +105,8 @@ namespace HeatTransfer::Solvers
             auto& E = levelMatrix(i);
 
             for (auto s = 0; s < PRE_SMOOTHING_SWEEPS; s++)
-                Smoothen(E, levelRhs(i), _insulatedStack[i], SweepDirection::FORWARD);
+                _smoother->Smooth(
+                    E, levelRhs(i), _insulatedStack[i], Smoothers::SweepDirection::FORWARD);
 
             auto& R = _residualStack[i + 1];
 
@@ -115,8 +124,8 @@ namespace HeatTransfer::Solvers
             SolveCoarsest();
         else
         {
-            Smoothen(matrix, rhs, _insulatedStack[0], SweepDirection::FORWARD);
-            Smoothen(matrix, rhs, _insulatedStack[0], SweepDirection::BACKWARD);
+            _smoother->Smooth(matrix, rhs, _insulatedStack[0], Smoothers::SweepDirection::FORWARD);
+            _smoother->Smooth(matrix, rhs, _insulatedStack[0], Smoothers::SweepDirection::BACKWARD);
         }
 
         // Up V-Cycle
@@ -132,11 +141,14 @@ namespace HeatTransfer::Solvers
 
             // Post-smoothing sweeps backward so that it is the transpose of pre-smoothing
             for (auto s = 0; s < POST_SMOOTHING_SWEEPS; s++)
-                Smoothen(E, levelRhs(i - 1), _insulatedStack[i - 1], SweepDirection::BACKWARD);
+                _smoother->Smooth(E,
+                                  levelRhs(i - 1),
+                                  _insulatedStack[i - 1],
+                                  Smoothers::SweepDirection::BACKWARD);
         }
     }
 
-    void IMultigridSolver::SolveCoarsest()
+    void IMultigrid::SolveCoarsest()
     {
         auto& E = _errorStack.back();
         const auto& R = _residualStack.back();
@@ -147,17 +159,17 @@ namespace HeatTransfer::Solvers
         // method to converge. Alternating sweeps keeps the coarse solve symmetric
         for (int s = 0; s < COARSE_SWEEPS / 2; s++)
         {
-            Smoothen(E, R, insulated, SweepDirection::FORWARD);
-            Smoothen(E, R, insulated, SweepDirection::BACKWARD);
+            _smoother->Smooth(E, R, insulated, Smoothers::SweepDirection::FORWARD);
+            _smoother->Smooth(E, R, insulated, Smoothers::SweepDirection::BACKWARD);
         }
     }
 
-    Eigen::Index IMultigridSolver::CoarseSize(Eigen::Index n)
+    Eigen::Index IMultigrid::CoarseSize(Eigen::Index n)
     {
         return n / 2 + 1;
     }
 
-    Eigen::MatrixXd IMultigridSolver::CoarsenMask(const Eigen::MatrixXd& mask)
+    Eigen::MatrixXd IMultigrid::CoarsenMask(const Eigen::MatrixXd& mask)
     {
         Eigen::MatrixXd coarseMask = (Restrict(mask).array() > 0.0).cast<double>();
 
@@ -169,7 +181,7 @@ namespace HeatTransfer::Solvers
         return coarseMask;
     }
 
-    Eigen::MatrixXd IMultigridSolver::Restrict(const Eigen::MatrixXd& matrix)
+    Eigen::MatrixXd IMultigrid::Restrict(const Eigen::MatrixXd& matrix)
     {
         // The standard weighting is given by:
         //
@@ -205,9 +217,8 @@ namespace HeatTransfer::Solvers
         return restrictedMatrix;
     }
 
-    Eigen::MatrixXd IMultigridSolver::Prolongate(const Eigen::MatrixXd& matrix,
-                                                 Eigen::Index rows,
-                                                 Eigen::Index cols)
+    Eigen::MatrixXd
+    IMultigrid::Prolongate(const Eigen::MatrixXd& matrix, Eigen::Index rows, Eigen::Index cols)
     {
         ZoneScoped;
 
