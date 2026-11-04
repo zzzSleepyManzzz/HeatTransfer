@@ -4,7 +4,7 @@
 
 namespace HeatTransfer::Solvers
 {
-    class MultigridPreconditionedConjugateGradientSolver : public IMultigrid
+    class MultigridPreconditionedConjugateGradientSolver final : public IMultigrid
     {
     public:
         MultigridPreconditionedConjugateGradientSolver(
