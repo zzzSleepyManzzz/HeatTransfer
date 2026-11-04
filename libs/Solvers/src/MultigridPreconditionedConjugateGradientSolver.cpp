@@ -8,13 +8,13 @@ namespace HeatTransfer::Solvers
         const Core::SimulationParameters& parameters,
         const Core::MaterialProperties& materialProperties,
         const Core::BoundaryConditions& boundaryCondition)
-        : IMultigrid(parameters, materialProperties, boundaryCondition)
+        : IMultigridSolver(parameters, materialProperties, boundaryCondition)
     {
     }
 
     void MultigridPreconditionedConjugateGradientSolver::Initialise()
     {
-        IMultigrid::Initialise();
+        IMultigridSolver::Initialise();
         InitialiseConjugateGradientVariables();
     }
 

@@ -7,11 +7,11 @@
 
 namespace HeatTransfer::Solvers
 {
-    class IMultigrid : public ISolver
+    class IMultigridSolver : public ISolver
     {
     public:
-        IMultigrid() = delete;
-        virtual ~IMultigrid() = default;
+        IMultigridSolver() = delete;
+        virtual ~IMultigridSolver() = default;
 
     protected:
         static constexpr int PRE_SMOOTHING_SWEEPS = 3;
@@ -23,9 +23,9 @@ namespace HeatTransfer::Solvers
         std::vector<Eigen::MatrixXd> _residualStack;
         std::vector<Eigen::MatrixXd> _insulatedStack;
 
-        IMultigrid(const Core::SimulationParameters& parameters,
-                   const Core::MaterialProperties& materialProperties,
-                   const Core::BoundaryConditions& boundaryCondition);
+        IMultigridSolver(const Core::SimulationParameters& parameters,
+                         const Core::MaterialProperties& materialProperties,
+                         const Core::BoundaryConditions& boundaryCondition);
 
         void Initialise() override;
         void BuildLevels();

@@ -2,7 +2,7 @@ find_package(OpenMP REQUIRED)
 
 add_library(Solvers
     src/ISolver.cpp
-    src/IMultigrid.cpp
+    src/IMultigridSolver.cpp
     src/MultigridPreconditionedConjugateGradientSolver.cpp
     src/Smoothers/Jacobi.cpp
     src/Smoothers/GaussSeidel.cpp

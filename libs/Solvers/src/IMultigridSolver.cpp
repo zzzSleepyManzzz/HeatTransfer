@@ -1,4 +1,4 @@
-#include "HeatTransfer/Solvers/IMultigrid.h"
+#include "HeatTransfer/Solvers/IMultigridSolver.h"
 
 #include <tracy/Tracy.hpp>
 
@@ -6,9 +6,9 @@
 
 namespace HeatTransfer::Solvers
 {
-    IMultigrid::IMultigrid(const Core::SimulationParameters& parameters,
-                           const Core::MaterialProperties& materialProperties,
-                           const Core::BoundaryConditions& boundaryCondition)
+    IMultigridSolver::IMultigridSolver(const Core::SimulationParameters& parameters,
+                                       const Core::MaterialProperties& materialProperties,
+                                       const Core::BoundaryConditions& boundaryCondition)
         : ISolver(parameters, materialProperties, boundaryCondition)
         , _smoother(std::make_shared<Smoothers::SmootherFactory>(parameters.Smoother,
                                                                  parameters.RelaxationFactor)
@@ -16,12 +16,12 @@ namespace HeatTransfer::Solvers
     {
     }
 
-    void IMultigrid::Initialise()
+    void IMultigridSolver::Initialise()
     {
         BuildLevels();
     }
 
-    void IMultigrid::BuildLevels()
+    void IMultigridSolver::BuildLevels()
     {
         ZoneScoped;
 
@@ -65,9 +65,9 @@ namespace HeatTransfer::Solvers
         }
     }
 
-    Eigen::MatrixXd IMultigrid::ComputeResidual(const Eigen::MatrixXd& matrix,
-                                                const Eigen::MatrixXd& rhs,
-                                                const Eigen::MatrixXd& insulated)
+    Eigen::MatrixXd IMultigridSolver::ComputeResidual(const Eigen::MatrixXd& matrix,
+                                                      const Eigen::MatrixXd& rhs,
+                                                      const Eigen::MatrixXd& insulated)
     {
         const Eigen::Index rows = matrix.rows();
         const Eigen::Index cols = matrix.cols();
@@ -85,7 +85,7 @@ namespace HeatTransfer::Solvers
         return R;
     }
 
-    void IMultigrid::VCycle(Eigen::MatrixXd& matrix, const Eigen::MatrixXd& rhs)
+    void IMultigridSolver::VCycle(Eigen::MatrixXd& matrix, const Eigen::MatrixXd& rhs)
     {
         ZoneScoped;
 
@@ -148,7 +148,7 @@ namespace HeatTransfer::Solvers
         }
     }
 
-    void IMultigrid::SolveCoarsest()
+    void IMultigridSolver::SolveCoarsest()
     {
         auto& E = _errorStack.back();
         const auto& R = _residualStack.back();
@@ -164,12 +164,12 @@ namespace HeatTransfer::Solvers
         }
     }
 
-    Eigen::Index IMultigrid::CoarseSize(Eigen::Index n)
+    Eigen::Index IMultigridSolver::CoarseSize(Eigen::Index n)
     {
         return n / 2 + 1;
     }
 
-    Eigen::MatrixXd IMultigrid::CoarsenMask(const Eigen::MatrixXd& mask)
+    Eigen::MatrixXd IMultigridSolver::CoarsenMask(const Eigen::MatrixXd& mask)
     {
         Eigen::MatrixXd coarseMask = (Restrict(mask).array() > 0.0).cast<double>();
 
@@ -181,7 +181,7 @@ namespace HeatTransfer::Solvers
         return coarseMask;
     }
 
-    Eigen::MatrixXd IMultigrid::Restrict(const Eigen::MatrixXd& matrix)
+    Eigen::MatrixXd IMultigridSolver::Restrict(const Eigen::MatrixXd& matrix)
     {
         // The standard weighting is given by:
         //
@@ -217,8 +217,9 @@ namespace HeatTransfer::Solvers
         return restrictedMatrix;
     }
 
-    Eigen::MatrixXd
-    IMultigrid::Prolongate(const Eigen::MatrixXd& matrix, Eigen::Index rows, Eigen::Index cols)
+    Eigen::MatrixXd IMultigridSolver::Prolongate(const Eigen::MatrixXd& matrix,
+                                                 Eigen::Index rows,
+                                                 Eigen::Index cols)
     {
         ZoneScoped;
 

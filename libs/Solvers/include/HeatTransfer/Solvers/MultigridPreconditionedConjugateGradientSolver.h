@@ -1,10 +1,10 @@
 #pragma once
 
-#include "HeatTransfer/Solvers/IMultigrid.h"
+#include "HeatTransfer/Solvers/IMultigridSolver.h"
 
 namespace HeatTransfer::Solvers
 {
-    class MultigridPreconditionedConjugateGradientSolver final : public IMultigrid
+    class MultigridPreconditionedConjugateGradientSolver final : public IMultigridSolver
     {
     public:
         MultigridPreconditionedConjugateGradientSolver(
