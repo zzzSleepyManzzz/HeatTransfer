@@ -62,21 +62,6 @@ namespace HeatTransfer::Visualisation
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-            // Iterative method combo box
-
-            if (ImGui::Combo("## Iterative Method",
-                             &_settingsState->IterativeMethod,
-                             METHOD_OPTIONS,
-                             IM_ARRAYSIZE(METHOD_OPTIONS)))
-            {
-                _model->GetSimulationConfig()->Method =
-                    METHOD_ARRAY[_settingsState->IterativeMethod];
-
-                _model->UpdateModel();
-            }
-
-            ImGui::Dummy(ImVec2(0.0f, 5.0f));
-
             // Add simulation parameters and boundary conditions button
 
             AddParametersButton();
@@ -151,6 +136,14 @@ namespace HeatTransfer::Visualisation
                 _settingsState->TemporaryParameters.ErrorTrackingMetric =
                     TRACKER_ARRAY[_settingsState->ErrorTrackingMetric];
             }
+            if (ImGui::Combo("Smoother",
+                             &_settingsState->Smoother,
+                             SMOOTHER_OPTIONS,
+                             IM_ARRAYSIZE(SMOOTHER_OPTIONS)))
+            {
+                _settingsState->TemporaryParameters.Smoother =
+                    SMOOTHER_ARRAY[_settingsState->Smoother];
+            }
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
@@ -167,6 +160,7 @@ namespace HeatTransfer::Visualisation
             if (ImGui::Button("Cancel", ImVec2(-1, 0)))
             {
                 _settingsState->TemporaryParameters = _model->GetSimulationConfig()->Parameters;
+                _settingsState->Smoother = (int)_model->GetSimulationConfig()->Parameters.Smoother;
                 _settingsState->ResidualTrackingMetric =
                     (int)_model->GetSimulationConfig()->Parameters.ResidualTrackingMetric;
                 _settingsState->ErrorTrackingMetric =

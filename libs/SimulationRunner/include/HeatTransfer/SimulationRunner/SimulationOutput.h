@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include <Eigen/Dense>
 
 #include "HeatTransfer/Core/ErrorMetric.h"

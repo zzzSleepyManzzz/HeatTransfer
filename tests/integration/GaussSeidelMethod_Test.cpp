@@ -7,7 +7,7 @@
 #include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
-#include "HeatTransfer/Solvers/GaussSeidelMethod.h"
+#include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
 
 namespace HeatTransfer::Tests
 {
@@ -19,15 +19,18 @@ namespace HeatTransfer::Tests
         HeatTransfer::Core::MaterialProperties materialProperties =
             HeatTransfer::Core::MaterialProperties::Default();
 
-        HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
-                                                               .Columns = 100,
-                                                               .ResidualTolerance = 1e-1,
-                                                               .ErrorTolerance = 1e-6,
-                                                               .RelaxationFactor = 1.7,
-                                                               .MaxIterations = 1000};
+        HeatTransfer::Core::SimulationParameters parameters = {
+            .Rows = 100,
+            .Columns = 100,
+            .ResidualTolerance = 1e-1,
+            .ErrorTolerance = 1e-6,
+            .RelaxationFactor = 1.7,
+            .MaxIterations = 1000,
+            .Smoother = HeatTransfer::Core::Smoother::GAUSS_SEIDEL};
 
-        auto solver = std::make_shared<HeatTransfer::Solvers::GaussSeidelMethod>(
-            parameters, materialProperties, boundaryCondition);
+        auto solver =
+            std::make_shared<HeatTransfer::Solvers::MultigridPreconditionedConjugateGradientSolver>(
+                parameters, materialProperties, boundaryCondition);
 
         solver->ComputeSimulation();
 

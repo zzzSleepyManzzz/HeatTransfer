@@ -2,13 +2,23 @@
 
 #include <tracy/Tracy.hpp>
 
+#include "HeatTransfer/Solvers/Smoothers/SmootherFactory.h"
+
 namespace HeatTransfer::Solvers
 {
     IMultigridSolver::IMultigridSolver(const Core::SimulationParameters& parameters,
                                        const Core::MaterialProperties& materialProperties,
                                        const Core::BoundaryConditions& boundaryCondition)
         : ISolver(parameters, materialProperties, boundaryCondition)
+        , _smoother(std::make_shared<Smoothers::SmootherFactory>(parameters.Smoother,
+                                                                 parameters.RelaxationFactor)
+                        ->Create())
     {
+    }
+
+    void IMultigridSolver::Initialise()
+    {
+        BuildLevels();
     }
 
     void IMultigridSolver::BuildLevels()
@@ -53,8 +63,6 @@ namespace HeatTransfer::Solvers
             _errorStack.push_back(Eigen::MatrixXd::Zero(courseRows, courseCols));
             _residualStack.push_back(Eigen::MatrixXd::Zero(courseRows, courseCols));
         }
-
-        InitialiseConjugateGradientVariables();
     }
 
     Eigen::MatrixXd IMultigridSolver::ComputeResidual(const Eigen::MatrixXd& matrix,
@@ -97,7 +105,8 @@ namespace HeatTransfer::Solvers
             auto& E = levelMatrix(i);
 
             for (auto s = 0; s < PRE_SMOOTHING_SWEEPS; s++)
-                Smoothen(E, levelRhs(i), _insulatedStack[i], SweepDirection::FORWARD);
+                _smoother->Smooth(
+                    E, levelRhs(i), _insulatedStack[i], Smoothers::SweepDirection::FORWARD);
 
             auto& R = _residualStack[i + 1];
 
@@ -115,8 +124,8 @@ namespace HeatTransfer::Solvers
             SolveCoarsest();
         else
         {
-            Smoothen(matrix, rhs, _insulatedStack[0], SweepDirection::FORWARD);
-            Smoothen(matrix, rhs, _insulatedStack[0], SweepDirection::BACKWARD);
+            _smoother->Smooth(matrix, rhs, _insulatedStack[0], Smoothers::SweepDirection::FORWARD);
+            _smoother->Smooth(matrix, rhs, _insulatedStack[0], Smoothers::SweepDirection::BACKWARD);
         }
 
         // Up V-Cycle
@@ -132,7 +141,10 @@ namespace HeatTransfer::Solvers
 
             // Post-smoothing sweeps backward so that it is the transpose of pre-smoothing
             for (auto s = 0; s < POST_SMOOTHING_SWEEPS; s++)
-                Smoothen(E, levelRhs(i - 1), _insulatedStack[i - 1], SweepDirection::BACKWARD);
+                _smoother->Smooth(E,
+                                  levelRhs(i - 1),
+                                  _insulatedStack[i - 1],
+                                  Smoothers::SweepDirection::BACKWARD);
         }
     }
 
@@ -147,8 +159,8 @@ namespace HeatTransfer::Solvers
         // method to converge. Alternating sweeps keeps the coarse solve symmetric
         for (int s = 0; s < COARSE_SWEEPS / 2; s++)
         {
-            Smoothen(E, R, insulated, SweepDirection::FORWARD);
-            Smoothen(E, R, insulated, SweepDirection::BACKWARD);
+            _smoother->Smooth(E, R, insulated, Smoothers::SweepDirection::FORWARD);
+            _smoother->Smooth(E, R, insulated, Smoothers::SweepDirection::BACKWARD);
         }
     }
 

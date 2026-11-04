@@ -1,44 +1,25 @@
 #include <catch2/catch_all.hpp>
+#include <memory>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/MaterialProperties.h"
-#include "HeatTransfer/Core/Method.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
+#include "HeatTransfer/Core/Smoother.h"
 
-#include "HeatTransfer/SimulationRunner/Simulations.h"
+#include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
 
 namespace
 {
-    int NumIterations(HeatTransfer::Core::Method method,
+    int NumIterations(HeatTransfer::Core::Smoother type,
                       HeatTransfer::Core::SimulationParameters parameters,
                       HeatTransfer::Core::MaterialProperties materialProperties,
                       HeatTransfer::Core::BoundaryConditions boundaryCondition)
     {
-        using enum HeatTransfer::Core::Method;
+        parameters.Smoother = type;
 
-        std::shared_ptr<HeatTransfer::Solvers::ISolver> solver;
-
-        switch (method)
-        {
-            case JACOBI:
-                solver = std::make_shared<HeatTransfer::Solvers::JacobiMethod>(
-                    parameters, materialProperties, boundaryCondition);
-                break;
-            case GAUSS_SEIDEL:
-                solver = std::make_shared<HeatTransfer::Solvers::GaussSeidelMethod>(
-                    parameters, materialProperties, boundaryCondition);
-                break;
-            case SUCCESSIVE_OVER_RELAXATION:
-                solver = std::make_shared<HeatTransfer::Solvers::SuccessiveOverRelaxation>(
-                    parameters, materialProperties, boundaryCondition);
-                break;
-            case RED_BLACK_SOR:
-                solver = std::make_shared<HeatTransfer::Solvers::RedBlackSOR>(
-                    parameters, materialProperties, boundaryCondition);
-                break;
-            default:
-                throw std::runtime_error("Unknown method");
-        }
+        auto solver =
+            std::make_shared<HeatTransfer::Solvers::MultigridPreconditionedConjugateGradientSolver>(
+                parameters, materialProperties, boundaryCondition);
 
         solver->ComputeSimulation();
         return solver->GetResidualMetrics().size();
@@ -61,16 +42,18 @@ namespace HeatTransfer::Tests
                                                                .RelaxationFactor = 1.7,
                                                                .MaxIterations = 1000};
 
-        auto numIterationsJacobi = NumIterations(
-            HeatTransfer::Core::Method::JACOBI, parameters, materialProperties, boundaryCondition);
+        auto numIterationsJacobi = NumIterations(HeatTransfer::Core::Smoother::JACOBI,
+                                                 parameters,
+                                                 materialProperties,
+                                                 boundaryCondition);
 
-        auto numIterationsGaussSeidel = NumIterations(HeatTransfer::Core::Method::GAUSS_SEIDEL,
+        auto numIterationsGaussSeidel = NumIterations(HeatTransfer::Core::Smoother::GAUSS_SEIDEL,
                                                       parameters,
                                                       materialProperties,
                                                       boundaryCondition);
 
         auto numIterationsSuccessiveOverRelaxation =
-            NumIterations(HeatTransfer::Core::Method::SUCCESSIVE_OVER_RELAXATION,
+            NumIterations(HeatTransfer::Core::Smoother::SUCCESSIVE_OVER_RELAXATION,
                           parameters,
                           materialProperties,
                           boundaryCondition);

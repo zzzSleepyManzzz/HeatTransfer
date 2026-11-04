@@ -2,7 +2,7 @@
 
 namespace HeatTransfer::Core
 {
-    enum class Method
+    enum class Smoother
     {
         JACOBI,
         GAUSS_SEIDEL,

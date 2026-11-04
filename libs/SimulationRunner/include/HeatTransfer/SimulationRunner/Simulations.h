@@ -1,18 +1,15 @@
 #pragma once
 
+#include <memory>
+
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/MaterialProperties.h"
-#include "HeatTransfer/Core/Method.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
-
-#include "HeatTransfer/Solvers/GaussSeidelMethod.h"
-#include "HeatTransfer/Solvers/JacobiMethod.h"
-#include "HeatTransfer/Solvers/RedBlackSOR.h"
-#include "HeatTransfer/Solvers/SuccessiveOverRelaxation.h"
 
 #include "HeatTransfer/SimulationRunner/SimulationConfig.h"
 #include "HeatTransfer/SimulationRunner/SimulationOutput.h"
-#include "HeatTransfer/SimulationRunner/SolverFactory.h"
+
+#include "HeatTransfer/Solvers/ISolver.h"
 
 namespace HeatTransfer::SimulationRunner
 {
@@ -29,7 +26,6 @@ namespace HeatTransfer::SimulationRunner
         Core::SimulationParameters _parameters;
         Core::MaterialProperties _materialProperties;
         Core::BoundaryConditions _boundaryCondition;
-        Core::Method _method;
         std::shared_ptr<Solvers::ISolver> _solver;
     };
 }

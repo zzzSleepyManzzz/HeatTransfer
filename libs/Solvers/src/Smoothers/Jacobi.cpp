@@ -1,20 +1,13 @@
-#include "HeatTransfer/Solvers/JacobiMethod.h"
+#include "HeatTransfer/Solvers/Smoothers/Jacobi.h"
 
 #include <tracy/Tracy.hpp>
 
-namespace HeatTransfer::Solvers
+namespace HeatTransfer::Solvers::Smoothers
 {
-    JacobiMethod::JacobiMethod(const Core::SimulationParameters& parameters,
-                               const Core::MaterialProperties& materialProperties,
-                               const Core::BoundaryConditions& boundaryCondition)
-        : IConjugateGradientSolver(parameters, materialProperties, boundaryCondition)
-    {
-    }
-
-    void JacobiMethod::Smoothen(Eigen::MatrixXd& matrix,
-                                const Eigen::MatrixXd& rhs,
-                                const Eigen::MatrixXd& insulated,
-                                [[maybe_unused]] SweepDirection direction)
+    void Jacobi::Smooth(Eigen::MatrixXd& matrix,
+                        const Eigen::MatrixXd& rhs,
+                        const Eigen::MatrixXd& insulated,
+                        [[maybe_unused]] SweepDirection direction) const
     {
         ZoneScoped;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "HeatTransfer/Core/Smoother.h"
 #include "HeatTransfer/Core/TrackingMetric.h"
 
 namespace HeatTransfer::Core
@@ -14,6 +15,7 @@ namespace HeatTransfer::Core
         int MaxIterations;
         TrackingMetric ResidualTrackingMetric;
         TrackingMetric ErrorTrackingMetric;
+        Core::Smoother Smoother = Core::Smoother::RED_BLACK_SOR;
 
         constexpr static const SimulationParameters Default()
         {
@@ -24,7 +26,8 @@ namespace HeatTransfer::Core
                     .RelaxationFactor = 1.7,
                     .MaxIterations = 1000,
                     .ResidualTrackingMetric = Core::TrackingMetric::MAX,
-                    .ErrorTrackingMetric = Core::TrackingMetric::MAX};
+                    .ErrorTrackingMetric = Core::TrackingMetric::MAX,
+                    .Smoother = Core::Smoother::RED_BLACK_SOR};
         }
     };
 }

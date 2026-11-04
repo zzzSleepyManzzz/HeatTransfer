@@ -2,13 +2,14 @@
 
 #include <tracy/Tracy.hpp>
 
+#include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
+
 namespace HeatTransfer::SimulationRunner
 {
     Simulations::Simulations(std::shared_ptr<SimulationConfig> config)
         : _parameters(config->Parameters)
         , _materialProperties(config->MaterialProperties)
         , _boundaryCondition(config->BoundaryConditions)
-        , _method(config->Method)
     {
     }
 
@@ -16,9 +17,8 @@ namespace HeatTransfer::SimulationRunner
     {
         ZoneScoped;
 
-        auto solverFactory =
-            std::make_shared<SolverFactory>(_parameters, _materialProperties, _boundaryCondition);
-        _solver = solverFactory->Create(_method);
+        _solver = std::make_shared<Solvers::MultigridPreconditionedConjugateGradientSolver>(
+            _parameters, _materialProperties, _boundaryCondition);
         _solver->ComputeSimulation();
     }
 

@@ -3,11 +3,12 @@ find_package(OpenMP REQUIRED)
 add_library(Solvers
     src/ISolver.cpp
     src/IMultigridSolver.cpp
-    src/IConjugateGradientSolver.cpp
-    src/JacobiMethod.cpp
-    src/GaussSeidelMethod.cpp
-    src/SuccessiveOverRelaxation.cpp
-    src/RedBlackSOR.cpp
+    src/MultigridPreconditionedConjugateGradientSolver.cpp
+    src/Smoothers/Jacobi.cpp
+    src/Smoothers/GaussSeidel.cpp
+    src/Smoothers/SuccessiveOverRelaxation.cpp
+    src/Smoothers/RedBlackSOR.cpp
+    src/Smoothers/SmootherFactory.cpp
 )
 
 target_include_directories(Solvers

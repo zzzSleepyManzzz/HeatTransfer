@@ -27,7 +27,8 @@ namespace HeatTransfer::Solvers
         _residualMatrix->setZero();
 
         ApplyBoundaryConditions();
-        BuildLevels();
+
+        Initialise();
 
         IterateTemperature();
     }
