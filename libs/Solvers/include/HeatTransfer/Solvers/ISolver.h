@@ -42,6 +42,9 @@ namespace HeatTransfer::Solvers
         std::shared_ptr<Eigen::MatrixXd> _temperatureMatrix;
         std::shared_ptr<Eigen::MatrixXd> _residualMatrix;
 
+        Eigen::MatrixXd _insulated;
+        Eigen::MatrixXd _heating;
+
         ISolver(const Core::SimulationParameters& parameters,
                 const Core::MaterialProperties& materialProperties,
                 const Core::BoundaryConditions& boundaryCondition);
@@ -50,6 +53,8 @@ namespace HeatTransfer::Solvers
         void ApplyBoundaryConditions();
 
         bool IsInsulated(Eigen::Index row, Eigen::Index col, Eigen::Index rows, Eigen::Index cols);
+        Eigen::MatrixXd BuildInsulatedMask();
+        Eigen::MatrixXd BuildHeating();
 
         void UpdateResidualMatrix();
 
