@@ -2,19 +2,28 @@
 
 #include <tracy/Tracy.hpp>
 
+#include "HeatTransfer/Solvers/Smoothers/SmootherFactory.h"
+#include "HeatTransfer/Solvers/Stencil.h"
+
 namespace HeatTransfer::Solvers
 {
     MultigridPreconditionedConjugateGradientSolver::MultigridPreconditionedConjugateGradientSolver(
         const Core::SimulationParameters& parameters,
         const Core::MaterialProperties& materialProperties,
         const Core::BoundaryConditions& boundaryCondition)
-        : IMultigridSolver(parameters, materialProperties, boundaryCondition)
+        : ISolver(parameters, materialProperties, boundaryCondition)
+        , _preconditioner(std::make_shared<MultigridPreconditioner>(
+              Smoothers::SmootherFactory(parameters.Smoother, parameters.RelaxationFactor)
+                  .Create()))
     {
     }
 
     void MultigridPreconditionedConjugateGradientSolver::Initialise()
     {
-        IMultigridSolver::Initialise();
+        ZoneScoped;
+
+        _preconditioner->BuildLevels(_insulated);
+
         InitialiseConjugateGradientVariables();
     }
 
@@ -26,7 +35,7 @@ namespace HeatTransfer::Solvers
         // The residual is given by r = b - H * x
         // The first gradient is given grad f_0 = H * x_0 - b
         // Thus grad f_0 = -r_0, and the first gradient is the negative of the residual
-        _gradient = -ComputeResidual(*_temperatureMatrix, _residualStack[0], _insulatedStack[0]);
+        _gradient = -Stencil::ComputeResidual(*_temperatureMatrix, _heating, _insulated);
 
         // d_0 = B * grad f_0
         PreconditionGradient();
@@ -74,11 +83,10 @@ namespace HeatTransfer::Solvers
     void MultigridPreconditionedConjugateGradientSolver::PreconditionGradient()
     {
         // Say we have a linear system H * x = b, where H is the Hessian of f(x) = 0.5 * x^T H x -
-        // b^T x. V-Cycle solves H * x = b, to get x = H^-1 * b.
+        // b^T x. A V-Cycle approximately solves H * x = b, to get x = H^-1 * b.
         // Thus H * x = grad f becomes x = H^-1 * grad f, which is the preconditioned gradient d
 
-        _preconditionedGradient = Eigen::MatrixXd::Zero(_gradient.rows(), _gradient.cols());
-        VCycle(_preconditionedGradient, _gradient);
+        _preconditioner->Precondition(_preconditionedGradient, _gradient);
     }
 
     Eigen::MatrixXd
@@ -88,8 +96,8 @@ namespace HeatTransfer::Solvers
         // Setting b = 0, gives r = - H * x or H * x = -r
         // We will mainly be applying the Hessian to the search direction s
 
-        return -ComputeResidual(
-            matrix, Eigen::MatrixXd::Zero(matrix.rows(), matrix.cols()), _insulatedStack[0]);
+        return -Stencil::ComputeResidual(
+            matrix, Eigen::MatrixXd::Zero(matrix.rows(), matrix.cols()), _insulated);
     }
 
     double MultigridPreconditionedConjugateGradientSolver::Dot(const Eigen::MatrixXd& a,

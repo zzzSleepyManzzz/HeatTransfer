@@ -1,19 +1,25 @@
 #pragma once
 
-#include "HeatTransfer/Solvers/IMultigridSolver.h"
+#include <memory>
+
+#include "HeatTransfer/Solvers/ISolver.h"
+#include "HeatTransfer/Solvers/MultigridPreconditioner.h"
 
 namespace HeatTransfer::Solvers
 {
-    class MultigridPreconditionedConjugateGradientSolver final : public IMultigridSolver
+    class MultigridPreconditionedConjugateGradientSolver : public ISolver
     {
     public:
         MultigridPreconditionedConjugateGradientSolver(
             const Core::SimulationParameters& parameters,
             const Core::MaterialProperties& materialProperties,
             const Core::BoundaryConditions& boundaryCondition);
+
         virtual ~MultigridPreconditionedConjugateGradientSolver() = default;
 
     private:
+        std::shared_ptr<MultigridPreconditioner> _preconditioner;
+
         Eigen::MatrixXd _gradient;               // grad f_k
         Eigen::MatrixXd _preconditionedGradient; // d_k = B * grad f_k
         Eigen::MatrixXd _searchDirection;        // s_k

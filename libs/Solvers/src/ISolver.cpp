@@ -28,6 +28,9 @@ namespace HeatTransfer::Solvers
 
         ApplyBoundaryConditions();
 
+        _insulated = BuildInsulatedMask();
+        _heating = BuildHeating();
+
         Initialise();
 
         IterateTemperature();
@@ -209,6 +212,43 @@ namespace HeatTransfer::Solvers
             return true;
 
         return row == c1 && col == c2;
+    }
+
+    Eigen::MatrixXd ISolver::BuildInsulatedMask()
+    {
+        const auto rows = _temperatureMatrix->rows();
+        const auto cols = _temperatureMatrix->cols();
+
+        Eigen::MatrixXd insulated(rows, cols);
+
+        for (Eigen::Index j = 0; j < cols; j++)
+        {
+            for (Eigen::Index i = 0; i < rows; i++)
+            {
+                insulated(i, j) = IsInsulated(i, j, rows, cols);
+            }
+        }
+
+        return insulated;
+    }
+
+    Eigen::MatrixXd ISolver::BuildHeating()
+    {
+        // The right-hand side b of H * x = b. The factor of 0.25 matches the scaling used by
+        // Stencil::ComputeResidual, i.e. r = b - x + 0.25 * (sum of neighbours)
+
+        const auto rows = _insulated.rows();
+        const auto cols = _insulated.cols();
+
+        auto q_g = _materialProperties.InternalHeatGeneration;
+        auto k = _materialProperties.ThermalConductivity;
+        auto h = 1.0 / std::max(rows, cols);
+
+        Eigen::MatrixXd heating =
+            Eigen::MatrixXd::Constant(rows, cols, 0.25f * pow(h, 2) * q_g / k);
+        heating.array() = _insulated.array().select(0.0, heating.array());
+
+        return heating;
     }
 
     void ISolver::UpdateResidualMatrix()
