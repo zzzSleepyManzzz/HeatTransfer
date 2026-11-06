@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "HeatTransfer/Core/Smoother.h"
 #include "HeatTransfer/Core/TrackingMetric.h"
 
