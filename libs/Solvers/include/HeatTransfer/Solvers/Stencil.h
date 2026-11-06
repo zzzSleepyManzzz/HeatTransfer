@@ -2,9 +2,15 @@
 
 #include <Eigen/Dense>
 
-namespace HeatTransfer::Solvers::Stencil
+namespace HeatTransfer::Solvers
 {
-    Eigen::MatrixXd ComputeResidual(const Eigen::MatrixXd& matrix,
-                                    const Eigen::MatrixXd& rhs,
-                                    const Eigen::MatrixXd& insulated);
+    class Stencil
+    {
+    public:
+        Stencil() = delete;
+
+        static Eigen::MatrixXd ComputeResidual(const Eigen::MatrixXd& matrix,
+                                               const Eigen::MatrixXd& rhs,
+                                               const Eigen::MatrixXd& insulated);
+    };
 }
