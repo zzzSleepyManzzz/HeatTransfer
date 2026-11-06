@@ -100,25 +100,43 @@ namespace HeatTransfer::Visualisation
 
             if (ImGui::InputInt("Number of rows", &_settingsState->TemporaryParameters.Rows))
             {
+                _settingsState->TemporaryParameters.Rows =
+                    std::max(10, _settingsState->TemporaryParameters.Rows);
             }
             if (ImGui::InputInt("Number of columns", &_settingsState->TemporaryParameters.Columns))
             {
+                _settingsState->TemporaryParameters.Columns =
+                    std::max(10, _settingsState->TemporaryParameters.Columns);
             }
             if (ImGui::InputDouble("Residual tolerance",
-                                   &_settingsState->TemporaryParameters.ResidualTolerance))
+                                   &_settingsState->TemporaryParameters.ResidualTolerance,
+                                   0.0,
+                                   0.0,
+                                   "%.10f"))
             {
+                _settingsState->TemporaryParameters.ResidualTolerance =
+                    std::max(1e-10, _settingsState->TemporaryParameters.ResidualTolerance);
             }
             if (ImGui::InputDouble("Error tolerance",
-                                   &_settingsState->TemporaryParameters.ErrorTolerance))
+                                   &_settingsState->TemporaryParameters.ErrorTolerance,
+                                   0.0,
+                                   0.0,
+                                   "%.10f"))
             {
+                _settingsState->TemporaryParameters.ErrorTolerance =
+                    std::max(1e-10, _settingsState->TemporaryParameters.ErrorTolerance);
             }
             if (ImGui::InputDouble("Relaxation factor",
                                    &_settingsState->TemporaryParameters.RelaxationFactor))
             {
+                _settingsState->TemporaryParameters.RelaxationFactor =
+                    std::clamp(_settingsState->TemporaryParameters.RelaxationFactor, 0.01, 1.99);
             }
             if (ImGui::InputInt("Max iterations",
                                 &_settingsState->TemporaryParameters.MaxIterations))
             {
+                _settingsState->TemporaryParameters.MaxIterations =
+                    std::max(1, _settingsState->TemporaryParameters.MaxIterations);
             }
             if (ImGui::Combo("Residual tracking metric",
                              &_settingsState->ResidualTrackingMetric,
@@ -207,6 +225,8 @@ namespace HeatTransfer::Visualisation
                     "Thermal conductivity [W/(m K)]",
                     &_settingsState->TemporaryMaterialProperties.ThermalConductivity))
             {
+                _settingsState->TemporaryMaterialProperties.ThermalConductivity =
+                    std::max(1e-6, _settingsState->TemporaryMaterialProperties.ThermalConductivity);
             }
             if (ImGui::InputDouble(
                     "Internal heat generation [W/m³]",
@@ -272,26 +292,38 @@ namespace HeatTransfer::Visualisation
             if (ImGui::InputDouble("Top edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.TopEdge))
             {
+                _settingsState->TemporaryBoundaryConditions.TopEdge =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.TopEdge);
             }
             if (ImGui::InputDouble("Bottom edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.BottomEdge))
             {
+                _settingsState->TemporaryBoundaryConditions.BottomEdge =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.BottomEdge);
             }
             if (ImGui::InputDouble("Left edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.LeftEdge))
             {
+                _settingsState->TemporaryBoundaryConditions.LeftEdge =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.LeftEdge);
             }
             if (ImGui::InputDouble("Right edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.RightEdge))
             {
+                _settingsState->TemporaryBoundaryConditions.RightEdge =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.RightEdge);
             }
             if (ImGui::InputDouble("Inner square temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.InnerSquare))
             {
+                _settingsState->TemporaryBoundaryConditions.InnerSquare =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.InnerSquare);
             }
             if (ImGui::InputDouble("Center point temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.CenterPoint))
             {
+                _settingsState->TemporaryBoundaryConditions.CenterPoint =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.CenterPoint);
             }
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
