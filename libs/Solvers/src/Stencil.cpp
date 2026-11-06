@@ -1,10 +1,10 @@
 #include "HeatTransfer/Solvers/Stencil.h"
 
-namespace HeatTransfer::Solvers::Stencil
+namespace HeatTransfer::Solvers
 {
-    Eigen::MatrixXd ComputeResidual(const Eigen::MatrixXd& matrix,
-                                    const Eigen::MatrixXd& rhs,
-                                    const Eigen::MatrixXd& insulated)
+    Eigen::MatrixXd Stencil::ComputeResidual(const Eigen::MatrixXd& matrix,
+                                             const Eigen::MatrixXd& rhs,
+                                             const Eigen::MatrixXd& insulated)
     {
         const Eigen::Index rows = matrix.rows();
         const Eigen::Index cols = matrix.cols();
