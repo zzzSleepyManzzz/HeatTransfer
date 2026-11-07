@@ -5,7 +5,7 @@
 #include <iostream>
 #include <memory>
 
-#include "HeatTransfer/SimulationRunner/Simulations.h"
+#include "HeatTransfer/SimulationRunner/Simulation.h"
 
 namespace HeatTransfer::Orchestration
 {

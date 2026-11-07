@@ -13,7 +13,7 @@ namespace HeatTransfer::Solvers
     {
     }
 
-    void ISolver::ComputeSimulation()
+    void ISolver::ComputeSimulation(std::stop_token stopToken)
     {
         ZoneScoped;
 
@@ -33,7 +33,7 @@ namespace HeatTransfer::Solvers
 
         Initialise();
 
-        IterateTemperature();
+        IterateTemperature(stopToken);
     }
 
     void ISolver::PrintResidual()
@@ -72,6 +72,11 @@ namespace HeatTransfer::Solvers
         }
 
         return finalTargetResidual <= _parameters.ResidualTolerance;
+    }
+
+    int ISolver::GetCurrentIteration() const
+    {
+        return _currentIteration;
     }
 
     const std::vector<std::shared_ptr<Core::ErrorMetric>>& ISolver::GetErrorMetrics()
@@ -129,7 +134,7 @@ namespace HeatTransfer::Solvers
         T(c1, c2) = _boundaryCondition.CenterPoint;
     }
 
-    void ISolver::IterateTemperature()
+    void ISolver::IterateTemperature(std::stop_token stopToken)
     {
         ZoneScoped;
 
@@ -153,8 +158,8 @@ namespace HeatTransfer::Solvers
         Eigen::ArrayXXd errorArray(rows, cols);
         Eigen::ArrayXXd residualArray(rows, cols);
 
-        while (iterations < maxIterations && residualTracker[indexR] > residualTolerance &&
-               errorTracker[indexE] > errorTolerance)
+        while (!stopToken.stop_requested() && iterations < maxIterations &&
+               residualTracker[indexR] > residualTolerance && errorTracker[indexE] > errorTolerance)
         {
             oldTemperature = *_temperatureMatrix;
 
@@ -176,6 +181,7 @@ namespace HeatTransfer::Solvers
             errorTracker = {errorMax, errorMean, errorRMS};
 
             iterations++;
+            _currentIteration = iterations;
 
             auto error =
                 std::make_shared<Core::ErrorMetric>(iterations, errorMax, errorMean, errorRMS);

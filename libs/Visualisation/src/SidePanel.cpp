@@ -23,10 +23,20 @@ namespace HeatTransfer::Visualisation
 
         ImGui::Begin("Side Bar", nullptr, windowFlags);
         {
+            AddProgress();
             AddSettings();
             AddStatistics();
         }
         ImGui::End();
+    }
+
+    void SidePanel::AddProgress()
+    {
+        if (_model->IsSimulationRunning())
+        {
+            ImGui::Text("Simulation running... iteration %d", _model->GetCurrentIteration());
+            ImGui::Separator();
+        }
     }
 
     void SidePanel::AddSettings()

@@ -37,6 +37,7 @@ namespace HeatTransfer::Visualisation
 
         void ShowSideBar();
 
+        void AddProgress();
         void AddSettings();
         void AddParametersButton();
         void AddMaterialPropertiesButton();
