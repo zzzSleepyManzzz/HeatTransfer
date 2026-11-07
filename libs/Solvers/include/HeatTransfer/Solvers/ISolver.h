@@ -1,9 +1,11 @@
 #pragma once
 
+#include <atomic>
 #include <cmath>
 #include <format>
 #include <iostream>
 #include <memory>
+#include <stop_token>
 #include <vector>
 
 #include <Eigen/Dense>
@@ -22,10 +24,12 @@ namespace HeatTransfer::Solvers
         ISolver() = delete;
         virtual ~ISolver() = default;
 
-        void ComputeSimulation();
+        void ComputeSimulation(std::stop_token stopToken = {});
         void PrintResidual();
 
         bool IsConverged();
+
+        int GetCurrentIteration() const;
 
         const std::vector<std::shared_ptr<Core::ErrorMetric>>& GetErrorMetrics();
         const std::vector<std::shared_ptr<Core::ResidualMetric>>& GetResidualMetrics();
@@ -45,11 +49,13 @@ namespace HeatTransfer::Solvers
         Eigen::MatrixXd _insulated;
         Eigen::MatrixXd _heating;
 
+        std::atomic<int> _currentIteration = 0;
+
         ISolver(const Core::SimulationParameters& parameters,
                 const Core::MaterialProperties& materialProperties,
                 const Core::BoundaryConditions& boundaryCondition);
 
-        void IterateTemperature();
+        void IterateTemperature(std::stop_token stopToken);
         void ApplyBoundaryConditions();
 
         bool IsInsulated(Eigen::Index row, Eigen::Index col, Eigen::Index rows, Eigen::Index cols);

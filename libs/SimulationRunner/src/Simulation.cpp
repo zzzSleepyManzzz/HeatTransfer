@@ -1,4 +1,4 @@
-#include "HeatTransfer/SimulationRunner/Simulations.h"
+#include "HeatTransfer/SimulationRunner/Simulation.h"
 
 #include <tracy/Tracy.hpp>
 
@@ -6,28 +6,33 @@
 
 namespace HeatTransfer::SimulationRunner
 {
-    Simulations::Simulations(std::shared_ptr<SimulationConfig> config)
+    Simulation::Simulation(std::shared_ptr<SimulationConfig> config)
         : _parameters(config->Parameters)
         , _materialProperties(config->MaterialProperties)
         , _boundaryCondition(config->BoundaryConditions)
+        , _solver(std::make_shared<Solvers::MultigridPreconditionedConjugateGradientSolver>(
+              _parameters, _materialProperties, _boundaryCondition))
     {
     }
 
-    void Simulations::Run()
+    void Simulation::Run(std::stop_token stopToken)
     {
         ZoneScoped;
 
-        _solver = std::make_shared<Solvers::MultigridPreconditionedConjugateGradientSolver>(
-            _parameters, _materialProperties, _boundaryCondition);
-        _solver->ComputeSimulation();
+        _solver->ComputeSimulation(stopToken);
     }
 
-    void Simulations::Print()
+    int Simulation::GetCurrentIteration() const
+    {
+        return _solver->GetCurrentIteration();
+    }
+
+    void Simulation::Print()
     {
         _solver->PrintResidual();
     }
 
-    std::shared_ptr<SimulationOutput> Simulations::GetOutput()
+    std::shared_ptr<SimulationOutput> Simulation::GetOutput()
     {
         auto temperatureMatrix = _solver->GetTemperatureMatrix();
         const auto& errorMetrics = _solver->GetErrorMetrics();

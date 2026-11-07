@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <stop_token>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/MaterialProperties.h"
@@ -13,12 +14,13 @@
 
 namespace HeatTransfer::SimulationRunner
 {
-    class Simulations
+    class Simulation
     {
     public:
-        Simulations(std::shared_ptr<SimulationConfig> config);
-        void Run();
+        Simulation(std::shared_ptr<SimulationConfig> config);
+        void Run(std::stop_token stopToken = {});
         void Print();
+        int GetCurrentIteration() const;
 
         std::shared_ptr<SimulationOutput> GetOutput();
 
