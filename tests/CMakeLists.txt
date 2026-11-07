@@ -8,7 +8,7 @@ add_executable(unit_tests
 target_link_libraries(unit_tests
     PRIVATE Catch2::Catch2WithMain
     HeatTransfer::Core
-    HeatTransfer::Solvers
+    HeatTransfer::Solver
     HeatTransfer::SimulationRunner
 )
 
@@ -24,7 +24,7 @@ add_executable(integration_tests
 target_link_libraries(integration_tests
     PRIVATE Catch2::Catch2WithMain
     HeatTransfer::Core
-    HeatTransfer::Solvers
+    HeatTransfer::Solver
     HeatTransfer::SimulationRunner
 )
 

@@ -2,7 +2,7 @@
 
 #include <Eigen/Dense>
 
-namespace HeatTransfer::Solvers::Smoothers
+namespace HeatTransfer::Solver::Smoothers
 {
     enum class SweepDirection
     {

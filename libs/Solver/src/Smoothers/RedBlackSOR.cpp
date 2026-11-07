@@ -1,10 +1,10 @@
-#include "HeatTransfer/Solvers/Smoothers/RedBlackSOR.h"
+#include "HeatTransfer/Solver/Smoothers/RedBlackSOR.h"
 
 #include <array>
 
 #include <tracy/Tracy.hpp>
 
-namespace HeatTransfer::Solvers::Smoothers
+namespace HeatTransfer::Solver::Smoothers
 {
     RedBlackSOR::RedBlackSOR(double relaxationFactor) : _relaxationFactor(relaxationFactor) {}
 

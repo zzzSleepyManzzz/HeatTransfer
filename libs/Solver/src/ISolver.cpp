@@ -1,8 +1,8 @@
-#include "HeatTransfer/Solvers/ISolver.h"
+#include "HeatTransfer/Solver/ISolver.h"
 
 #include <tracy/Tracy.hpp>
 
-namespace HeatTransfer::Solvers
+namespace HeatTransfer::Solver
 {
     ISolver::ISolver(const Core::SimulationParameters& parameters,
                      const Core::MaterialProperties& materialProperties,

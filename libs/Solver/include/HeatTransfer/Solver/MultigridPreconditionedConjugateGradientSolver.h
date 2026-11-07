@@ -2,10 +2,10 @@
 
 #include <memory>
 
-#include "HeatTransfer/Solvers/ISolver.h"
-#include "HeatTransfer/Solvers/MultigridPreconditioner.h"
+#include "HeatTransfer/Solver/ISolver.h"
+#include "HeatTransfer/Solver/MultigridPreconditioner.h"
 
-namespace HeatTransfer::Solvers
+namespace HeatTransfer::Solver
 {
     class MultigridPreconditionedConjugateGradientSolver : public ISolver
     {

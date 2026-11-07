@@ -1,10 +1,10 @@
-#include "HeatTransfer/Solvers/MultigridPreconditioner.h"
+#include "HeatTransfer/Solver/MultigridPreconditioner.h"
 
 #include <tracy/Tracy.hpp>
 
-#include "HeatTransfer/Solvers/Stencil.h"
+#include "HeatTransfer/Solver/Stencil.h"
 
-namespace HeatTransfer::Solvers
+namespace HeatTransfer::Solver
 {
     namespace
     {

@@ -1,17 +1,17 @@
 #include <catch2/catch_all.hpp>
 
-#include "HeatTransfer/Solvers/Smoothers/GaussSeidel.h"
-#include "HeatTransfer/Solvers/Smoothers/Jacobi.h"
-#include "HeatTransfer/Solvers/Smoothers/RedBlackSOR.h"
-#include "HeatTransfer/Solvers/Smoothers/SmootherFactory.h"
-#include "HeatTransfer/Solvers/Smoothers/SuccessiveOverRelaxation.h"
+#include "HeatTransfer/Solver/Smoothers/GaussSeidel.h"
+#include "HeatTransfer/Solver/Smoothers/Jacobi.h"
+#include "HeatTransfer/Solver/Smoothers/RedBlackSOR.h"
+#include "HeatTransfer/Solver/Smoothers/SmootherFactory.h"
+#include "HeatTransfer/Solver/Smoothers/SuccessiveOverRelaxation.h"
 
 namespace HeatTransfer::Tests
 {
     TEST_CASE("Smoother factory should give correct smoother")
     {
         using enum HeatTransfer::Core::Smoother;
-        using namespace HeatTransfer::Solvers::Smoothers;
+        using namespace HeatTransfer::Solver::Smoothers;
 
         auto create = [](HeatTransfer::Core::Smoother type)
         { return SmootherFactory(type, 1.7).Create(); };

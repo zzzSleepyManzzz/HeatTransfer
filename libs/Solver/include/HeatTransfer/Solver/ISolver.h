@@ -16,7 +16,7 @@
 #include "HeatTransfer/Core/ResidualMetric.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
-namespace HeatTransfer::Solvers
+namespace HeatTransfer::Solver
 {
     class ISolver
     {

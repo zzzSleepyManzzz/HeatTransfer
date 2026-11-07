@@ -1,8 +1,8 @@
-#include "HeatTransfer/Solvers/Smoothers/Jacobi.h"
+#include "HeatTransfer/Solver/Smoothers/Jacobi.h"
 
 #include <tracy/Tracy.hpp>
 
-namespace HeatTransfer::Solvers::Smoothers
+namespace HeatTransfer::Solver::Smoothers
 {
     void Jacobi::Smooth(Eigen::MatrixXd& matrix,
                         const Eigen::MatrixXd& rhs,

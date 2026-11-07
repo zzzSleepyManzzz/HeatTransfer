@@ -5,9 +5,9 @@
 
 #include <Eigen/Dense>
 
-#include "HeatTransfer/Solvers/Smoothers/ISmoother.h"
+#include "HeatTransfer/Solver/Smoothers/ISmoother.h"
 
-namespace HeatTransfer::Solvers
+namespace HeatTransfer::Solver
 {
     class MultigridPreconditioner
     {
