@@ -1,8 +1,8 @@
-#include "HeatTransfer/Solvers/Smoothers/SuccessiveOverRelaxation.h"
+#include "HeatTransfer/Solver/Smoothers/SuccessiveOverRelaxation.h"
 
 #include <tracy/Tracy.hpp>
 
-namespace HeatTransfer::Solvers::Smoothers
+namespace HeatTransfer::Solver::Smoothers
 {
     SuccessiveOverRelaxation::SuccessiveOverRelaxation(double relaxationFactor)
         : _relaxationFactor(relaxationFactor)

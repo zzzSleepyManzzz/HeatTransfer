@@ -6,7 +6,7 @@
 #include "HeatTransfer/Core/SimulationParameters.h"
 #include "HeatTransfer/Core/Smoother.h"
 
-#include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
+#include "HeatTransfer/Solver/MultigridPreconditionedConjugateGradientSolver.h"
 
 namespace
 {
@@ -18,7 +18,7 @@ namespace
         parameters.Smoother = type;
 
         auto solver =
-            std::make_shared<HeatTransfer::Solvers::MultigridPreconditionedConjugateGradientSolver>(
+            std::make_shared<HeatTransfer::Solver::MultigridPreconditionedConjugateGradientSolver>(
                 parameters, materialProperties, boundaryCondition);
 
         solver->ComputeSimulation();

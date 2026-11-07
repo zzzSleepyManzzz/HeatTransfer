@@ -1,13 +1,13 @@
 #pragma once
 
-#include "HeatTransfer/Solvers/Smoothers/ISmoother.h"
+#include "HeatTransfer/Solver/Smoothers/ISmoother.h"
 
-namespace HeatTransfer::Solvers::Smoothers
+namespace HeatTransfer::Solver::Smoothers
 {
-    class RedBlackSOR : public ISmoother
+    class SuccessiveOverRelaxation : public ISmoother
     {
     public:
-        explicit RedBlackSOR(double relaxationFactor);
+        explicit SuccessiveOverRelaxation(double relaxationFactor);
 
         void Smooth(Eigen::MatrixXd& matrix,
                     const Eigen::MatrixXd& rhs,

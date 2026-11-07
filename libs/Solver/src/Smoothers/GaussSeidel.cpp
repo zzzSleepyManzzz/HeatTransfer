@@ -1,8 +1,8 @@
-#include "HeatTransfer/Solvers/Smoothers/GaussSeidel.h"
+#include "HeatTransfer/Solver/Smoothers/GaussSeidel.h"
 
 #include <tracy/Tracy.hpp>
 
-namespace HeatTransfer::Solvers::Smoothers
+namespace HeatTransfer::Solver::Smoothers
 {
     void GaussSeidel::Smooth(Eigen::MatrixXd& matrix,
                              const Eigen::MatrixXd& rhs,

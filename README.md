@@ -4,7 +4,7 @@ A modular C++ project for solving heat transfer problems using iterative numeric
 
 ## Project Structure
 
-- `libs/` – Core libraries (Solvers, Simulation logic, Core utilities)
+- `libs/` – Core libraries (Solver, Simulation logic, Core utilities)
 - `apps/` – Executable applications
 - `tests/` – Unit and integration tests
 - `build/` – Build output (ignored)

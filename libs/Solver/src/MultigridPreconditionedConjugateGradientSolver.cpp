@@ -1,11 +1,11 @@
-#include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
+#include "HeatTransfer/Solver/MultigridPreconditionedConjugateGradientSolver.h"
 
 #include <tracy/Tracy.hpp>
 
-#include "HeatTransfer/Solvers/Smoothers/SmootherFactory.h"
-#include "HeatTransfer/Solvers/Stencil.h"
+#include "HeatTransfer/Solver/Smoothers/SmootherFactory.h"
+#include "HeatTransfer/Solver/Stencil.h"
 
-namespace HeatTransfer::Solvers
+namespace HeatTransfer::Solver
 {
     MultigridPreconditionedConjugateGradientSolver::MultigridPreconditionedConjugateGradientSolver(
         const Core::SimulationParameters& parameters,

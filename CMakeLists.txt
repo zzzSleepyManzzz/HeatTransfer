@@ -16,7 +16,7 @@ add_compile_definitions(TRACY_ENABLE)
 
 add_subdirectory(libs/Core)
 add_subdirectory(libs/SimulationRunner)
-add_subdirectory(libs/Solvers)
+add_subdirectory(libs/Solver)
 add_subdirectory(libs/Visualisation)
 add_subdirectory(libs/Orchestration)
 

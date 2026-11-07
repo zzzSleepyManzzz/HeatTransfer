@@ -1,6 +1,6 @@
 find_package(OpenMP REQUIRED)
 
-add_library(Solvers
+add_library(Solver
     src/ISolver.cpp
     src/Stencil.cpp
     src/MultigridPreconditioner.cpp
@@ -12,11 +12,11 @@ add_library(Solvers
     src/Smoothers/SmootherFactory.cpp
 )
 
-target_include_directories(Solvers
+target_include_directories(Solver
     PUBLIC include
 )
 
-target_link_libraries(Solvers
+target_link_libraries(Solver
     PUBLIC Core
     PUBLIC Eigen3::Eigen
     PRIVATE OpenMP::OpenMP_CXX
@@ -24,4 +24,4 @@ target_link_libraries(Solvers
     PRIVATE Tracy::TracyClient
 )
 
-add_library(HeatTransfer::Solvers ALIAS Solvers)
+add_library(HeatTransfer::Solver ALIAS Solver)

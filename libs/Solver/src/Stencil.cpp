@@ -1,6 +1,6 @@
-#include "HeatTransfer/Solvers/Stencil.h"
+#include "HeatTransfer/Solver/Stencil.h"
 
-namespace HeatTransfer::Solvers
+namespace HeatTransfer::Solver
 {
     Eigen::MatrixXd Stencil::ComputeResidual(const Eigen::MatrixXd& matrix,
                                              const Eigen::MatrixXd& rhs,

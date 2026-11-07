@@ -1,8 +1,8 @@
 #pragma once
 
-#include "HeatTransfer/Solvers/Smoothers/ISmoother.h"
+#include "HeatTransfer/Solver/Smoothers/ISmoother.h"
 
-namespace HeatTransfer::Solvers::Smoothers
+namespace HeatTransfer::Solver::Smoothers
 {
     class Jacobi : public ISmoother
     {

@@ -10,7 +10,7 @@
 #include "HeatTransfer/SimulationRunner/SimulationConfig.h"
 #include "HeatTransfer/SimulationRunner/SimulationOutput.h"
 
-#include "HeatTransfer/Solvers/ISolver.h"
+#include "HeatTransfer/Solver/ISolver.h"
 
 namespace HeatTransfer::SimulationRunner
 {
@@ -28,6 +28,6 @@ namespace HeatTransfer::SimulationRunner
         Core::SimulationParameters _parameters;
         Core::MaterialProperties _materialProperties;
         Core::BoundaryConditions _boundaryCondition;
-        std::shared_ptr<Solvers::ISolver> _solver;
+        std::shared_ptr<Solver::ISolver> _solver;
     };
 }

@@ -11,7 +11,7 @@ target_include_directories(SimulationRunner
 
 target_link_libraries(SimulationRunner
     PUBLIC Core
-    PUBLIC Solvers
+    PUBLIC Solver
     
     PUBLIC Threads::Threads
 

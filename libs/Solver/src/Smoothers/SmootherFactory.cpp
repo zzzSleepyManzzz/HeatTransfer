@@ -1,13 +1,13 @@
-#include "HeatTransfer/Solvers/Smoothers/SmootherFactory.h"
+#include "HeatTransfer/Solver/Smoothers/SmootherFactory.h"
 
 #include <stdexcept>
 
-#include "HeatTransfer/Solvers/Smoothers/GaussSeidel.h"
-#include "HeatTransfer/Solvers/Smoothers/Jacobi.h"
-#include "HeatTransfer/Solvers/Smoothers/RedBlackSOR.h"
-#include "HeatTransfer/Solvers/Smoothers/SuccessiveOverRelaxation.h"
+#include "HeatTransfer/Solver/Smoothers/GaussSeidel.h"
+#include "HeatTransfer/Solver/Smoothers/Jacobi.h"
+#include "HeatTransfer/Solver/Smoothers/RedBlackSOR.h"
+#include "HeatTransfer/Solver/Smoothers/SuccessiveOverRelaxation.h"
 
-namespace HeatTransfer::Solvers::Smoothers
+namespace HeatTransfer::Solver::Smoothers
 {
     SmootherFactory::SmootherFactory(Core::Smoother smoother, double relaxationFactor)
         : _smoother(smoother), _relaxationFactor(relaxationFactor)

@@ -2,7 +2,7 @@
 
 #include <tracy/Tracy.hpp>
 
-#include "HeatTransfer/Solvers/MultigridPreconditionedConjugateGradientSolver.h"
+#include "HeatTransfer/Solver/MultigridPreconditionedConjugateGradientSolver.h"
 
 namespace HeatTransfer::SimulationRunner
 {
@@ -10,7 +10,7 @@ namespace HeatTransfer::SimulationRunner
         : _parameters(config->Parameters)
         , _materialProperties(config->MaterialProperties)
         , _boundaryCondition(config->BoundaryConditions)
-        , _solver(std::make_shared<Solvers::MultigridPreconditionedConjugateGradientSolver>(
+        , _solver(std::make_shared<Solver::MultigridPreconditionedConjugateGradientSolver>(
               _parameters, _materialProperties, _boundaryCondition))
     {
     }

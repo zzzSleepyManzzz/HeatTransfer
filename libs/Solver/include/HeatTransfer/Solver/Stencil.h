@@ -2,7 +2,7 @@
 
 #include <Eigen/Dense>
 
-namespace HeatTransfer::Solvers
+namespace HeatTransfer::Solver
 {
     class Stencil
     {
