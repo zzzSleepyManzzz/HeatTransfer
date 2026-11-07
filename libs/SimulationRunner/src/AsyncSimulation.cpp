@@ -74,10 +74,10 @@ namespace HeatTransfer::SimulationRunner
     {
         std::scoped_lock lock(_resultMutex);
 
-        if (!_result)
+        if (!_result.has_value())
             throw std::logic_error("GetResult() called with no completed simulation");
 
-        SimulationResult result = std::move(*_result);
+        SimulationResult result = _result.value();
         _result.reset();
 
         return result;
