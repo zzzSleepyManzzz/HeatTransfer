@@ -7,7 +7,7 @@
 #include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
-#include "HeatTransfer/Solvers/RedBlackSOR.h"
+#include "HeatTransfer/Solver/MultigridPreconditionedConjugateGradientSolver.h"
 
 namespace HeatTransfer::Tests
 {
@@ -19,20 +19,18 @@ namespace HeatTransfer::Tests
         HeatTransfer::Core::MaterialProperties materialProperties =
             HeatTransfer::Core::MaterialProperties::Default();
 
-        HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
-                                                               .Columns = 100,
-                                                               .Expansion = 2,
-                                                               .NumExpansions = 2,
-                                                               .InitialResidualTolerance = 1e-3,
-                                                               .ExpandedResidualTolerance = 1e-1,
-                                                               .InitialErrorTolerance = 1e-6,
-                                                               .ExpandedErrorTolerance = 1e-6,
-                                                               .RelaxationFactor = 1.7,
-                                                               .MaxInitialIterations = 1000,
-                                                               .MaxExpandedIterations = 1000};
+        HeatTransfer::Core::SimulationParameters parameters = {
+            .Rows = 100,
+            .Columns = 100,
+            .ResidualTolerance = 1e-1,
+            .ErrorTolerance = 1e-6,
+            .RelaxationFactor = 1.7,
+            .MaxIterations = 1000,
+            .Smoother = HeatTransfer::Core::Smoother::RED_BLACK_SOR};
 
-        auto solver = std::make_shared<HeatTransfer::Solvers::RedBlackSOR>(
-            parameters, materialProperties, boundaryCondition);
+        auto solver =
+            std::make_shared<HeatTransfer::Solver::MultigridPreconditionedConjugateGradientSolver>(
+                parameters, materialProperties, boundaryCondition);
 
         solver->ComputeSimulation();
 
@@ -53,7 +51,7 @@ namespace HeatTransfer::Tests
 
         SECTION("Max residual should be below tolerance")
         {
-            REQUIRE(residuals.back()->ResidualMax <= parameters.ExpandedResidualTolerance);
+            REQUIRE(residuals.back()->ResidualMax <= parameters.ResidualTolerance);
         }
     }
 

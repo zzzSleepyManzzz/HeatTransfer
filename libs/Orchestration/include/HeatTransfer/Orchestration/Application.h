@@ -3,7 +3,8 @@
 #include <chrono>
 #include <memory>
 
-#include "HeatTransfer/SimulationRunner/Simulations.h"
+#include "HeatTransfer/SimulationRunner/AsyncSimulation.h"
+#include "HeatTransfer/SimulationRunner/Simulation.h"
 #include "HeatTransfer/Visualisation/Renderer.h"
 
 namespace HeatTransfer::Orchestration

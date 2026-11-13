@@ -38,4 +38,25 @@ namespace HeatTransfer::Visualisation
     {
         return _needsSimulationUpdate;
     }
+
+    void RendererModel::ClearSimulationUpdate()
+    {
+        _needsSimulationUpdate = false;
+    }
+
+    void RendererModel::SetSimulationProgress(bool isRunning, int currentIteration)
+    {
+        _isSimulationRunning = isRunning;
+        _currentIteration = currentIteration;
+    }
+
+    bool RendererModel::IsSimulationRunning()
+    {
+        return _isSimulationRunning;
+    }
+
+    int RendererModel::GetCurrentIteration()
+    {
+        return _currentIteration;
+    }
 }

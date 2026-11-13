@@ -1,0 +1,31 @@
+#include "HeatTransfer/Solver/Smoothers/Jacobi.h"
+
+#include <tracy/Tracy.hpp>
+
+namespace HeatTransfer::Solver::Smoothers
+{
+    void Jacobi::Smooth(Eigen::MatrixXd& matrix,
+                        const Eigen::MatrixXd& rhs,
+                        const Eigen::MatrixXd& insulated,
+                        [[maybe_unused]] SweepDirection direction) const
+    {
+        ZoneScoped;
+
+        const Eigen::Index rows = matrix.rows();
+        const Eigen::Index cols = matrix.cols();
+
+        // Every point is updated from the old values, so the sweep is already symmetric and the
+        // direction does not matter
+        const Eigen::MatrixXd old = matrix;
+
+        matrix.block(1, 1, rows - 2, cols - 2) =
+            (1 - DampingFactor) * old.block(1, 1, rows - 2, cols - 2) +
+            DampingFactor *
+                ((old.block(0, 1, rows - 2, cols - 2) + old.block(2, 1, rows - 2, cols - 2) +
+                  old.block(1, 0, rows - 2, cols - 2) + old.block(1, 2, rows - 2, cols - 2)) *
+                     0.25 +
+                 rhs.block(1, 1, rows - 2, cols - 2));
+
+        matrix.array() = insulated.array().select(old.array(), matrix.array());
+    }
+}

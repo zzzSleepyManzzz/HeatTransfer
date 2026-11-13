@@ -23,10 +23,20 @@ namespace HeatTransfer::Visualisation
 
         ImGui::Begin("Side Bar", nullptr, windowFlags);
         {
+            AddProgress();
             AddSettings();
             AddStatistics();
         }
         ImGui::End();
+    }
+
+    void SidePanel::AddProgress()
+    {
+        if (_model->IsSimulationRunning())
+        {
+            ImGui::Text("Simulation running... iteration %d", _model->GetCurrentIteration());
+            ImGui::Separator();
+        }
     }
 
     void SidePanel::AddSettings()
@@ -54,35 +64,9 @@ namespace HeatTransfer::Visualisation
             // Font Scaling
 
             if (ImGui::SliderFloat(
-                    "Font Scaling", &_settingsState->FontScaling, 1.0f, 3.0f, "%.2f"))
+                    "Font Scaling", &_settingsState->FontScaling, 0.5f, 2.0f, "%.2f"))
             {
-                ImGuiIO& io = ImGui::GetIO();
-                io.FontGlobalScale = _settingsState->FontScaling;
-            }
-
-            ImGui::Dummy(ImVec2(0.0f, 5.0f));
-
-            // Iterative method combo box
-
-            if (ImGui::Combo("## Iterative Method",
-                             &_settingsState->IterativeMethod,
-                             METHOD_OPTIONS,
-                             IM_ARRAYSIZE(METHOD_OPTIONS)))
-            {
-                _model->GetSimulationConfig()->Method =
-                    METHOD_ARRAY[_settingsState->IterativeMethod];
-
-                if (_model->GetSimulationConfig()->Method == HeatTransfer::Core::Method::JACOBI)
-                {
-                    _logger->Add(
-                        "Jacobi method utilizes very efficient Eigen block operations, "
-                        "thus may be faster than Gauss-Seidel and "
-                        "Successive-Over-Relaxation even with higher number of iterations!");
-
-                    _logger->AddSpace();
-                }
-
-                _model->UpdateModel();
+                ImGui::GetStyle().FontScaleMain = _settingsState->FontScaling;
             }
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
@@ -125,44 +109,43 @@ namespace HeatTransfer::Visualisation
 
             if (ImGui::InputInt("Number of rows", &_settingsState->TemporaryParameters.Rows))
             {
+                _settingsState->TemporaryParameters.Rows =
+                    std::max(10, _settingsState->TemporaryParameters.Rows);
             }
             if (ImGui::InputInt("Number of columns", &_settingsState->TemporaryParameters.Columns))
             {
+                _settingsState->TemporaryParameters.Columns =
+                    std::max(10, _settingsState->TemporaryParameters.Columns);
             }
-            if (ImGui::InputInt("Expansion factor", &_settingsState->TemporaryParameters.Expansion))
+            if (ImGui::InputDouble("Residual tolerance",
+                                   &_settingsState->TemporaryParameters.ResidualTolerance,
+                                   0.0,
+                                   0.0,
+                                   "%.10f"))
             {
+                _settingsState->TemporaryParameters.ResidualTolerance =
+                    std::max(1e-10, _settingsState->TemporaryParameters.ResidualTolerance);
             }
-            if (ImGui::InputInt("Num of expansions",
-                                &_settingsState->TemporaryParameters.NumExpansions))
+            if (ImGui::InputDouble("Error tolerance",
+                                   &_settingsState->TemporaryParameters.ErrorTolerance,
+                                   0.0,
+                                   0.0,
+                                   "%.10f"))
             {
-            }
-            if (ImGui::InputDouble("Initial residual tolerance",
-                                   &_settingsState->TemporaryParameters.InitialResidualTolerance))
-            {
-            }
-            if (ImGui::InputDouble("Expanded residual tolerance",
-                                   &_settingsState->TemporaryParameters.ExpandedResidualTolerance))
-            {
-            }
-            if (ImGui::InputDouble("Initial error tolerance",
-                                   &_settingsState->TemporaryParameters.InitialErrorTolerance))
-            {
-            }
-            if (ImGui::InputDouble("Expanded error tolerance",
-                                   &_settingsState->TemporaryParameters.ExpandedErrorTolerance))
-            {
+                _settingsState->TemporaryParameters.ErrorTolerance =
+                    std::max(1e-10, _settingsState->TemporaryParameters.ErrorTolerance);
             }
             if (ImGui::InputDouble("Relaxation factor",
                                    &_settingsState->TemporaryParameters.RelaxationFactor))
             {
+                _settingsState->TemporaryParameters.RelaxationFactor =
+                    std::clamp(_settingsState->TemporaryParameters.RelaxationFactor, 0.01, 1.99);
             }
-            if (ImGui::InputInt("Max initial iterations",
-                                &_settingsState->TemporaryParameters.MaxInitialIterations))
+            if (ImGui::InputInt("Max iterations",
+                                &_settingsState->TemporaryParameters.MaxIterations))
             {
-            }
-            if (ImGui::InputInt("Max expanded iterations",
-                                &_settingsState->TemporaryParameters.MaxExpandedIterations))
-            {
+                _settingsState->TemporaryParameters.MaxIterations =
+                    std::max(1, _settingsState->TemporaryParameters.MaxIterations);
             }
             if (ImGui::Combo("Residual tracking metric",
                              &_settingsState->ResidualTrackingMetric,
@@ -180,6 +163,14 @@ namespace HeatTransfer::Visualisation
                 _settingsState->TemporaryParameters.ErrorTrackingMetric =
                     TRACKER_ARRAY[_settingsState->ErrorTrackingMetric];
             }
+            if (ImGui::Combo("Smoother",
+                             &_settingsState->Smoother,
+                             SMOOTHER_OPTIONS,
+                             IM_ARRAYSIZE(SMOOTHER_OPTIONS)))
+            {
+                _settingsState->TemporaryParameters.Smoother =
+                    SMOOTHER_ARRAY[_settingsState->Smoother];
+            }
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
@@ -196,6 +187,7 @@ namespace HeatTransfer::Visualisation
             if (ImGui::Button("Cancel", ImVec2(-1, 0)))
             {
                 _settingsState->TemporaryParameters = _model->GetSimulationConfig()->Parameters;
+                _settingsState->Smoother = (int)_model->GetSimulationConfig()->Parameters.Smoother;
                 _settingsState->ResidualTrackingMetric =
                     (int)_model->GetSimulationConfig()->Parameters.ResidualTrackingMetric;
                 _settingsState->ErrorTrackingMetric =
@@ -242,6 +234,8 @@ namespace HeatTransfer::Visualisation
                     "Thermal conductivity [W/(m K)]",
                     &_settingsState->TemporaryMaterialProperties.ThermalConductivity))
             {
+                _settingsState->TemporaryMaterialProperties.ThermalConductivity =
+                    std::max(1e-6, _settingsState->TemporaryMaterialProperties.ThermalConductivity);
             }
             if (ImGui::InputDouble(
                     "Internal heat generation [W/m³]",
@@ -269,13 +263,6 @@ namespace HeatTransfer::Visualisation
 
                 ImGui::CloseCurrentPopup();
             }
-
-            ImGui::Dummy(ImVec2(0.0f, 35.0f));
-
-            ImGui::TextWrapped("Note: Extremely high internal heat generation and extremely low "
-                               "thermal conductivity lead to a stiff source term in the "
-                               "steady-state conduction equation, which increases the number of "
-                               "iterations needed to meet the convergence tolerance.");
 
             ImGui::EndPopup();
         }
@@ -314,26 +301,38 @@ namespace HeatTransfer::Visualisation
             if (ImGui::InputDouble("Top edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.TopEdge))
             {
+                _settingsState->TemporaryBoundaryConditions.TopEdge =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.TopEdge);
             }
             if (ImGui::InputDouble("Bottom edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.BottomEdge))
             {
+                _settingsState->TemporaryBoundaryConditions.BottomEdge =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.BottomEdge);
             }
             if (ImGui::InputDouble("Left edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.LeftEdge))
             {
+                _settingsState->TemporaryBoundaryConditions.LeftEdge =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.LeftEdge);
             }
             if (ImGui::InputDouble("Right edge temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.RightEdge))
             {
+                _settingsState->TemporaryBoundaryConditions.RightEdge =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.RightEdge);
             }
             if (ImGui::InputDouble("Inner square temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.InnerSquare))
             {
+                _settingsState->TemporaryBoundaryConditions.InnerSquare =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.InnerSquare);
             }
             if (ImGui::InputDouble("Center point temperature [K]",
                                    &_settingsState->TemporaryBoundaryConditions.CenterPoint))
             {
+                _settingsState->TemporaryBoundaryConditions.CenterPoint =
+                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.CenterPoint);
             }
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));

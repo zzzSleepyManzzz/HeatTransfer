@@ -1,5 +1,7 @@
 #include "HeatTransfer/Visualisation/Renderer.h"
 
+static_assert(sizeof(ImDrawIdx) == 4, "ImDrawIdx must be 32-bit to match conan_profile");
+
 namespace HeatTransfer::Visualisation
 {
     Renderer::Renderer()
@@ -70,12 +72,15 @@ namespace HeatTransfer::Visualisation
         // Setup style
         ImGui::StyleColorsDark();
 
-        // Enlarge font
-        ImGuiIO& io = ImGui::GetIO();
-        ImFontConfig config;
+        const auto dpiScale = ImGui_ImplGlfw_GetContentScaleForMonitor(primaryMonitor);
 
-        config.SizePixels = 16.0f; // 13 (default) -> 16 pixels
-        io.Fonts->AddFontDefault(&config);
+        ImGuiStyle& style = ImGui::GetStyle();
+        style.FontSizeBase = 15.0f; // 13 (default) -> 15 pixels, before DPI scaling
+        style.ScaleAllSizes(dpiScale);
+        style.FontScaleDpi = dpiScale;
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->AddFontDefault();
 
         // Setup backend
         ImGui_ImplGlfw_InitForOpenGL(_window, true);

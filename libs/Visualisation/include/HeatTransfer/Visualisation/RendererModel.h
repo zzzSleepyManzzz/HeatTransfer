@@ -23,6 +23,11 @@ namespace HeatTransfer::Visualisation
 
         void UpdateModel();
         bool NeedsSimulationUpdate();
+        void ClearSimulationUpdate();
+
+        void SetSimulationProgress(bool isRunning, int currentIteration);
+        bool IsSimulationRunning();
+        int GetCurrentIteration();
 
     private:
         std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig> _simulationConfig;
@@ -30,5 +35,8 @@ namespace HeatTransfer::Visualisation
         std::shared_ptr<StatisticsData> _statisticsData;
 
         bool _needsSimulationUpdate;
+
+        bool _isSimulationRunning = false;
+        int _currentIteration = 0;
     };
 }

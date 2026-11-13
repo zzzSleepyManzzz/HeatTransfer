@@ -14,10 +14,8 @@ namespace HeatTransfer::Visualisation
         auto& T = *temperatureMatrix;
         auto& R = *residualMatrix;
 
-        // ImGui by default uses 16-bit indexing, which limits vertex indices to 65,535
-        // Target ~5,000 max vertices instead of 65,535 to account for the index multiplier
         int total_elements = (int)T.rows() * (int)T.cols();
-        int target_num_elements = 5000;
+        int target_num_elements = 10000;
         int stride = std::max(
             1, (int)std::ceil(std::sqrt((double)total_elements / (double)target_num_elements)));
 

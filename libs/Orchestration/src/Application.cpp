@@ -17,27 +17,27 @@ namespace HeatTransfer::Orchestration
         HeatTransfer::Core::SimulationParameters parameters =
             HeatTransfer::Core::SimulationParameters::Default();
 
-        auto method = HeatTransfer::Core::Method::SUCCESSIVE_OVER_RELAXATION;
-
         auto simulationConfig = std::make_shared<HeatTransfer::SimulationRunner::SimulationConfig>(
-            parameters, materialProperties, boundaryCondition, method);
+            parameters, materialProperties, boundaryCondition);
 
-        auto simulations =
-            std::make_shared<HeatTransfer::SimulationRunner::Simulations>(simulationConfig);
+        auto simulation =
+            std::make_shared<HeatTransfer::SimulationRunner::Simulation>(simulationConfig);
 
         auto start = std::chrono::steady_clock::now();
 
-        simulations->Run();
+        simulation->Run();
 
         auto end = std::chrono::steady_clock::now();
         auto durationInSeconds = std::chrono::duration<double>(end - start).count();
 
-        auto simulationOutput = simulations->GetOutput();
+        auto simulationOutput = simulation->GetOutput();
 
         auto rendererModel = std::make_shared<HeatTransfer::Visualisation::RendererModel>(
             simulationConfig, simulationOutput, durationInSeconds);
 
         auto renderer = std::make_shared<HeatTransfer::Visualisation::Renderer>();
+
+        auto asyncSimulation = std::make_shared<HeatTransfer::SimulationRunner::AsyncSimulation>();
 
         while (!renderer->ShouldClose())
         {
@@ -45,23 +45,20 @@ namespace HeatTransfer::Orchestration
 
             if (rendererModel->NeedsSimulationUpdate())
             {
-                simulationConfig = rendererModel->GetSimulationConfig();
+                asyncSimulation->Start(rendererModel->GetSimulationConfig());
+                rendererModel->ClearSimulationUpdate();
+            }
 
-                simulations =
-                    std::make_shared<HeatTransfer::SimulationRunner::Simulations>(simulationConfig);
-
-                start = std::chrono::steady_clock::now();
-
-                simulations->Run();
-
-                end = std::chrono::steady_clock::now();
-                durationInSeconds = std::chrono::duration<double>(end - start).count();
-
-                simulationOutput = simulations->GetOutput();
+            if (asyncSimulation->IsComplete())
+            {
+                auto result = asyncSimulation->GetResult();
 
                 rendererModel = std::make_shared<HeatTransfer::Visualisation::RendererModel>(
-                    simulationConfig, simulationOutput, durationInSeconds);
+                    result.Config, result.Output, result.DurationInSeconds);
             }
+
+            rendererModel->SetSimulationProgress(asyncSimulation->IsRunning(),
+                                                 asyncSimulation->GetCurrentIteration());
 
             renderer->Render(rendererModel);
             renderer->PollEvents();

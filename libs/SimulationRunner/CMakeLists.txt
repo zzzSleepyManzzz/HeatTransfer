@@ -1,6 +1,8 @@
+find_package(Threads REQUIRED)
+
 add_library(SimulationRunner
-    src/SolverFactory.cpp
-    src/Simulations.cpp
+    src/AsyncSimulation.cpp
+    src/Simulation.cpp
 )
 
 target_include_directories(SimulationRunner
@@ -9,7 +11,9 @@ target_include_directories(SimulationRunner
 
 target_link_libraries(SimulationRunner
     PUBLIC Core
-    PUBLIC Solvers
+    PUBLIC Solver
+    
+    PUBLIC Threads::Threads
 
     PRIVATE Tracy::TracyClient
 )

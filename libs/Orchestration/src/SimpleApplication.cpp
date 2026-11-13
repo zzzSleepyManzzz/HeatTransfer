@@ -17,16 +17,14 @@ namespace HeatTransfer::Orchestration
         HeatTransfer::Core::SimulationParameters parameters =
             HeatTransfer::Core::SimulationParameters::Default();
 
-        auto method = HeatTransfer::Core::Method::SUCCESSIVE_OVER_RELAXATION;
-
         auto simulationConfig = std::make_shared<HeatTransfer::SimulationRunner::SimulationConfig>(
-            parameters, materialProperties, boundaryCondition, method);
+            parameters, materialProperties, boundaryCondition);
 
-        auto simulations =
-            std::make_shared<HeatTransfer::SimulationRunner::Simulations>(simulationConfig);
+        auto simulation =
+            std::make_shared<HeatTransfer::SimulationRunner::Simulation>(simulationConfig);
 
-        simulations->Run();
-        simulations->Print();
+        simulation->Run();
+        simulation->Print();
 
         auto end = std::chrono::steady_clock::now();
         auto duration = end - start;

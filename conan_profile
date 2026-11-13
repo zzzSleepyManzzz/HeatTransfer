@@ -1,0 +1,8 @@
+include(default)
+
+[conf]
+# 32-bit ImGui draw indices, the definition reaches this project through conan_toolchain.cmake
+tools.build:defines=["ImDrawIdx=ImU32"]
+
+# Include the definition in the package ID, otherwise --build=missing reuses 16-bit binaries
+tools.info.package_id:confs=["tools.build:defines"]
