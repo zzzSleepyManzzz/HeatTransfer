@@ -1,4 +1,12 @@
-add_library(Visualisation 
+include(FetchContent)
+
+FetchContent_Declare(implot3d
+    GIT_REPOSITORY https://github.com/brenocq/implot3d.git
+    GIT_TAG dc53089543240d167bee1740604e32ed7061e8c6 # v0.5
+)
+FetchContent_MakeAvailable(implot3d)
+
+add_library(Visualisation
     src/ConsoleLogger.cpp
     src/Renderer.cpp
     src/RendererModel.cpp
@@ -12,17 +20,16 @@ add_library(Visualisation
     src/PlotsPanel.cpp
     src/ConsolePanel.cpp
 
-    thirdparty/implot3d/implot3d.cpp         # Vendored source
-    thirdparty/implot3d/implot3d_demo.cpp    # Vendored source
-    thirdparty/implot3d/implot3d_items.cpp   # Vendored source
-    thirdparty/implot3d/implot3d_meshes.cpp  # Vendored source
+    ${implot3d_SOURCE_DIR}/implot3d.cpp
+    ${implot3d_SOURCE_DIR}/implot3d_items.cpp
+    ${implot3d_SOURCE_DIR}/implot3d_meshes.cpp
 )
 
 # Get ImGui's base path and store it
 get_target_property(IMGUI_BASE_DIR imgui::imgui INTERFACE_INCLUDE_DIRECTORIES)
 set(IMGUI_BINDINGS "${IMGUI_BASE_DIR}/../res/bindings")
 
-target_sources(Visualisation PRIVATE 
+target_sources(Visualisation PRIVATE
     "${IMGUI_BINDINGS}/imgui_impl_glfw.cpp"
     "${IMGUI_BINDINGS}/imgui_impl_opengl3.cpp"
 )
@@ -30,8 +37,11 @@ target_sources(Visualisation PRIVATE
 target_include_directories(Visualisation
     PUBLIC include
     PUBLIC "${IMGUI_BINDINGS}"
+)
 
-    PUBLIC thirdparty/implot3d # Vendored include
+# SYSTEM, so warnings from ImPlot3D's headers are not reported in our code
+target_include_directories(Visualisation SYSTEM
+    PUBLIC "${implot3d_SOURCE_DIR}"
 )
 
 target_link_libraries(Visualisation
