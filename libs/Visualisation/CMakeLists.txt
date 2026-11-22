@@ -39,7 +39,6 @@ target_include_directories(Visualisation
     PUBLIC "${IMGUI_BINDINGS}"
 )
 
-# SYSTEM, so warnings from ImPlot3D's headers are not reported in our code
 target_include_directories(Visualisation SYSTEM
     PUBLIC "${implot3d_SOURCE_DIR}"
 )
