@@ -20,9 +20,9 @@ namespace HeatTransfer::Solver
     private:
         std::shared_ptr<MultigridPreconditioner> _preconditioner;
 
-        Eigen::MatrixXd _gradient;               // grad f_k
-        Eigen::MatrixXd _preconditionedGradient; // d_k = B * grad f_k
-        Eigen::MatrixXd _searchDirection;        // s_k
+        Core::Tensor3d _gradient;                // grad f_k
+        Core::Tensor3d _preconditionedGradient;  // d_k = B * grad f_k
+        Core::Tensor3d _searchDirection;         // s_k
         double _gradientDotPreconditioned = 0.0; // grad f_k^T * d_k
 
         void Iterate() override;
@@ -30,8 +30,8 @@ namespace HeatTransfer::Solver
         void Initialise() override;
         void InitialiseConjugateGradientVariables();
         void PreconditionGradient();
-        Eigen::MatrixXd ApplyHessian(const Eigen::MatrixXd& matrix);
+        Core::Tensor3d ApplyHessian(const Core::Tensor3d& matrix);
 
-        double Dot(const Eigen::MatrixXd& a, const Eigen::MatrixXd& b);
+        double Dot(const Core::Tensor3d& a, const Core::Tensor3d& b);
     };
 }

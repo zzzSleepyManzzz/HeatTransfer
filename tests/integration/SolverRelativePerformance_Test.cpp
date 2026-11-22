@@ -38,6 +38,7 @@ namespace HeatTransfer::Tests
 
         HeatTransfer::Core::SimulationParameters parameters = {.Rows = 100,
                                                                .Columns = 100,
+                                                               .Layers = 20,
                                                                .ResidualTolerance = 1e-1,
                                                                .RelaxationFactor = 1.7,
                                                                .MaxIterations = 1000};

@@ -49,6 +49,12 @@ namespace HeatTransfer::Orchestration
                 rendererModel->ClearSimulationUpdate();
             }
 
+            if (rendererModel->NeedsSimulationCancel())
+            {
+                asyncSimulation->Cancel();
+                rendererModel->ClearSimulationCancel();
+            }
+
             if (asyncSimulation->IsComplete())
             {
                 auto result = asyncSimulation->GetResult();

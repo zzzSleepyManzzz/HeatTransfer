@@ -34,15 +34,15 @@ namespace HeatTransfer::SimulationRunner
 
     std::shared_ptr<SimulationOutput> Simulation::GetOutput()
     {
-        auto temperatureMatrix = _solver->GetTemperatureMatrix();
+        auto temperatureTensor = _solver->GetTemperatureTensor();
         const auto& errorMetrics = _solver->GetErrorMetrics();
 
-        auto residualMatrix = _solver->GetResidualMatrix();
+        auto residualTensor = _solver->GetResidualTensor();
         const auto& residualMetrics = _solver->GetResidualMetrics();
 
         bool isConverged = _solver->IsConverged();
 
         return std::make_shared<SimulationOutput>(
-            temperatureMatrix, errorMetrics, residualMatrix, residualMetrics, isConverged);
+            temperatureTensor, errorMetrics, residualTensor, residualMetrics, isConverged);
     }
 }

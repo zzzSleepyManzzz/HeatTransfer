@@ -14,19 +14,8 @@ namespace HeatTransfer::Visualisation
     public:
         RenderFrameData(std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output);
 
-        const std::vector<double>& Get_X_Values();
-        const std::vector<double>& Get_Y_Values();
-        const std::vector<double>& Get_Temperature_Values();
-        const std::vector<double>& Get_Residual_Values();
-
-        int GetRows();
-        int GetCols();
-
-        double Get_X_Min();
-        double Get_X_Max();
-
-        double Get_Y_Min();
-        double Get_Y_Max();
+        const Core::Tensor3d& GetTemperature();
+        const Core::Tensor3d& GetResidual();
 
         double Get_Temperature_Min();
         double Get_Temperature_Max();
@@ -66,19 +55,8 @@ namespace HeatTransfer::Visualisation
         double Get_RMS_Residuals_Max();
 
     private:
-        std::vector<double> _x_values;
-        std::vector<double> _y_values;
-        std::vector<double> _temperature_values;
-        std::vector<double> _residual_values;
-
-        int _rows;
-        int _cols;
-
-        double _x_min;
-        double _x_max;
-
-        double _y_min;
-        double _y_max;
+        std::shared_ptr<Core::Tensor3d> _temperature;
+        std::shared_ptr<Core::Tensor3d> _residual;
 
         double _temperature_min;
         double _temperature_max;

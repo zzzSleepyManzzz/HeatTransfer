@@ -9,9 +9,9 @@ namespace HeatTransfer::Solver::Smoothers
     public:
         explicit SuccessiveOverRelaxation(double relaxationFactor);
 
-        void Smooth(Eigen::MatrixXd& matrix,
-                    const Eigen::MatrixXd& rhs,
-                    const Eigen::MatrixXd& insulated,
+        void Smooth(Core::Tensor3d& matrix,
+                    const Core::Tensor3d& rhs,
+                    const SystemMatrix& system,
                     SweepDirection direction) const override;
 
     private:

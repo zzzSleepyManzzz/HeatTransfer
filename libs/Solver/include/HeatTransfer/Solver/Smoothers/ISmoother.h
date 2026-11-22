@@ -1,6 +1,8 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include "HeatTransfer/Core/Tensor3d.h"
+
+#include "HeatTransfer/Solver/Discretisation/SystemMatrix.h"
 
 namespace HeatTransfer::Solver::Smoothers
 {
@@ -15,9 +17,9 @@ namespace HeatTransfer::Solver::Smoothers
     public:
         virtual ~ISmoother() = default;
 
-        virtual void Smooth(Eigen::MatrixXd& matrix,
-                            const Eigen::MatrixXd& rhs,
-                            const Eigen::MatrixXd& insulated,
+        virtual void Smooth(Core::Tensor3d& matrix,
+                            const Core::Tensor3d& rhs,
+                            const SystemMatrix& system,
                             SweepDirection direction) const = 0;
     };
 }

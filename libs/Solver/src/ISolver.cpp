@@ -1,6 +1,13 @@
 #include "HeatTransfer/Solver/ISolver.h"
 
+#include <algorithm>
+
 #include <tracy/Tracy.hpp>
+
+#include "HeatTransfer/Core/Tensor3dMapper.h"
+
+#include "HeatTransfer/Solver/Discretisation/Geometry.h"
+#include "HeatTransfer/Solver/Discretisation/Stencil.h"
 
 namespace HeatTransfer::Solver
 {
@@ -17,19 +24,24 @@ namespace HeatTransfer::Solver
     {
         ZoneScoped;
 
-        int rows = _parameters.Rows;
-        int columns = _parameters.Columns;
+        const int rows = _parameters.Rows;
+        const int columns = _parameters.Columns;
+        const int layers = _parameters.Layers;
 
-        _temperatureMatrix = std::make_shared<Eigen::MatrixXd>(rows, columns);
-        _temperatureMatrix->setZero();
+        _temperatureTensor = std::make_shared<Core::Tensor3d>(rows, columns, layers);
+        _temperatureTensor->setZero();
 
-        _residualMatrix = std::make_shared<Eigen::MatrixXd>(rows, columns);
-        _residualMatrix->setZero();
+        _residualTensor = std::make_shared<Core::Tensor3d>(rows, columns, layers);
+        _residualTensor->setZero();
 
-        ApplyBoundaryConditions();
+        const auto geometry =
+            std::make_shared<Geometry>(_parameters, _materialProperties, _boundaryCondition);
 
-        _insulated = BuildInsulatedMask();
-        _heating = BuildHeating();
+        geometry->ApplyFixedTemperatures(*_temperatureTensor);
+
+        _system = std::make_shared<SystemMatrix>(geometry->BuildFixedTemperatureMask(),
+                                                 geometry->BuildBiotNumbers());
+        _rhs = geometry->BuildRhs();
 
         Initialise();
 
@@ -89,57 +101,19 @@ namespace HeatTransfer::Solver
         return _residualMetrics;
     }
 
-    std::shared_ptr<Eigen::MatrixXd> ISolver::GetTemperatureMatrix()
+    std::shared_ptr<Core::Tensor3d> ISolver::GetTemperatureTensor()
     {
-        return _temperatureMatrix;
+        return _temperatureTensor;
     }
 
-    std::shared_ptr<Eigen::MatrixXd> ISolver::GetResidualMatrix()
+    std::shared_ptr<Core::Tensor3d> ISolver::GetResidualTensor()
     {
-        return _residualMatrix;
-    }
-
-    void ISolver::ApplyBoundaryConditions()
-    {
-        auto& T = *_temperatureMatrix;
-
-        const Eigen::Index rows = T.rows();
-        const Eigen::Index cols = T.cols();
-
-        T.row(0) = Eigen::VectorXd::Constant(cols, _boundaryCondition.TopEdge);
-        T.row(rows - 1) = Eigen::VectorXd::Constant(cols, _boundaryCondition.BottomEdge);
-        T.col(0) = Eigen::VectorXd::Constant(rows, _boundaryCondition.LeftEdge);
-        T.col(cols - 1) = Eigen::VectorXd::Constant(rows, _boundaryCondition.RightEdge);
-
-        // Set inner square
-        const int h1 = std::floor(rows / 4);
-        const int h2 = std::floor(3 * rows / 4);
-        const int h3 = std::floor(cols / 4);
-        const int h4 = std::floor(3 * cols / 4);
-        const int c1 = std::floor(rows / 2) - 1;
-        const int c2 = std::floor(cols / 2) - 1;
-
-        T(Eigen::seq(h1, h2), h3) =
-            Eigen::VectorXd::Constant(h2 - h1 + 1, _boundaryCondition.InnerSquare);
-
-        T(Eigen::seq(h1, h2), h4) =
-            Eigen::VectorXd::Constant(h2 - h1 + 1, _boundaryCondition.InnerSquare);
-
-        T(h1, Eigen::seq(h3, h4)) =
-            Eigen::RowVectorXd::Constant(h4 - h3 + 1, _boundaryCondition.InnerSquare);
-
-        T(h2, Eigen::seq(h3, h4)) =
-            Eigen::RowVectorXd::Constant(h4 - h3 + 1, _boundaryCondition.InnerSquare);
-
-        T(c1, c2) = _boundaryCondition.CenterPoint;
+        return _residualTensor;
     }
 
     void ISolver::IterateTemperature(std::stop_token stopToken)
     {
         ZoneScoped;
-
-        const Eigen::Index rows = _temperatureMatrix->rows();
-        const Eigen::Index cols = _temperatureMatrix->cols();
 
         const int maxIterations = _parameters.MaxIterations;
         const double residualTolerance = _parameters.ResidualTolerance;
@@ -153,26 +127,26 @@ namespace HeatTransfer::Solver
         auto indexR = (size_t)_parameters.ResidualTrackingMetric;
         auto indexE = (size_t)_parameters.ErrorTrackingMetric;
 
-        // Preallocate Eigen matrices for performance
-        Eigen::MatrixXd oldTemperature(rows, cols);
-        Eigen::ArrayXXd errorArray(rows, cols);
-        Eigen::ArrayXXd residualArray(rows, cols);
+        // Preallocate for performance
+        Core::Tensor3d oldTemperature(_temperatureTensor->dimensions());
+        Eigen::ArrayXd errorArray(_temperatureTensor->size());
 
         while (!stopToken.stop_requested() && iterations < maxIterations &&
                residualTracker[indexR] > residualTolerance && errorTracker[indexE] > errorTolerance)
         {
-            oldTemperature = *_temperatureMatrix;
+            oldTemperature = *_temperatureTensor;
 
             Iterate();
 
-            UpdateResidualMatrix();
+            UpdateResidualTensor();
 
-            errorArray = (*_temperatureMatrix - oldTemperature).array();
+            errorArray = Core::Tensor3dMapper::AsVector(*_temperatureTensor).array() -
+                         Core::Tensor3dMapper::AsVector(oldTemperature).array();
             const double errorMax = errorArray.abs().maxCoeff();
             const double errorMean = errorArray.abs().mean();
             const double errorRMS = std::sqrt(errorArray.square().mean());
 
-            residualArray = (*_residualMatrix).array();
+            const auto residualArray = Core::Tensor3dMapper::AsVector(*_residualTensor).array();
             const double residualMax = residualArray.abs().maxCoeff();
             const double residualMean = residualArray.abs().mean();
             const double residualRMS = std::sqrt(residualArray.square().mean());
@@ -195,111 +169,18 @@ namespace HeatTransfer::Solver
         }
     }
 
-    bool ISolver::IsInsulated(Eigen::Index row,
-                              Eigen::Index col,
-                              Eigen::Index numRows,
-                              Eigen::Index numCols)
-    {
-        if (row == 0 || row == numRows - 1 || col == 0 || col == numCols - 1)
-            return true;
-
-        // Inner square
-        const int h1 = std::floor(numRows / 4);
-        const int h2 = std::floor(3 * numRows / 4);
-        const int h3 = std::floor(numCols / 4);
-        const int h4 = std::floor(3 * numCols / 4);
-        const int c1 = std::floor(numRows / 2) - 1;
-        const int c2 = std::floor(numCols / 2) - 1;
-
-        if ((row == h1 || row == h2) && col >= h3 && col <= h4)
-            return true;
-
-        if ((col == h3 || col == h4) && row >= h1 && row <= h2)
-            return true;
-
-        return row == c1 && col == c2;
-    }
-
-    Eigen::MatrixXd ISolver::BuildInsulatedMask()
-    {
-        const auto rows = _temperatureMatrix->rows();
-        const auto cols = _temperatureMatrix->cols();
-
-        Eigen::MatrixXd insulated(rows, cols);
-
-        for (Eigen::Index j = 0; j < cols; j++)
-        {
-            for (Eigen::Index i = 0; i < rows; i++)
-            {
-                insulated(i, j) = IsInsulated(i, j, rows, cols);
-            }
-        }
-
-        return insulated;
-    }
-
-    Eigen::MatrixXd ISolver::BuildHeating()
-    {
-        // The right-hand side b of H * x = b. The factor of 0.25 matches the scaling used by
-        // Stencil::ComputeResidual, i.e. r = b - x + 0.25 * (sum of neighbours)
-
-        const auto rows = _insulated.rows();
-        const auto cols = _insulated.cols();
-
-        auto q_g = _materialProperties.InternalHeatGeneration;
-        auto k = _materialProperties.ThermalConductivity;
-        auto h = 1.0 / std::max(rows, cols);
-
-        Eigen::MatrixXd heating =
-            Eigen::MatrixXd::Constant(rows, cols, 0.25f * pow(h, 2) * q_g / k);
-        heating.array() = _insulated.array().select(0.0, heating.array());
-
-        return heating;
-    }
-
-    void ISolver::UpdateResidualMatrix()
+    void ISolver::UpdateResidualTensor()
     {
         ZoneScoped;
 
-        const Eigen::Index rows = _temperatureMatrix->rows();
-        const Eigen::Index cols = _temperatureMatrix->cols();
+        // Compute the absolute residual |b - H * x|
 
-        _residualMatrix = std::make_shared<Eigen::MatrixXd>(rows, cols);
-        _residualMatrix->setZero();
+        auto residual = std::make_shared<Core::Tensor3d>(
+            Stencil::ComputeResidual(*_temperatureTensor, _rhs, *_system));
 
-        auto& T = *_temperatureMatrix;
-        auto& R = *_residualMatrix;
+        auto R = Core::Tensor3dMapper::AsVector(*residual);
+        R = R.cwiseAbs();
 
-        auto q_g = _materialProperties.InternalHeatGeneration;
-        auto k = _materialProperties.ThermalConductivity;
-        auto h = 1.0 / std::max(rows, cols);
-        auto heating = Eigen::MatrixXd::Constant(rows - 2, cols - 2, pow(h, 2) * q_g / k);
-
-        R.block(1, 1, rows - 2, cols - 2) =
-            T.block(1, 1, rows - 2, cols - 2) -
-            (T.block(0, 1, rows - 2, cols - 2) + T.block(2, 1, rows - 2, cols - 2) +
-             T.block(1, 0, rows - 2, cols - 2) + T.block(1, 2, rows - 2, cols - 2) + heating) *
-                0.25f;
-
-        const int h1 = std::floor(rows / 4);
-        const int h2 = std::floor(3 * rows / 4);
-        const int h3 = std::floor(cols / 4);
-        const int h4 = std::floor(3 * cols / 4);
-        const int c1 = std::floor(rows / 2) - 1;
-        const int c2 = std::floor(cols / 2) - 1;
-
-        R.row(0) = Eigen::VectorXd::Constant(cols, 0);
-        R.row(rows - 1) = Eigen::VectorXd::Constant(cols, 0);
-        R.col(0) = Eigen::VectorXd::Constant(rows, 0);
-        R.col(cols - 1) = Eigen::VectorXd::Constant(rows, 0);
-
-        R(Eigen::seq(h1, h2), h3) = Eigen::VectorXd::Constant(h2 - h1 + 1, 0);
-        R(Eigen::seq(h1, h2), h4) = Eigen::VectorXd::Constant(h2 - h1 + 1, 0);
-        R(h1, Eigen::seq(h3, h4)) = Eigen::RowVectorXd::Constant(h4 - h3 + 1, 0);
-        R(h2, Eigen::seq(h3, h4)) = Eigen::RowVectorXd::Constant(h4 - h3 + 1, 0);
-
-        R(c1, c2) = 0;
-
-        R = R.cwiseAbs().eval();
+        _residualTensor = residual;
     }
 }

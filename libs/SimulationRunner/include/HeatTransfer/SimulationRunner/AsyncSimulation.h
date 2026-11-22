@@ -24,6 +24,7 @@ namespace HeatTransfer::SimulationRunner
         AsyncSimulation& operator=(const AsyncSimulation&) = delete;
 
         void Start(std::shared_ptr<SimulationConfig> config);
+        void Cancel();
 
         bool IsRunning() const;
         int GetCurrentIteration() const;
