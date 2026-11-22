@@ -1,72 +1,27 @@
 #include "HeatTransfer/Visualisation/RenderFrameData.h"
 
+#include "HeatTransfer/Core/Tensor3dMapper.h"
+
 namespace HeatTransfer::Visualisation
 {
     RenderFrameData::RenderFrameData(
         std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output)
     {
-        auto temperatureMatrix = output->TemperatureMatrix;
-        const auto& errorMetrics = output->ErrorMetrics;
+        _temperature = output->TemperatureTensor;
+        _residual = output->ResidualTensor;
 
-        auto residualMatrix = output->ResidualMatrix;
+        const auto& errorMetrics = output->ErrorMetrics;
         const auto& residualMetrics = output->ResidualMetrics;
 
-        auto& T = *temperatureMatrix;
-        auto& R = *residualMatrix;
+        const auto T = Core::Tensor3dMapper::AsVector(*_temperature);
+        const auto R = Core::Tensor3dMapper::AsVector(*_residual);
 
-        int total_elements = (int)T.rows() * (int)T.cols();
-        int target_num_elements = 10000;
-        int stride = std::max(
-            1, (int)std::ceil(std::sqrt((double)total_elements / (double)target_num_elements)));
+        // Min and max over the whole field
+        _temperature_min = T.minCoeff();
+        _temperature_max = T.maxCoeff();
 
-        _rows = (T.rows() + stride - 1) / stride;
-        _cols = (T.cols() + stride - 1) / stride;
-
-        _temperature_values.reserve(_rows * _cols);
-        _residual_values.reserve(_rows * _cols);
-
-        for (auto i = 0u; i < T.rows(); i += stride)
-        {
-            for (auto j = 0u; j < T.cols(); j += stride)
-            {
-                _temperature_values.push_back(T(i, j));
-                _residual_values.push_back(R(i, j));
-            }
-        }
-
-        // Populate other values
-
-        int N = _cols * _rows;
-
-        _x_values = std::vector<double>(N, 0);
-        _y_values = std::vector<double>(N, 0);
-
-        _x_min = 0;
-        _x_max = T.cols();
-
-        _y_min = 0;
-        _y_max = T.rows();
-
-        _temperature_min =
-            *std::min_element(_temperature_values.begin(), _temperature_values.end());
-        _temperature_max =
-            *std::max_element(_temperature_values.begin(), _temperature_values.end());
-
-        _residual_min = *std::min_element(_residual_values.begin(), _residual_values.end());
-        _residual_max = *std::max_element(_residual_values.begin(), _residual_values.end());
-
-        auto x_step = (_x_max - _x_min) / (_cols - 1);
-        auto y_step = (_y_max - _y_min) / (_rows - 1);
-
-        for (int i = 0; i < _rows; i++)
-        {
-            for (int j = 0; j < _cols; j++)
-            {
-                int index = i * _cols + j;
-                _x_values[index] = _x_min + j * x_step;
-                _y_values[index] = _y_min + i * y_step;
-            }
-        }
+        _residual_min = R.minCoeff();
+        _residual_max = R.maxCoeff();
 
         // Populate error and residual related information
 
@@ -107,54 +62,14 @@ namespace HeatTransfer::Visualisation
         _RMS_Residuals_max = *std::max_element(_RMS_Residuals.begin(), _RMS_Residuals.end());
     }
 
-    const std::vector<double>& RenderFrameData::Get_X_Values()
+    const Core::Tensor3d& RenderFrameData::GetTemperature()
     {
-        return _x_values;
+        return *_temperature;
     }
 
-    const std::vector<double>& RenderFrameData::Get_Y_Values()
+    const Core::Tensor3d& RenderFrameData::GetResidual()
     {
-        return _y_values;
-    }
-
-    const std::vector<double>& RenderFrameData::Get_Temperature_Values()
-    {
-        return _temperature_values;
-    }
-
-    const std::vector<double>& RenderFrameData::Get_Residual_Values()
-    {
-        return _residual_values;
-    }
-
-    int RenderFrameData::GetRows()
-    {
-        return _rows;
-    }
-
-    int RenderFrameData::GetCols()
-    {
-        return _cols;
-    }
-
-    double RenderFrameData::Get_X_Min()
-    {
-        return _x_min;
-    }
-
-    double RenderFrameData::Get_X_Max()
-    {
-        return _x_max;
-    }
-
-    double RenderFrameData::Get_Y_Min()
-    {
-        return _y_min;
-    }
-
-    double RenderFrameData::Get_Y_Max()
-    {
-        return _y_max;
+        return *_residual;
     }
 
     double RenderFrameData::Get_Temperature_Min()

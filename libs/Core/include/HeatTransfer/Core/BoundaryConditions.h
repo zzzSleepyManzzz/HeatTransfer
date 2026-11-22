@@ -1,24 +1,28 @@
 #pragma once
 
+#include <vector>
+
+#include "HeatTransfer/Core/Face.h"
+#include "HeatTransfer/Core/FaceBoundaryCondition.h"
+#include "HeatTransfer/Core/LetterPatch.h"
+
 namespace HeatTransfer::Core
 {
     struct BoundaryConditions
     {
-        double TopEdge;
-        double BottomEdge;
-        double LeftEdge;
-        double RightEdge;
-        double InnerSquare;
-        double CenterPoint;
+        FaceBoundaryCondition Left;
+        FaceBoundaryCondition Right;
+        FaceBoundaryCondition Top;
+        FaceBoundaryCondition Bottom;
+        FaceBoundaryCondition Front;
+        FaceBoundaryCondition Back;
+        std::vector<LetterPatch> Letters;
 
-        constexpr static const BoundaryConditions Default()
-        {
-            return {.TopEdge = 450.0,
-                    .BottomEdge = 350.0,
-                    .LeftEdge = 450.0,
-                    .RightEdge = 350.0,
-                    .InnerSquare = 400.0,
-                    .CenterPoint = 250.0};
-        }
+        bool IsWellPosed() const;
+
+        const FaceBoundaryCondition& GetFace(Face face) const;
+        void SetFace(Face face, const FaceBoundaryCondition& faceBoundaryCondition);
+
+        static BoundaryConditions Default();
     };
 }

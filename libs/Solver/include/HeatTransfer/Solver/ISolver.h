@@ -8,13 +8,14 @@
 #include <stop_token>
 #include <vector>
 
-#include <Eigen/Dense>
-
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/ErrorMetric.h"
 #include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/ResidualMetric.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
+#include "HeatTransfer/Core/Tensor3d.h"
+
+#include "HeatTransfer/Solver/Discretisation/SystemMatrix.h"
 
 namespace HeatTransfer::Solver
 {
@@ -34,8 +35,8 @@ namespace HeatTransfer::Solver
         const std::vector<std::shared_ptr<Core::ErrorMetric>>& GetErrorMetrics();
         const std::vector<std::shared_ptr<Core::ResidualMetric>>& GetResidualMetrics();
 
-        std::shared_ptr<Eigen::MatrixXd> GetTemperatureMatrix();
-        std::shared_ptr<Eigen::MatrixXd> GetResidualMatrix();
+        std::shared_ptr<Core::Tensor3d> GetTemperatureTensor();
+        std::shared_ptr<Core::Tensor3d> GetResidualTensor();
 
     protected:
         Core::SimulationParameters _parameters;
@@ -43,11 +44,11 @@ namespace HeatTransfer::Solver
         Core::BoundaryConditions _boundaryCondition;
         std::vector<std::shared_ptr<Core::ErrorMetric>> _errorMetrics;
         std::vector<std::shared_ptr<Core::ResidualMetric>> _residualMetrics;
-        std::shared_ptr<Eigen::MatrixXd> _temperatureMatrix;
-        std::shared_ptr<Eigen::MatrixXd> _residualMatrix;
+        std::shared_ptr<Core::Tensor3d> _temperatureTensor;
+        std::shared_ptr<Core::Tensor3d> _residualTensor;
 
-        Eigen::MatrixXd _insulated;
-        Eigen::MatrixXd _heating;
+        std::shared_ptr<SystemMatrix> _system;
+        Core::Tensor3d _rhs;
 
         std::atomic<int> _currentIteration = 0;
 
@@ -56,13 +57,8 @@ namespace HeatTransfer::Solver
                 const Core::BoundaryConditions& boundaryCondition);
 
         void IterateTemperature(std::stop_token stopToken);
-        void ApplyBoundaryConditions();
 
-        bool IsInsulated(Eigen::Index row, Eigen::Index col, Eigen::Index rows, Eigen::Index cols);
-        Eigen::MatrixXd BuildInsulatedMask();
-        Eigen::MatrixXd BuildHeating();
-
-        void UpdateResidualMatrix();
+        void UpdateResidualTensor();
 
         virtual void Initialise() = 0;
         virtual void Iterate() = 0;

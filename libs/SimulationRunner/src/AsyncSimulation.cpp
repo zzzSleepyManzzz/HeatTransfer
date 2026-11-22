@@ -54,6 +54,23 @@ namespace HeatTransfer::SimulationRunner
             });
     }
 
+    void AsyncSimulation::Cancel()
+    {
+        ZoneScoped;
+
+        _thread.request_stop();
+
+        if (_thread.joinable())
+            _thread.join();
+
+        {
+            std::scoped_lock lock(_resultMutex);
+            _result.reset();
+        }
+
+        _isRunning = false;
+    }
+
     bool AsyncSimulation::IsRunning() const
     {
         return _isRunning;

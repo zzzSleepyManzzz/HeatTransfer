@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "HeatTransfer/Core/Faces.h"
 #include "HeatTransfer/Core/Smoother.h"
 #include "HeatTransfer/Core/TrackingMetric.h"
 
@@ -33,6 +34,14 @@ namespace HeatTransfer::Visualisation
             HeatTransfer::Core::TrackingMetric::MEAN,
             HeatTransfer::Core::TrackingMetric::RMS};
 
+        static constexpr const char* FACE_NAMES[6] = {
+            "Left face", "Right face", "Top face", "Bottom face", "Front face", "Back face"};
+
+        static constexpr const char* BOUNDARY_TYPE_OPTIONS[3] = {
+            "Fixed temperature", "Heat flux", "Convection"};
+
+        static constexpr const char* LETTER_NAMES[2] = {"H", "T"};
+
         std::shared_ptr<SettingsState> _settingsState;
 
         void ShowSideBar();
@@ -42,6 +51,7 @@ namespace HeatTransfer::Visualisation
         void AddParametersButton();
         void AddMaterialPropertiesButton();
         void AddBoundaryConditionsButton();
+        void AddRunButton();
 
         void AddStatistics();
     };

@@ -44,6 +44,21 @@ namespace HeatTransfer::Visualisation
         _needsSimulationUpdate = false;
     }
 
+    void RendererModel::CancelSimulation()
+    {
+        _needsSimulationCancel = true;
+    }
+
+    bool RendererModel::NeedsSimulationCancel()
+    {
+        return _needsSimulationCancel;
+    }
+
+    void RendererModel::ClearSimulationCancel()
+    {
+        _needsSimulationCancel = false;
+    }
+
     void RendererModel::SetSimulationProgress(bool isRunning, int currentIteration)
     {
         _isSimulationRunning = isRunning;

@@ -2,7 +2,7 @@
 
 namespace HeatTransfer::Visualisation
 {
-    struct ErrorPlotsState
+    struct ErrorConvergencePlotsState
     {
         bool ResetZoom = false;
     };

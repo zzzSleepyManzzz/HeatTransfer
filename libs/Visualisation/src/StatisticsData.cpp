@@ -1,5 +1,7 @@
 #include "HeatTransfer/Visualisation/StatisticsData.h"
 
+#include "HeatTransfer/Core/Tensor3dMapper.h"
+
 namespace HeatTransfer::Visualisation
 {
     StatisticsData::StatisticsData(
@@ -7,12 +9,12 @@ namespace HeatTransfer::Visualisation
         double durationInSeconds)
         : _durationInSeconds(durationInSeconds)
     {
-        auto temperatureMatrix = output->TemperatureMatrix;
+        const auto T = Core::Tensor3dMapper::AsVector(*output->TemperatureTensor);
         const auto& errorMetrics = output->ErrorMetrics;
 
-        _minTemperature = temperatureMatrix->minCoeff();
-        _maxTemperature = temperatureMatrix->maxCoeff();
-        _meanTemperature = temperatureMatrix->mean();
+        _minTemperature = T.minCoeff();
+        _maxTemperature = T.maxCoeff();
+        _meanTemperature = T.mean();
 
         auto finalError = errorMetrics.back();
 

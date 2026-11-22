@@ -4,21 +4,25 @@
 
 #include <tracy/Tracy.hpp>
 
+#include "HeatTransfer/Solver/Discretisation/Stencil.h"
+
 namespace HeatTransfer::Solver::Smoothers
 {
     RedBlackSOR::RedBlackSOR(double relaxationFactor) : _relaxationFactor(relaxationFactor) {}
 
-    void RedBlackSOR::Smooth(Eigen::MatrixXd& matrix,
-                             const Eigen::MatrixXd& rhs,
-                             const Eigen::MatrixXd& insulated,
+    void RedBlackSOR::Smooth(Core::Tensor3d& matrix,
+                             const Core::Tensor3d& rhs,
+                             const SystemMatrix& system,
                              SweepDirection direction) const
     {
         ZoneScoped;
 
-        const Eigen::Index rows = matrix.rows();
-        const Eigen::Index cols = matrix.cols();
+        const Eigen::Index rows = matrix.dimension(0);
+        const Eigen::Index cols = matrix.dimension(1);
+        const Eigen::Index layers = matrix.dimension(2);
 
         auto& T = matrix;
+        const auto& fixedTemperatureMask = system.GetFixedTemperatureMask();
 
         auto RED = 0;
         auto BLACK = 1;
@@ -30,20 +34,22 @@ namespace HeatTransfer::Solver::Smoothers
 
         for (auto colour : colours)
         {
-#pragma omp parallel for schedule(static)
-            for (Eigen::Index j = 1; j < cols - 1; j++)
+#pragma omp parallel for collapse(2) schedule(static)
+            for (Eigen::Index k = 0; k < layers; k++)
             {
-                const Eigen::Index start = 1 + ((1 + j + colour) % 2);
-
-                for (Eigen::Index i = start; i < rows - 1; i += 2)
+                for (Eigen::Index j = 0; j < cols; j++)
                 {
-                    if (insulated(i, j))
-                        continue;
+                    const Eigen::Index start = (j + k + colour) % 2;
 
-                    T(i, j) = (1 - _relaxationFactor) * T(i, j) +
-                              _relaxationFactor *
-                                  (0.25 * (T(i - 1, j) + T(i + 1, j) + T(i, j - 1) + T(i, j + 1)) +
-                                   rhs(i, j));
+                    for (Eigen::Index i = start; i < rows; i += 2)
+                    {
+                        if (fixedTemperatureMask(i, j, k))
+                            continue;
+
+                        T(i, j, k) =
+                            (1 - _relaxationFactor) * T(i, j, k) +
+                            _relaxationFactor * Stencil::LocalSolve(T, rhs, system, i, j, k);
+                    }
                 }
             }
         }

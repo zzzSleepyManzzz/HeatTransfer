@@ -71,17 +71,18 @@ namespace HeatTransfer::Visualisation
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-            // Add simulation parameters and boundary conditions button
+            // Add simulation parameters, material properties and boundary conditions button
 
             AddParametersButton();
             AddMaterialPropertiesButton();
             AddBoundaryConditionsButton();
+            AddRunButton();
         }
     }
 
     void SidePanel::AddParametersButton()
     {
-        if (ImGui::Button("Simulation Parameters"))
+        if (ImGui::Button("Simulation Parameters", ImVec2(-1, 0)))
         {
             ImGui::OpenPopup("Modify simulation parameters");
         }
@@ -99,7 +100,7 @@ namespace HeatTransfer::Visualisation
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             ImGui::Text("Set new simulation parameters here");
-            ImGui::Text("Pressing OK will start a new run");
+            ImGui::Text("Press Run to start a new run with them");
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
@@ -107,16 +108,41 @@ namespace HeatTransfer::Visualisation
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-            if (ImGui::InputInt("Number of rows", &_settingsState->TemporaryParameters.Rows))
+            if (ImGui::InputInt("Number of rows (y, width)",
+                                &_settingsState->TemporaryParameters.Rows))
             {
                 _settingsState->TemporaryParameters.Rows =
-                    std::max(10, _settingsState->TemporaryParameters.Rows);
+                    std::max(4, _settingsState->TemporaryParameters.Rows);
             }
-            if (ImGui::InputInt("Number of columns", &_settingsState->TemporaryParameters.Columns))
+            if (ImGui::InputInt("Number of columns (x, length)",
+                                &_settingsState->TemporaryParameters.Columns))
             {
                 _settingsState->TemporaryParameters.Columns =
-                    std::max(10, _settingsState->TemporaryParameters.Columns);
+                    std::max(4, _settingsState->TemporaryParameters.Columns);
             }
+            if (ImGui::InputInt("Number of layers (z, height)",
+                                &_settingsState->TemporaryParameters.Layers))
+            {
+                _settingsState->TemporaryParameters.Layers =
+                    std::max(4, _settingsState->TemporaryParameters.Layers);
+            }
+
+            // Shown in millimetres, stored in metres
+            double gridSpacingMm = _settingsState->TemporaryParameters.GridSpacing * 1000.0;
+
+            if (ImGui::InputDouble("Grid spacing [mm]", &gridSpacingMm))
+            {
+                _settingsState->TemporaryParameters.GridSpacing =
+                    std::max(1e-3, gridSpacingMm) / 1000.0;
+            }
+
+            const auto& parameters = _settingsState->TemporaryParameters;
+
+            ImGui::Text("Plate size: %.3g x %.3g x %.3g m",
+                        (parameters.Columns - 1) * parameters.GridSpacing,
+                        (parameters.Rows - 1) * parameters.GridSpacing,
+                        (parameters.Layers - 1) * parameters.GridSpacing);
+
             if (ImGui::InputDouble("Residual tolerance",
                                    &_settingsState->TemporaryParameters.ResidualTolerance,
                                    0.0,
@@ -177,7 +203,6 @@ namespace HeatTransfer::Visualisation
             if (ImGui::Button("OK", ImVec2(displaySize.x * 1.0f / 6.0f, 0)))
             {
                 _model->GetSimulationConfig()->Parameters = _settingsState->TemporaryParameters;
-                _model->UpdateModel();
 
                 ImGui::CloseCurrentPopup();
             }
@@ -204,7 +229,7 @@ namespace HeatTransfer::Visualisation
 
     void SidePanel::AddMaterialPropertiesButton()
     {
-        if (ImGui::Button("Material Properties"))
+        if (ImGui::Button("Material Properties", ImVec2(-1, 0)))
         {
             ImGui::OpenPopup("Modify material properties");
         }
@@ -222,7 +247,7 @@ namespace HeatTransfer::Visualisation
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             ImGui::Text("Set new material properties here");
-            ImGui::Text("Pressing OK will start a new run");
+            ImGui::Text("Press Run to start a new run with them");
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
@@ -249,7 +274,6 @@ namespace HeatTransfer::Visualisation
             {
                 _model->GetSimulationConfig()->MaterialProperties =
                     _settingsState->TemporaryMaterialProperties;
-                _model->UpdateModel();
 
                 ImGui::CloseCurrentPopup();
             }
@@ -272,7 +296,7 @@ namespace HeatTransfer::Visualisation
 
     void SidePanel::AddBoundaryConditionsButton()
     {
-        if (ImGui::Button("Boundary Conditions"))
+        if (ImGui::Button("Boundary Conditions", ImVec2(-1, 0)))
         {
             ImGui::OpenPopup("Modify boundary conditions");
         }
@@ -290,7 +314,7 @@ namespace HeatTransfer::Visualisation
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             ImGui::Text("Set new boundary conditions here");
-            ImGui::Text("Pressing OK will start a new run");
+            ImGui::Text("Press Run to start a new run with them");
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
@@ -298,53 +322,104 @@ namespace HeatTransfer::Visualisation
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-            if (ImGui::InputDouble("Top edge temperature [K]",
-                                   &_settingsState->TemporaryBoundaryConditions.TopEdge))
+            auto& boundaryConditions = _settingsState->TemporaryBoundaryConditions;
+
+            for (std::size_t i = 0; i < Core::Faces::ALL.size(); i++)
             {
-                _settingsState->TemporaryBoundaryConditions.TopEdge =
-                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.TopEdge);
+                const auto face = Core::Faces::ALL[i];
+                auto boundaryCondition = boundaryConditions.GetFace(face);
+
+                ImGui::PushID((int)i);
+                ImGui::SeparatorText(FACE_NAMES[i]);
+
+                int type = (int)boundaryCondition.Type;
+
+                if (ImGui::Combo(
+                        "Type", &type, BOUNDARY_TYPE_OPTIONS, IM_ARRAYSIZE(BOUNDARY_TYPE_OPTIONS)))
+                {
+                    boundaryCondition.Type = (Core::BoundaryType)type;
+                }
+
+                switch (boundaryCondition.Type)
+                {
+                    case Core::BoundaryType::FIXED_TEMPERATURE:
+                        if (ImGui::InputDouble("Temperature [K]", &boundaryCondition.Temperature))
+                        {
+                            boundaryCondition.Temperature =
+                                std::max(0.0, boundaryCondition.Temperature);
+                        }
+                        break;
+
+                    case Core::BoundaryType::HEAT_FLUX:
+                        ImGui::InputDouble("Heat flux into plate [W/m²]",
+                                           &boundaryCondition.HeatFlux);
+                        break;
+
+                    case Core::BoundaryType::CONVECTION:
+                        if (ImGui::InputDouble("Heat transfer coefficient [W/(m² K)]",
+                                               &boundaryCondition.HeatTransferCoefficient))
+                        {
+                            boundaryCondition.HeatTransferCoefficient =
+                                std::max(0.0, boundaryCondition.HeatTransferCoefficient);
+                        }
+                        if (ImGui::InputDouble("Ambient temperature [K]",
+                                               &boundaryCondition.AmbientTemperature))
+                        {
+                            boundaryCondition.AmbientTemperature =
+                                std::max(0.0, boundaryCondition.AmbientTemperature);
+                        }
+                        break;
+                }
+
+                boundaryConditions.SetFace(face, boundaryCondition);
+
+                ImGui::PopID();
             }
-            if (ImGui::InputDouble("Bottom edge temperature [K]",
-                                   &_settingsState->TemporaryBoundaryConditions.BottomEdge))
+
+            ImGui::SeparatorText("Letters (fixed temperature)");
+
+            for (std::size_t i = 0; i < boundaryConditions.Letters.size(); i++)
             {
-                _settingsState->TemporaryBoundaryConditions.BottomEdge =
-                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.BottomEdge);
-            }
-            if (ImGui::InputDouble("Left edge temperature [K]",
-                                   &_settingsState->TemporaryBoundaryConditions.LeftEdge))
-            {
-                _settingsState->TemporaryBoundaryConditions.LeftEdge =
-                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.LeftEdge);
-            }
-            if (ImGui::InputDouble("Right edge temperature [K]",
-                                   &_settingsState->TemporaryBoundaryConditions.RightEdge))
-            {
-                _settingsState->TemporaryBoundaryConditions.RightEdge =
-                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.RightEdge);
-            }
-            if (ImGui::InputDouble("Inner square temperature [K]",
-                                   &_settingsState->TemporaryBoundaryConditions.InnerSquare))
-            {
-                _settingsState->TemporaryBoundaryConditions.InnerSquare =
-                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.InnerSquare);
-            }
-            if (ImGui::InputDouble("Center point temperature [K]",
-                                   &_settingsState->TemporaryBoundaryConditions.CenterPoint))
-            {
-                _settingsState->TemporaryBoundaryConditions.CenterPoint =
-                    std::max(0.0, _settingsState->TemporaryBoundaryConditions.CenterPoint);
+                auto& letter = boundaryConditions.Letters[i];
+
+                ImGui::PushID(100 + (int)i);
+
+                ImGui::Checkbox("##Enabled", &letter.Enabled);
+                ImGui::SameLine();
+                ImGui::Text("Letter %s on the %s",
+                            LETTER_NAMES[(int)letter.Letter],
+                            FACE_NAMES[(int)letter.Surface]);
+
+                if (letter.Enabled && ImGui::InputDouble("Temperature [K]", &letter.Temperature))
+                {
+                    letter.Temperature = std::max(0.0, letter.Temperature);
+                }
+
+                ImGui::PopID();
             }
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::TextWrapped("A heat flux of 0 is an insulated (adiabatic) face");
+
+            const bool isWellPosed = boundaryConditions.IsWellPosed();
+
+            if (!isWellPosed)
+                ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+                                   "At least one face needs a fixed temperature or convection");
+
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            ImGui::BeginDisabled(!isWellPosed);
 
             if (ImGui::Button("OK", ImVec2(displaySize.x * 1.0f / 6.0f, 0)))
             {
                 _model->GetSimulationConfig()->BoundaryConditions =
                     _settingsState->TemporaryBoundaryConditions;
-                _model->UpdateModel();
 
                 ImGui::CloseCurrentPopup();
             }
+
+            ImGui::EndDisabled();
             ImGui::SetItemDefaultFocus();
             ImGui::SameLine();
 
@@ -358,9 +433,31 @@ namespace HeatTransfer::Visualisation
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-            ImGui::Text("Note: In the future we'll allow arbitrary boundary conditions!");
-
             ImGui::EndPopup();
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 5.0f));
+    }
+
+    void SidePanel::AddRunButton()
+    {
+        const bool isRunning = _model->IsSimulationRunning();
+        const ImVec2 size(-1, 1.4f * ImGui::GetFrameHeight());
+
+        if (ImGui::Button(isRunning ? "Cancel" : "Run", size))
+        {
+            if (isRunning)
+                _model->CancelSimulation();
+            else
+            {
+                auto config = _model->GetSimulationConfig();
+
+                config->Parameters = _settingsState->TemporaryParameters;
+                config->MaterialProperties = _settingsState->TemporaryMaterialProperties;
+                config->BoundaryConditions = _settingsState->TemporaryBoundaryConditions;
+
+                _model->UpdateModel();
+            }
         }
 
         ImGui::Dummy(ImVec2(0.0f, 5.0f));

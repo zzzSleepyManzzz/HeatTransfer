@@ -25,6 +25,10 @@ namespace HeatTransfer::Visualisation
         bool NeedsSimulationUpdate();
         void ClearSimulationUpdate();
 
+        void CancelSimulation();
+        bool NeedsSimulationCancel();
+        void ClearSimulationCancel();
+
         void SetSimulationProgress(bool isRunning, int currentIteration);
         bool IsSimulationRunning();
         int GetCurrentIteration();
@@ -35,6 +39,7 @@ namespace HeatTransfer::Visualisation
         std::shared_ptr<StatisticsData> _statisticsData;
 
         bool _needsSimulationUpdate;
+        bool _needsSimulationCancel = false;
 
         bool _isSimulationRunning = false;
         int _currentIteration = 0;

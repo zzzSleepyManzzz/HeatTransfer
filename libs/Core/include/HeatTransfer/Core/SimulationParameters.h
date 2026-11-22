@@ -9,6 +9,7 @@ namespace HeatTransfer::Core
     {
         int Rows;
         int Columns;
+        int Layers;
         double ResidualTolerance;
         double ErrorTolerance;
         double RelaxationFactor;
@@ -16,18 +17,8 @@ namespace HeatTransfer::Core
         TrackingMetric ResidualTrackingMetric;
         TrackingMetric ErrorTrackingMetric;
         Core::Smoother Smoother = Core::Smoother::RED_BLACK_SOR;
+        double GridSpacing = 0.01;
 
-        constexpr static const SimulationParameters Default()
-        {
-            return {.Rows = 1000,
-                    .Columns = 1000,
-                    .ResidualTolerance = 1e-3,
-                    .ErrorTolerance = 1e-6,
-                    .RelaxationFactor = 1.7,
-                    .MaxIterations = 1000,
-                    .ResidualTrackingMetric = Core::TrackingMetric::MAX,
-                    .ErrorTrackingMetric = Core::TrackingMetric::MAX,
-                    .Smoother = Core::Smoother::RED_BLACK_SOR};
-        }
+        static SimulationParameters Default();
     };
 }

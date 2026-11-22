@@ -4,6 +4,9 @@ add_library(Visualisation
     src/RendererModel.cpp
     src/RenderFrameData.cpp
     src/StatisticsData.cpp
+    src/SliceData.cpp
+    src/Slicer.cpp
+    src/VolumeMesh.cpp
     src/IPanel.cpp
     src/SidePanel.cpp
     src/PlotsPanel.cpp
@@ -38,6 +41,8 @@ target_link_libraries(Visualisation
     PUBLIC opengl::opengl
     PUBLIC imgui::imgui
     PUBLIC implot::implot
+
+    PRIVATE Tracy::TracyClient
 )
 
 target_compile_definitions(Visualisation

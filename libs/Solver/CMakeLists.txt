@@ -2,7 +2,9 @@ find_package(OpenMP REQUIRED)
 
 add_library(Solver
     src/ISolver.cpp
-    src/Stencil.cpp
+    src/Discretisation/Stencil.cpp
+    src/Discretisation/Geometry.cpp
+    src/Discretisation/SystemMatrix.cpp
     src/MultigridPreconditioner.cpp
     src/MultigridPreconditionedConjugateGradientSolver.cpp
     src/Smoothers/Jacobi.cpp
