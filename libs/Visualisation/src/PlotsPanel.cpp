@@ -418,7 +418,7 @@ namespace HeatTransfer::Visualisation
 
         // Create line plots
 
-        ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 3.0f);
+        const ImPlotSpec lineSpec(ImPlotProp_LineWeight, 3.0f);
 
         if (ImPlot::BeginPlot("Max errors against iterations"))
         {
@@ -433,7 +433,7 @@ namespace HeatTransfer::Visualisation
 
             ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
             ImPlot::PlotLine(
-                "## Max Error", iterations.data(), maxErrors.data(), iterations.size());
+                "## Max Error", iterations.data(), maxErrors.data(), iterations.size(), lineSpec);
             ImPlot::EndPlot();
         }
 
@@ -451,7 +451,7 @@ namespace HeatTransfer::Visualisation
 
             ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
             ImPlot::PlotLine(
-                "## Mean Error", iterations.data(), meanErrors.data(), iterations.size());
+                "## Mean Error", iterations.data(), meanErrors.data(), iterations.size(), lineSpec);
             ImPlot::EndPlot();
         }
 
@@ -468,13 +468,11 @@ namespace HeatTransfer::Visualisation
 
             ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
             ImPlot::PlotLine(
-                "## RMS Error", iterations.data(), rmsErrors.data(), iterations.size());
+                "## RMS Error", iterations.data(), rmsErrors.data(), iterations.size(), lineSpec);
             ImPlot::EndPlot();
         }
 
         _errorConvergencePlotsState->ResetZoom = false;
-
-        ImPlot::PopStyleVar();
     }
 
     void PlotsPanel::CreateResidualConvergencePlots()
@@ -529,7 +527,7 @@ namespace HeatTransfer::Visualisation
 
         // Create line plots
 
-        ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 3.0f);
+        const ImPlotSpec lineSpec(ImPlotProp_LineWeight, 3.0f);
 
         if (ImPlot::BeginPlot("Max residual against iterations"))
         {
@@ -544,8 +542,11 @@ namespace HeatTransfer::Visualisation
             }
 
             ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            ImPlot::PlotLine(
-                "## Max Residual", iterations.data(), maxResiduals.data(), iterations.size());
+            ImPlot::PlotLine("## Max Residual",
+                             iterations.data(),
+                             maxResiduals.data(),
+                             iterations.size(),
+                             lineSpec);
             ImPlot::EndPlot();
         }
 
@@ -562,8 +563,11 @@ namespace HeatTransfer::Visualisation
             }
 
             ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            ImPlot::PlotLine(
-                "## Mean Residual", iterations.data(), meanResiduals.data(), iterations.size());
+            ImPlot::PlotLine("## Mean Residual",
+                             iterations.data(),
+                             meanResiduals.data(),
+                             iterations.size(),
+                             lineSpec);
             ImPlot::EndPlot();
         }
 
@@ -580,14 +584,15 @@ namespace HeatTransfer::Visualisation
             }
 
             ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            ImPlot::PlotLine(
-                "## RMS Residual", iterations.data(), rmsResiduals.data(), iterations.size());
+            ImPlot::PlotLine("## RMS Residual",
+                             iterations.data(),
+                             rmsResiduals.data(),
+                             iterations.size(),
+                             lineSpec);
             ImPlot::EndPlot();
         }
 
         _residualConvergencePlotsState->ResetZoom = false;
-
-        ImPlot::PopStyleVar();
     }
 
     void PlotsPanel::CreateVolumeView(VolumeViewState& state)
