@@ -165,7 +165,7 @@ namespace HeatTransfer::Visualisation
             ImGui::PopID();
         }
 
-        meshCache.Update(data, field, state);
+        meshCache.Update(data, field, state); // Only updates when needed
 
         // Create mesh plot
 
