@@ -15,6 +15,7 @@ namespace HeatTransfer::Solver::Smoothers
     private:
         // Undamped Jacobi never reduces the checkerboard error, so it cannot smooth
         // Damping factor must be used for Jacobi to be a smoother
-        static constexpr double DAMPING_FACTOR = 0.8;
+        // 6/7 is optimal for the 3D 7-point stencil, damping every high frequency by at least 5/7
+        static constexpr double DAMPING_FACTOR = 6.0 / 7.0;
     };
 }
