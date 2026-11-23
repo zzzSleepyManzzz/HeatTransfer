@@ -14,7 +14,7 @@ namespace HeatTransfer::Visualisation
 {
     PlotsPanel::PlotsPanel(std::shared_ptr<ConsoleLogger> logger)
         : IPanel(logger)
-        , _volumeViewState(std::make_shared<VolumeViewState>())
+        , _temperatureVolumeViewState(std::make_shared<VolumeViewState>())
         , _residualVolumeViewState(
               std::make_shared<VolumeViewState>(VolumeViewState{.Field = VolumeField::RESIDUAL}))
         , _volumeScaleState(std::make_shared<VolumeScaleState>())
@@ -42,7 +42,7 @@ namespace HeatTransfer::Visualisation
 
         _shownRenderFrameData = data;
 
-        _volumeViewState->ResetZoom = true;
+        _temperatureVolumeViewState->ResetZoom = true;
         _residualVolumeViewState->ResetZoom = true;
         _temperatureSurfacePlotState->ResetZoom = true;
         _residualSurfacePlotState->ResetZoom = true;
@@ -65,7 +65,7 @@ namespace HeatTransfer::Visualisation
             {
                 if (ImGui::BeginTabItem("3D Temperature"))
                 {
-                    CreateVolumeView(*_volumeViewState);
+                    CreateVolumeView(*_temperatureVolumeViewState);
 
                     ImGui::EndTabItem();
                 }

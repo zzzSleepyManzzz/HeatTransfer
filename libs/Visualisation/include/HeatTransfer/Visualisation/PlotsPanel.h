@@ -49,16 +49,16 @@ namespace HeatTransfer::Visualisation
         static constexpr int VOLUME_PLANE_POINTS = 2500;
         static constexpr int SLICE_PLOT_POINTS = 10000;
 
-        std::shared_ptr<VolumeViewState> _volumeViewState;
+        std::shared_ptr<RenderFrameData> _shownRenderFrameData;
+
+        std::shared_ptr<VolumeViewState> _temperatureVolumeViewState;
         std::shared_ptr<VolumeViewState> _residualVolumeViewState;
         std::shared_ptr<VolumeScaleState> _volumeScaleState;
-        std::shared_ptr<SliceState> _sliceState;
         std::shared_ptr<TemperatureSurfacePlotState> _temperatureSurfacePlotState;
         std::shared_ptr<ResidualSurfacePlotState> _residualSurfacePlotState;
+        std::shared_ptr<SliceState> _sliceState;
         std::shared_ptr<ErrorConvergencePlotsState> _errorConvergencePlotsState;
         std::shared_ptr<ResidualConvergencePlotsState> _residualConvergencePlotsState;
-
-        std::shared_ptr<RenderFrameData> _shownRenderFrameData;
 
         void ResetViewsIfNeeded();
         void ShowPlotsWindow();
