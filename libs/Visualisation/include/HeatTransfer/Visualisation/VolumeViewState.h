@@ -3,20 +3,15 @@
 #include <array>
 #include <memory>
 
+#include "HeatTransfer/Visualisation/PlotField.h"
 #include "HeatTransfer/Visualisation/RenderFrameData.h"
 #include "HeatTransfer/Visualisation/VolumeMesh.h"
 
 namespace HeatTransfer::Visualisation
 {
-    enum class VolumeField
-    {
-        TEMPERATURE,
-        RESIDUAL
-    };
-
     struct VolumeViewState
     {
-        VolumeField Field = VolumeField::TEMPERATURE;
+        PlotField Field = PlotField::TEMPERATURE;
 
         bool ResetZoom = false;
         int SelectedColorMap = 6; // Hot by default
