@@ -14,9 +14,9 @@ namespace HeatTransfer::Visualisation
 {
     PlotsPanel::PlotsPanel(std::shared_ptr<ConsoleLogger> logger)
         : IPanel(logger)
-        , _temperatureVolumeViewState(std::make_shared<VolumeViewState>())
-        , _residualVolumeViewState(
-              std::make_shared<VolumeViewState>(VolumeViewState{.Field = PlotField::RESIDUAL}))
+        , _volumeViewState(std::make_shared<VolumeViewState>())
+        , _temperatureVolumeMeshCache(std::make_shared<VolumeMeshCache>())
+        , _residualVolumeMeshCache(std::make_shared<VolumeMeshCache>())
         , _volumeScaleState(std::make_shared<VolumeScaleState>())
         , _sliceState(std::make_shared<SliceState>())
         , _temperatureSurfacePlotState(std::make_shared<SurfacePlotState>())
@@ -44,8 +44,7 @@ namespace HeatTransfer::Visualisation
 
         _shownRenderFrameData = data;
 
-        _temperatureVolumeViewState->ResetZoom = true;
-        _residualVolumeViewState->ResetZoom = true;
+        _volumeViewState->ResetZoom = true;
 
         _temperatureSurfacePlotState->ResetZoom = true;
         _residualSurfacePlotState->ResetZoom = true;
@@ -69,14 +68,14 @@ namespace HeatTransfer::Visualisation
             {
                 if (ImGui::BeginTabItem("3D Temperature"))
                 {
-                    CreateVolumeView(*_temperatureVolumeViewState);
+                    CreateVolumeView(PlotField::TEMPERATURE);
 
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("3D Residual"))
                 {
-                    CreateVolumeView(*_residualVolumeViewState);
+                    CreateVolumeView(PlotField::RESIDUAL);
 
                     ImGui::EndTabItem();
                 }
@@ -114,12 +113,15 @@ namespace HeatTransfer::Visualisation
         ImGui::End();
     }
 
-    void PlotsPanel::CreateVolumeView(VolumeViewState& state)
+    void PlotsPanel::CreateVolumeView(PlotField field)
     {
         auto data = _model->GetRenderFrameData();
+        auto& state = *_volumeViewState;
 
-        const bool isResidual = state.Field == PlotField::RESIDUAL;
+        const bool isResidual = field == PlotField::RESIDUAL;
+        auto& meshCache = isResidual ? *_residualVolumeMeshCache : *_temperatureVolumeMeshCache;
         const auto& T = isResidual ? data->GetResidual() : data->GetTemperature();
+        int& colorMap = state.SelectedColorMap[(int)field];
 
         if (ImGui::Button("Reset view"))
         {
@@ -133,10 +135,8 @@ namespace HeatTransfer::Visualisation
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
 
-        ImGui::Combo("Color map type",
-                     &state.SelectedColorMap,
-                     COLOR_MAP_OPTIONS,
-                     IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
+        ImGui::Combo(
+            "Color map type", &colorMap, COLOR_MAP_OPTIONS, IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
 
         ImGui::SameLine();
         ImGui::Checkbox("Show lines", &state.ShowLines);
@@ -165,7 +165,7 @@ namespace HeatTransfer::Visualisation
             ImGui::PopID();
         }
 
-        RebuildVolumeMeshIfNeeded(state);
+        meshCache.Update(data, field, state);
 
         // Create mesh plot
 
@@ -174,12 +174,12 @@ namespace HeatTransfer::Visualisation
         const double zMax = std::max(1.0, (double)Slicer::AxisSize(T, SliceAxis::Z) - 1);
         const double longest = std::max({xMax, yMax, zMax});
 
-        ImPlot3D::PushColormap(state.SelectedColorMap);
+        ImPlot3D::PushColormap(colorMap);
         ImPlot3D::PushStyleVar(ImPlot3DStyleVar_ViewScaleFactor, _volumeScaleState->ViewScale);
 
         auto plotWindowWidth = ImGui::GetWindowSize().x;
 
-        if (ImPlot3D::BeginPlot(isResidual ? "## Residual Volume" : "## Temperature Volume",
+        if (ImPlot3D::BeginPlot("## Volume",
                                 ImVec2(plotWindowWidth * 0.93, -1),
                                 ImPlot3DFlags_NoPan | ImPlot3DFlags_NoZoom))
         {
@@ -239,15 +239,17 @@ namespace HeatTransfer::Visualisation
 
             const auto& rotation = ImPlot3D::GetCurrentPlot()->Rotation;
 
-            for (std::size_t i = 0; i < state.FaceMeshes.size(); i++)
+            auto& faceMeshes = meshCache.GetFaceMeshes();
+
+            for (std::size_t i = 0; i < faceMeshes.size(); i++)
             {
                 const bool facesCamera = (rotation * outwardNormals[i]).z > 0.0;
 
                 if (facesCamera)
-                    plotMesh(FACE_LABELS[i], state.FaceMeshes[i]);
+                    plotMesh(FACE_LABELS[i], faceMeshes[i]);
             }
 
-            plotMesh("##Slices", state.SliceMesh);
+            plotMesh("##Slices", meshCache.GetSliceMesh());
 
             ImPlot3D::EndPlot();
         }
@@ -258,7 +260,7 @@ namespace HeatTransfer::Visualisation
         // Create color bar
 
         ImGui::SameLine();
-        ImPlot::PushColormap(state.SelectedColorMap);
+        ImPlot::PushColormap(colorMap);
 
         if (isResidual)
         {
@@ -274,76 +276,6 @@ namespace HeatTransfer::Visualisation
         }
 
         ImPlot::PopColormap();
-    }
-
-    void PlotsPanel::RebuildVolumeMeshIfNeeded(VolumeViewState& state)
-    {
-        // Slices up to 3 planes and the 6 outer faces, downsamples them, and builds coloured meshes
-        // Only rebuilds on a new simulation result or a change to the colour map, planes or faces
-
-        auto data = _model->GetRenderFrameData();
-
-        const bool isResidual = state.Field == PlotField::RESIDUAL;
-        const auto& T = isResidual ? data->GetResidual() : data->GetTemperature();
-
-        std::array<int, 3> planeIndex;
-
-        for (int axis = 0; axis < 3; axis++)
-            planeIndex[axis] = Slicer::ClampIndex(T, (SliceAxis)axis, state.PlaneIndex[axis]);
-
-        const bool upToDate = state.MeshSource == data && state.MeshShowPlane == state.ShowPlane &&
-                              state.MeshPlaneIndex == planeIndex &&
-                              state.MeshShowOuterFaces == state.ShowOuterFaces &&
-                              state.MeshColorMap == state.SelectedColorMap;
-
-        if (upToDate)
-            return;
-
-        ZoneScoped;
-
-        const double tMin = isResidual ? data->Get_Residual_Min() : data->Get_Temperature_Min();
-        const double tMax = isResidual ? data->Get_Residual_Max() : data->Get_Temperature_Max();
-        const int colormap = state.SelectedColorMap;
-
-        auto slice = [&](SliceAxis axis, int index)
-        { return Slicer::Slice(T, axis, index, VOLUME_PLANE_POINTS); };
-
-        state.SliceMesh.Clear();
-
-        for (int axis = 0; axis < 3; axis++)
-        {
-            if (state.ShowPlane[axis])
-            {
-                state.SliceMesh.AddSlice(
-                    slice((SliceAxis)axis, planeIndex[axis]), tMin, tMax, colormap);
-            }
-        }
-
-        // The outer faces, ordered as Core::Faces::ALL (left, right, top, bottom, front, back)
-        const std::array<std::pair<SliceAxis, int>, 6> faces = {
-            std::pair{SliceAxis::X, 0},
-            std::pair{SliceAxis::X, Slicer::AxisSize(T, SliceAxis::X) - 1},
-            std::pair{SliceAxis::Z, Slicer::AxisSize(T, SliceAxis::Z) - 1},
-            std::pair{SliceAxis::Z, 0},
-            std::pair{SliceAxis::Y, 0},
-            std::pair{SliceAxis::Y, Slicer::AxisSize(T, SliceAxis::Y) - 1}};
-
-        for (std::size_t i = 0; i < faces.size(); i++)
-        {
-            state.FaceMeshes[i].Clear();
-
-            if (state.ShowOuterFaces)
-            {
-                state.FaceMeshes[i].AddSlice(
-                    slice(faces[i].first, faces[i].second), tMin, tMax, colormap);
-            }
-        }
-
-        state.MeshSource = data;
-        state.MeshShowPlane = state.ShowPlane;
-        state.MeshPlaneIndex = planeIndex;
-        state.MeshShowOuterFaces = state.ShowOuterFaces;
-        state.MeshColorMap = state.SelectedColorMap;
     }
 
     void PlotsPanel::SetupLengthAxisTicks(ImAxis3D axis, double maxPoint, double gridSpacing)

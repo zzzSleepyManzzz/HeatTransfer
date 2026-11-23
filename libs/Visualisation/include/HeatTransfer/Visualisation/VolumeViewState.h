@@ -1,20 +1,15 @@
 #pragma once
 
 #include <array>
-#include <memory>
 
 #include "HeatTransfer/Visualisation/PlotField.h"
-#include "HeatTransfer/Visualisation/RenderFrameData.h"
-#include "HeatTransfer/Visualisation/VolumeMesh.h"
 
 namespace HeatTransfer::Visualisation
 {
     struct VolumeViewState
     {
-        PlotField Field = PlotField::TEMPERATURE;
-
         bool ResetZoom = false;
-        int SelectedColorMap = 6; // Hot by default
+        std::array<int, 2> SelectedColorMap = {6, 6}; // One per PlotField, Hot by default
 
         bool ShowOuterFaces = true;
 
@@ -22,13 +17,5 @@ namespace HeatTransfer::Visualisation
         std::array<int, 3> PlaneIndex = {-1, -1, -1};
 
         bool ShowLines = true;
-
-        std::array<VolumeMesh, 6> FaceMeshes; // Ordered as Core::Faces::ALL
-        VolumeMesh SliceMesh;
-        std::shared_ptr<RenderFrameData> MeshSource;
-        std::array<bool, 3> MeshShowPlane = {};
-        std::array<int, 3> MeshPlaneIndex = {};
-        bool MeshShowOuterFaces = false;
-        int MeshColorMap = -1;
     };
 }

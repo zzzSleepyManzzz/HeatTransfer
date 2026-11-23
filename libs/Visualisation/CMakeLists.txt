@@ -15,6 +15,7 @@ add_library(Visualisation
     src/SliceData.cpp
     src/Slicer.cpp
     src/VolumeMesh.cpp
+    src/VolumeMeshCache.cpp
     src/IPanel.cpp
     src/SidePanel.cpp
     src/PlotsPanel.cpp

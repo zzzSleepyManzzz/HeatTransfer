@@ -8,6 +8,7 @@
 #include "HeatTransfer/Visualisation/SliceData.h"
 #include "HeatTransfer/Visualisation/SliceState.h"
 #include "HeatTransfer/Visualisation/SurfacePlotState.h"
+#include "HeatTransfer/Visualisation/VolumeMeshCache.h"
 #include "HeatTransfer/Visualisation/VolumeScaleState.h"
 #include "HeatTransfer/Visualisation/VolumeViewState.h"
 
@@ -46,14 +47,13 @@ namespace HeatTransfer::Visualisation
         static constexpr const char* FACE_LABELS[6] = {
             "##Left", "##Right", "##Top", "##Bottom", "##Front", "##Back"};
 
-        // Each plane of the 3D view, and each slice plot, is downsampled to about this many points
-        static constexpr int VOLUME_PLANE_POINTS = 2500;
         static constexpr int SLICE_PLOT_POINTS = 10000;
 
         std::shared_ptr<RenderFrameData> _shownRenderFrameData;
 
-        std::shared_ptr<VolumeViewState> _temperatureVolumeViewState;
-        std::shared_ptr<VolumeViewState> _residualVolumeViewState;
+        std::shared_ptr<VolumeViewState> _volumeViewState;
+        std::shared_ptr<VolumeMeshCache> _temperatureVolumeMeshCache;
+        std::shared_ptr<VolumeMeshCache> _residualVolumeMeshCache;
         std::shared_ptr<VolumeScaleState> _volumeScaleState;
 
         std::shared_ptr<SurfacePlotState> _temperatureSurfacePlotState;
@@ -65,8 +65,7 @@ namespace HeatTransfer::Visualisation
 
         void ResetViewsIfNeeded();
         void ShowPlotsWindow();
-        void CreateVolumeView(VolumeViewState& state);
-        void RebuildVolumeMeshIfNeeded(VolumeViewState& state);
+        void CreateVolumeView(PlotField field);
         static void SetupLengthAxisTicks(ImAxis3D axis, double maxPoint, double gridSpacing);
         double GetGridSpacing();
         void CreateSurfacePlot(SurfacePlotState& state);
