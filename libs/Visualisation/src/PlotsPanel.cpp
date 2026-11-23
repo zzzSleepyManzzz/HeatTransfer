@@ -46,8 +46,10 @@ namespace HeatTransfer::Visualisation
 
         _temperatureVolumeViewState->ResetZoom = true;
         _residualVolumeViewState->ResetZoom = true;
+
         _temperatureSurfacePlotState->ResetZoom = true;
         _residualSurfacePlotState->ResetZoom = true;
+
         _errorConvergencePlotsState->ResetZoom = true;
         _residualConvergencePlotsState->ResetZoom = true;
     }
@@ -119,8 +121,6 @@ namespace HeatTransfer::Visualisation
         const bool isResidual = state.Field == PlotField::RESIDUAL;
         const auto& T = isResidual ? data->GetResidual() : data->GetTemperature();
 
-        // Reset view button (rotation), view scale, color map and display options
-
         if (ImGui::Button("Reset view"))
         {
             state.ResetZoom = true;
@@ -179,7 +179,6 @@ namespace HeatTransfer::Visualisation
 
         auto plotWindowWidth = ImGui::GetWindowSize().x;
 
-        // Each field gets its own plot, so each keeps its own rotation and zoom
         if (ImPlot3D::BeginPlot(isResidual ? "## Residual Volume" : "## Temperature Volume",
                                 ImVec2(plotWindowWidth * 0.93, -1),
                                 ImPlot3DFlags_NoPan | ImPlot3DFlags_NoZoom))
@@ -262,13 +261,17 @@ namespace HeatTransfer::Visualisation
         ImPlot::PushColormap(state.SelectedColorMap);
 
         if (isResidual)
+        {
             ImPlot::ColormapScale(
                 "Residual", data->Get_Residual_Min(), data->Get_Residual_Max(), ImVec2(-1, -1));
+        }
         else
+        {
             ImPlot::ColormapScale("Temperature [K]",
                                   data->Get_Temperature_Min(),
                                   data->Get_Temperature_Max(),
                                   ImVec2(-1, -1));
+        }
 
         ImPlot::PopColormap();
     }
