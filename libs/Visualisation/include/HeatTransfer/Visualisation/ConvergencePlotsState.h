@@ -1,13 +1,9 @@
 #pragma once
 
+#include "HeatTransfer/Visualisation/ConvergenceMetric.h"
+
 namespace HeatTransfer::Visualisation
 {
-    enum class ConvergenceMetric
-    {
-        ERROR,
-        RESIDUAL
-    };
-
     struct ConvergencePlotsState
     {
         ConvergenceMetric Metric = ConvergenceMetric::ERROR;

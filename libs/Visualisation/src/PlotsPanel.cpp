@@ -14,10 +14,9 @@ namespace HeatTransfer::Visualisation
 {
     PlotsPanel::PlotsPanel(std::shared_ptr<ConsoleLogger> logger)
         : IPanel(logger)
-        , _temperatureVolumeViewState(std::make_shared<VolumeViewState>())
-        , _residualVolumeViewState(
-              std::make_shared<VolumeViewState>(VolumeViewState{.Field = PlotField::RESIDUAL}))
-        , _volumeScaleState(std::make_shared<VolumeScaleState>())
+        , _volumeViewState(std::make_shared<VolumeViewState>())
+        , _temperatureVolumeMeshCache(std::make_shared<VolumeMeshCache>())
+        , _residualVolumeMeshCache(std::make_shared<VolumeMeshCache>())
         , _sliceState(std::make_shared<SliceState>())
         , _temperatureSurfacePlotState(std::make_shared<SurfacePlotState>())
         , _residualSurfacePlotState(
@@ -44,10 +43,11 @@ namespace HeatTransfer::Visualisation
 
         _shownRenderFrameData = data;
 
-        _temperatureVolumeViewState->ResetZoom = true;
-        _residualVolumeViewState->ResetZoom = true;
+        _volumeViewState->ResetZoom = true;
+
         _temperatureSurfacePlotState->ResetZoom = true;
         _residualSurfacePlotState->ResetZoom = true;
+
         _errorConvergencePlotsState->ResetZoom = true;
         _residualConvergencePlotsState->ResetZoom = true;
     }
@@ -67,14 +67,14 @@ namespace HeatTransfer::Visualisation
             {
                 if (ImGui::BeginTabItem("3D Temperature"))
                 {
-                    CreateVolumeView(*_temperatureVolumeViewState);
+                    CreateVolumeView(PlotField::TEMPERATURE);
 
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("3D Residual"))
                 {
-                    CreateVolumeView(*_residualVolumeViewState);
+                    CreateVolumeView(PlotField::RESIDUAL);
 
                     ImGui::EndTabItem();
                 }
@@ -112,14 +112,16 @@ namespace HeatTransfer::Visualisation
         ImGui::End();
     }
 
-    void PlotsPanel::CreateVolumeView(VolumeViewState& state)
+    void PlotsPanel::CreateVolumeView(PlotField field)
     {
         auto data = _model->GetRenderFrameData();
+        auto& state = *_volumeViewState;
 
-        const bool isResidual = state.Field == PlotField::RESIDUAL;
-        const auto& T = isResidual ? data->GetResidual() : data->GetTemperature();
-
-        // Reset view button (rotation), view scale, color map and display options
+        const bool isResidual = field == PlotField::RESIDUAL;
+        auto& meshCache = isResidual ? *_residualVolumeMeshCache : *_temperatureVolumeMeshCache;
+        const auto& T = data->GetField(field);
+        const char* valueLabel = isResidual ? "Residual" : "Temperature [K]";
+        int& colorMap = isResidual ? state.ResidualColorMap : state.TemperatureColorMap;
 
         if (ImGui::Button("Reset view"))
         {
@@ -129,14 +131,12 @@ namespace HeatTransfer::Visualisation
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
 
-        ImGui::SliderFloat("View scale", &_volumeScaleState->ViewScale, 0.5f, 3.0f, "%.2f");
+        ImGui::SliderFloat("View scale", &state.ViewScale, 0.5f, 3.0f, "%.2f");
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
 
-        ImGui::Combo("Color map type",
-                     &state.SelectedColorMap,
-                     COLOR_MAP_OPTIONS,
-                     IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
+        ImGui::Combo(
+            "Color map type", &colorMap, COLOR_MAP_OPTIONS, IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
 
         ImGui::SameLine();
         ImGui::Checkbox("Show lines", &state.ShowLines);
@@ -165,7 +165,7 @@ namespace HeatTransfer::Visualisation
             ImGui::PopID();
         }
 
-        RebuildVolumeMeshIfNeeded(state);
+        meshCache.Update(data, field, state); // Only updates when needed
 
         // Create mesh plot
 
@@ -174,13 +174,12 @@ namespace HeatTransfer::Visualisation
         const double zMax = std::max(1.0, (double)Slicer::AxisSize(T, SliceAxis::Z) - 1);
         const double longest = std::max({xMax, yMax, zMax});
 
-        ImPlot3D::PushColormap(state.SelectedColorMap);
-        ImPlot3D::PushStyleVar(ImPlot3DStyleVar_ViewScaleFactor, _volumeScaleState->ViewScale);
+        ImPlot3D::PushColormap(colorMap);
+        ImPlot3D::PushStyleVar(ImPlot3DStyleVar_ViewScaleFactor, state.ViewScale);
 
         auto plotWindowWidth = ImGui::GetWindowSize().x;
 
-        // Each field gets its own plot, so each keeps its own rotation and zoom
-        if (ImPlot3D::BeginPlot(isResidual ? "## Residual Volume" : "## Temperature Volume",
+        if (ImPlot3D::BeginPlot("## Volume",
                                 ImVec2(plotWindowWidth * 0.93, -1),
                                 ImPlot3DFlags_NoPan | ImPlot3DFlags_NoZoom))
         {
@@ -240,15 +239,17 @@ namespace HeatTransfer::Visualisation
 
             const auto& rotation = ImPlot3D::GetCurrentPlot()->Rotation;
 
-            for (std::size_t i = 0; i < state.FaceMeshes.size(); i++)
+            auto& faceMeshes = meshCache.GetFaceMeshes();
+
+            for (std::size_t i = 0; i < faceMeshes.size(); i++)
             {
                 const bool facesCamera = (rotation * outwardNormals[i]).z > 0.0;
 
                 if (facesCamera)
-                    plotMesh(FACE_LABELS[i], state.FaceMeshes[i]);
+                    plotMesh(FACE_LABELS[i], faceMeshes[i]);
             }
 
-            plotMesh("##Slices", state.SliceMesh);
+            plotMesh("##Slices", meshCache.GetSliceMesh());
 
             ImPlot3D::EndPlot();
         }
@@ -259,81 +260,12 @@ namespace HeatTransfer::Visualisation
         // Create color bar
 
         ImGui::SameLine();
-        ImPlot::PushColormap(state.SelectedColorMap);
+        ImPlot::PushColormap(colorMap);
 
-        if (isResidual)
-            ImPlot::ColormapScale(
-                "Residual", data->Get_Residual_Min(), data->Get_Residual_Max(), ImVec2(-1, -1));
-        else
-            ImPlot::ColormapScale("Temperature [K]",
-                                  data->Get_Temperature_Min(),
-                                  data->Get_Temperature_Max(),
-                                  ImVec2(-1, -1));
+        ImPlot::ColormapScale(
+            valueLabel, data->GetFieldMin(field), data->GetFieldMax(field), ImVec2(-1, -1));
 
         ImPlot::PopColormap();
-    }
-
-    void PlotsPanel::RebuildVolumeMeshIfNeeded(VolumeViewState& state)
-    {
-        auto data = _model->GetRenderFrameData();
-
-        const bool isResidual = state.Field == PlotField::RESIDUAL;
-        const auto& T = isResidual ? data->GetResidual() : data->GetTemperature();
-
-        std::array<int, 3> planeIndex;
-
-        for (int axis = 0; axis < 3; axis++)
-            planeIndex[axis] = Slicer::ClampIndex(T, (SliceAxis)axis, state.PlaneIndex[axis]);
-
-        const bool upToDate = state.MeshSource == data && state.MeshShowPlane == state.ShowPlane &&
-                              state.MeshPlaneIndex == planeIndex &&
-                              state.MeshShowOuterFaces == state.ShowOuterFaces &&
-                              state.MeshColorMap == state.SelectedColorMap;
-
-        if (upToDate)
-            return;
-
-        ZoneScoped;
-
-        const double tMin = isResidual ? data->Get_Residual_Min() : data->Get_Temperature_Min();
-        const double tMax = isResidual ? data->Get_Residual_Max() : data->Get_Temperature_Max();
-        const int colormap = state.SelectedColorMap;
-
-        auto slice = [&](SliceAxis axis, int index)
-        { return Slicer::Slice(T, axis, index, VOLUME_PLANE_POINTS); };
-
-        state.SliceMesh.Clear();
-
-        for (int axis = 0; axis < 3; axis++)
-        {
-            if (state.ShowPlane[axis])
-                state.SliceMesh.AddSlice(
-                    slice((SliceAxis)axis, planeIndex[axis]), tMin, tMax, colormap);
-        }
-
-        // The outer faces, ordered as Core::Faces::ALL (left, right, top, bottom, front, back)
-        const std::array<std::pair<SliceAxis, int>, 6> faces = {
-            std::pair{SliceAxis::X, 0},
-            std::pair{SliceAxis::X, Slicer::AxisSize(T, SliceAxis::X) - 1},
-            std::pair{SliceAxis::Z, Slicer::AxisSize(T, SliceAxis::Z) - 1},
-            std::pair{SliceAxis::Z, 0},
-            std::pair{SliceAxis::Y, 0},
-            std::pair{SliceAxis::Y, Slicer::AxisSize(T, SliceAxis::Y) - 1}};
-
-        for (std::size_t i = 0; i < faces.size(); i++)
-        {
-            state.FaceMeshes[i].Clear();
-
-            if (state.ShowOuterFaces)
-                state.FaceMeshes[i].AddSlice(
-                    slice(faces[i].first, faces[i].second), tMin, tMax, colormap);
-        }
-
-        state.MeshSource = data;
-        state.MeshShowPlane = state.ShowPlane;
-        state.MeshPlaneIndex = planeIndex;
-        state.MeshShowOuterFaces = state.ShowOuterFaces;
-        state.MeshColorMap = state.SelectedColorMap;
     }
 
     void PlotsPanel::SetupLengthAxisTicks(ImAxis3D axis, double maxPoint, double gridSpacing)
@@ -369,7 +301,6 @@ namespace HeatTransfer::Visualisation
         for (const auto& label : labels)
             labelPointers.push_back(label.c_str());
 
-        // ImPlot3D copies the labels, so the temporary strings are fine
         ImPlot3D::SetupAxisTicks(
             axis, positions.data(), (int)positions.size(), labelPointers.data());
     }
@@ -384,7 +315,7 @@ namespace HeatTransfer::Visualisation
         auto plotData = _model->GetRenderFrameData();
 
         const bool isResidual = state.Field == PlotField::RESIDUAL;
-        const auto& T = isResidual ? plotData->GetResidual() : plotData->GetTemperature();
+        const auto& T = plotData->GetField(state.Field);
         const char* valueLabel = isResidual ? "Residual" : "Temperature [K]";
         const char* plotId = isResidual ? "## Residual" : "## Temperature";
 
@@ -528,34 +459,16 @@ namespace HeatTransfer::Visualisation
 
     void PlotsPanel::CreateConvergencePlots(ConvergencePlotsState& state)
     {
+        using enum Core::TrackingMetric;
+
         auto plotData = _model->GetRenderFrameData();
 
         const bool isResidual = state.Metric == ConvergenceMetric::RESIDUAL;
-        const std::string metric = isResidual ? "residual" : "error";
 
-        const auto& iterations = plotData->Get_Iterations();
-
-        const auto& maxValues =
-            isResidual ? plotData->Get_MaxResiduals() : plotData->Get_MaxErrors();
-        const auto& meanValues =
-            isResidual ? plotData->Get_MeanResiduals() : plotData->Get_MeanErrors();
-        const auto& rmsValues =
-            isResidual ? plotData->Get_RMS_Residuals() : plotData->Get_RMS_Errors();
-
-        auto maxValues_min =
-            isResidual ? plotData->Get_MaxResiduals_Min() : plotData->Get_MaxErrors_Min();
-        auto maxValues_max =
-            isResidual ? plotData->Get_MaxResiduals_Max() : plotData->Get_MaxErrors_Max();
-
-        auto meanValues_min =
-            isResidual ? plotData->Get_MeanResiduals_Min() : plotData->Get_MeanErrors_Min();
-        auto meanValues_max =
-            isResidual ? plotData->Get_MeanResiduals_Max() : plotData->Get_MeanErrors_Max();
-
-        auto rmsValues_min =
-            isResidual ? plotData->Get_RMS_Residuals_Min() : plotData->Get_RMS_Errors_Min();
-        auto rmsValues_max =
-            isResidual ? plotData->Get_RMS_Residuals_Max() : plotData->Get_RMS_Errors_Max();
+        const auto& iterations = plotData->GetIterations().Values;
+        const auto& maxValues = plotData->GetConvergence(state.Metric, MAX).Values;
+        const auto& meanValues = plotData->GetConvergence(state.Metric, MEAN).Values;
+        const auto& rmsValues = plotData->GetConvergence(state.Metric, RMS).Values;
 
         // Reset zoom
 
@@ -566,7 +479,7 @@ namespace HeatTransfer::Visualisation
 
         // Print history button
 
-        if (ImGui::Button(std::format("Print {} history", metric).c_str()))
+        if (ImGui::Button(isResidual ? "Print residual history" : "Print error history"))
         {
             _logger->AddSpace();
             _logger->Add(isResidual ? "================ Residuals ================"
@@ -589,30 +502,28 @@ namespace HeatTransfer::Visualisation
 
         // Create line plots
 
-        CreateConvergencePlot(state, "Max", metric, maxValues, maxValues_min, maxValues_max);
-        CreateConvergencePlot(state, "Mean", metric, meanValues, meanValues_min, meanValues_max);
-        CreateConvergencePlot(state, "RMS", metric, rmsValues, rmsValues_min, rmsValues_max);
+        CreateConvergencePlot(state, MAX, "Max");
+        CreateConvergencePlot(state, MEAN, "Mean");
+        CreateConvergencePlot(state, RMS, "RMS");
 
         state.ResetZoom = false;
     }
 
     void PlotsPanel::CreateConvergencePlot(const ConvergencePlotsState& state,
-                                           const std::string& statistic,
-                                           const std::string& metric,
-                                           const std::vector<double>& values,
-                                           double valuesMin,
-                                           double valuesMax)
+                                           Core::TrackingMetric statistic,
+                                           const std::string& statisticLabel)
     {
         auto plotData = _model->GetRenderFrameData();
 
-        const auto& iterations = plotData->Get_Iterations();
+        const auto& iterations = plotData->GetIterations();
+        const auto& series = plotData->GetConvergence(state.Metric, statistic);
 
-        auto iterations_min = plotData->Get_Iterations_Min();
-        auto iterations_max = plotData->Get_Iterations_Max();
+        const std::string metric =
+            state.Metric == ConvergenceMetric::RESIDUAL ? "residual" : "error";
 
-        const auto title = std::format("{} {}s against iterations", statistic, metric);
-        const auto yLabel = std::format("{} {}", statistic, metric);
-        const auto lineLabel = std::format("## {} {}", statistic, metric);
+        const auto title = std::format("{} {}s against iterations", statisticLabel, metric);
+        const auto yLabel = std::format("{} {}", statisticLabel, metric);
+        const auto lineLabel = std::format("## {} {}", statisticLabel, metric);
 
         const ImPlotSpec lineSpec(ImPlotProp_LineWeight, 3.0f);
 
@@ -623,13 +534,16 @@ namespace HeatTransfer::Visualisation
             if (state.ResetZoom)
             {
                 ImPlot::SetupAxisLimits(
-                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
-                ImPlot::SetupAxisLimits(ImAxis_Y1, valuesMin, valuesMax, ImPlotCond_Always);
+                    ImAxis_X1, iterations.Min, iterations.Max, ImPlotCond_Always);
+                ImPlot::SetupAxisLimits(ImAxis_Y1, series.Min, series.Max, ImPlotCond_Always);
             }
 
             ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            ImPlot::PlotLine(
-                lineLabel.c_str(), iterations.data(), values.data(), iterations.size(), lineSpec);
+            ImPlot::PlotLine(lineLabel.c_str(),
+                             iterations.Values.data(),
+                             series.Values.data(),
+                             iterations.Values.size(),
+                             lineSpec);
             ImPlot::EndPlot();
         }
     }

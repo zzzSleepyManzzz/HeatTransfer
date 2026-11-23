@@ -5,7 +5,13 @@
 #include <memory>
 #include <vector>
 
+#include "HeatTransfer/Core/TrackingMetric.h"
+
 #include "HeatTransfer/SimulationRunner/SimulationOutput.h"
+
+#include "HeatTransfer/Visualisation/ConvergenceMetric.h"
+#include "HeatTransfer/Visualisation/PlotField.h"
+#include "HeatTransfer/Visualisation/PlotSeries.h"
 
 namespace HeatTransfer::Visualisation
 {
@@ -14,45 +20,12 @@ namespace HeatTransfer::Visualisation
     public:
         RenderFrameData(std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output);
 
-        const Core::Tensor3d& GetTemperature();
-        const Core::Tensor3d& GetResidual();
+        const Core::Tensor3d& GetField(PlotField field);
+        double GetFieldMin(PlotField field);
+        double GetFieldMax(PlotField field);
 
-        double Get_Temperature_Min();
-        double Get_Temperature_Max();
-
-        double Get_Residual_Min();
-        double Get_Residual_Max();
-
-        const std::vector<double>& Get_Iterations();
-
-        const std::vector<double>& Get_MaxErrors();
-        const std::vector<double>& Get_MeanErrors();
-        const std::vector<double>& Get_RMS_Errors();
-
-        const std::vector<double>& Get_MaxResiduals();
-        const std::vector<double>& Get_MeanResiduals();
-        const std::vector<double>& Get_RMS_Residuals();
-
-        double Get_Iterations_Min();
-        double Get_Iterations_Max();
-
-        double Get_MaxErrors_Min();
-        double Get_MaxErrors_Max();
-
-        double Get_MeanErrors_Min();
-        double Get_MeanErrors_Max();
-
-        double Get_RMS_Errors_Min();
-        double Get_RMS_Errors_Max();
-
-        double Get_MaxResiduals_Min();
-        double Get_MaxResiduals_Max();
-
-        double Get_MeanResiduals_Min();
-        double Get_MeanResiduals_Max();
-
-        double Get_RMS_Residuals_Min();
-        double Get_RMS_Residuals_Max();
+        const PlotSeries& GetIterations();
+        const PlotSeries& GetConvergence(ConvergenceMetric metric, Core::TrackingMetric statistic);
 
     private:
         std::shared_ptr<Core::Tensor3d> _temperature;
@@ -64,35 +37,16 @@ namespace HeatTransfer::Visualisation
         double _residual_min;
         double _residual_max;
 
-        std::vector<double> _iterations;
+        PlotSeries _iterations;
 
-        std::vector<double> _maxErrors;
-        std::vector<double> _meanErrors;
-        std::vector<double> _RMS_Errors;
+        PlotSeries _maxErrors;
+        PlotSeries _meanErrors;
+        PlotSeries _rmsErrors;
 
-        std::vector<double> _maxResiduals;
-        std::vector<double> _meanResiduals;
-        std::vector<double> _RMS_Residuals;
+        PlotSeries _maxResiduals;
+        PlotSeries _meanResiduals;
+        PlotSeries _rmsResiduals;
 
-        double _iterations_min;
-        double _iterations_max;
-
-        double _maxErrors_min;
-        double _maxErrors_max;
-
-        double _meanErrors_min;
-        double _meanErrors_max;
-
-        double _RMS_Errors_min;
-        double _RMS_Errors_max;
-
-        double _maxResiduals_min;
-        double _maxResiduals_max;
-
-        double _meanResiduals_min;
-        double _meanResiduals_max;
-
-        double _RMS_Residuals_min;
-        double _RMS_Residuals_max;
+        static void ComputeRange(PlotSeries& series);
     };
 }
