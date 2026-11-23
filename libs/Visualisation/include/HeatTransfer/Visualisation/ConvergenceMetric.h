@@ -2,8 +2,9 @@
 
 namespace HeatTransfer::Visualisation
 {
-    struct VolumeScaleState
+    enum class ConvergenceMetric
     {
-        float ViewScale = 1.1f;
+        ERROR,
+        RESIDUAL
     };
 }

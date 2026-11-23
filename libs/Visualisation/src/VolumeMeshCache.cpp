@@ -15,9 +15,9 @@ namespace HeatTransfer::Visualisation
         // Slices the 6 outer faces and up to 3 planes, downsamples them, and builds coloured meshes
         // Only rebuilds on a new simulation result or a change to the colour map, planes or faces
 
-        const bool isResidual = field == PlotField::RESIDUAL;
-        const auto& T = isResidual ? data->GetResidual() : data->GetTemperature();
-        const int colormap = state.SelectedColorMap[(int)field];
+        const auto& T = data->GetField(field);
+        const int colormap =
+            field == PlotField::RESIDUAL ? state.ResidualColorMap : state.TemperatureColorMap;
 
         std::array<int, 3> planeIndex;
 
@@ -33,8 +33,8 @@ namespace HeatTransfer::Visualisation
 
         ZoneScoped;
 
-        const double tMin = isResidual ? data->Get_Residual_Min() : data->Get_Temperature_Min();
-        const double tMax = isResidual ? data->Get_Residual_Max() : data->Get_Temperature_Max();
+        const double tMin = data->GetFieldMin(field);
+        const double tMax = data->GetFieldMax(field);
 
         auto slice = [&](SliceAxis axis, int index)
         { return Slicer::Slice(T, axis, index, PLANE_POINTS); };

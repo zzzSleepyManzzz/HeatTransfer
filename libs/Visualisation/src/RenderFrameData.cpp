@@ -1,5 +1,8 @@
 #include "HeatTransfer/Visualisation/RenderFrameData.h"
 
+#include <algorithm>
+#include <stdexcept>
+
 #include "HeatTransfer/Core/Tensor3dMapper.h"
 
 namespace HeatTransfer::Visualisation
@@ -27,173 +30,76 @@ namespace HeatTransfer::Visualisation
 
         for (auto errorMetric : errorMetrics)
         {
-            _iterations.push_back(errorMetric->Iteration);
-            _maxErrors.push_back(errorMetric->ErrorMax);
-            _meanErrors.push_back(errorMetric->ErrorMean);
-            _RMS_Errors.push_back(errorMetric->ErrorRMS);
+            _iterations.Values.push_back(errorMetric->Iteration);
+            _maxErrors.Values.push_back(errorMetric->ErrorMax);
+            _meanErrors.Values.push_back(errorMetric->ErrorMean);
+            _rmsErrors.Values.push_back(errorMetric->ErrorRMS);
         }
 
         for (auto residualMetric : residualMetrics)
         {
-            _maxResiduals.push_back(residualMetric->ResidualMax);
-            _meanResiduals.push_back(residualMetric->ResidualMean);
-            _RMS_Residuals.push_back(residualMetric->ResidualRMS);
+            _maxResiduals.Values.push_back(residualMetric->ResidualMax);
+            _meanResiduals.Values.push_back(residualMetric->ResidualMean);
+            _rmsResiduals.Values.push_back(residualMetric->ResidualRMS);
         }
 
-        _iterations_min = *std::min_element(_iterations.begin(), _iterations.end());
-        _iterations_max = *std::max_element(_iterations.begin(), _iterations.end());
+        ComputeRange(_iterations);
 
-        _maxErrors_min = *std::min_element(_maxErrors.begin(), _maxErrors.end());
-        _maxErrors_max = *std::max_element(_maxErrors.begin(), _maxErrors.end());
+        ComputeRange(_maxErrors);
+        ComputeRange(_meanErrors);
+        ComputeRange(_rmsErrors);
 
-        _meanErrors_min = *std::min_element(_meanErrors.begin(), _meanErrors.end());
-        _meanErrors_max = *std::max_element(_meanErrors.begin(), _meanErrors.end());
-
-        _RMS_Errors_min = *std::min_element(_RMS_Errors.begin(), _RMS_Errors.end());
-        _RMS_Errors_max = *std::max_element(_RMS_Errors.begin(), _RMS_Errors.end());
-
-        _maxResiduals_min = *std::min_element(_maxResiduals.begin(), _maxResiduals.end());
-        _maxResiduals_max = *std::max_element(_maxResiduals.begin(), _maxResiduals.end());
-
-        _meanResiduals_min = *std::min_element(_meanResiduals.begin(), _meanResiduals.end());
-        _meanResiduals_max = *std::max_element(_meanResiduals.begin(), _meanResiduals.end());
-
-        _RMS_Residuals_min = *std::min_element(_RMS_Residuals.begin(), _RMS_Residuals.end());
-        _RMS_Residuals_max = *std::max_element(_RMS_Residuals.begin(), _RMS_Residuals.end());
+        ComputeRange(_maxResiduals);
+        ComputeRange(_meanResiduals);
+        ComputeRange(_rmsResiduals);
     }
 
-    const Core::Tensor3d& RenderFrameData::GetTemperature()
+    void RenderFrameData::ComputeRange(PlotSeries& series)
     {
-        return *_temperature;
+        if (series.Values.empty())
+            return;
+
+        const auto [min, max] = std::minmax_element(series.Values.begin(), series.Values.end());
+
+        series.Min = *min;
+        series.Max = *max;
     }
 
-    const Core::Tensor3d& RenderFrameData::GetResidual()
+    const Core::Tensor3d& RenderFrameData::GetField(PlotField field)
     {
-        return *_residual;
+        return field == PlotField::RESIDUAL ? *_residual : *_temperature;
     }
 
-    double RenderFrameData::Get_Temperature_Min()
+    double RenderFrameData::GetFieldMin(PlotField field)
     {
-        return _temperature_min;
+        return field == PlotField::RESIDUAL ? _residual_min : _temperature_min;
     }
 
-    double RenderFrameData::Get_Temperature_Max()
+    double RenderFrameData::GetFieldMax(PlotField field)
     {
-        return _temperature_max;
+        return field == PlotField::RESIDUAL ? _residual_max : _temperature_max;
     }
 
-    double RenderFrameData::Get_Residual_Min()
-    {
-        return _residual_min;
-    }
-
-    double RenderFrameData::Get_Residual_Max()
-    {
-        return _residual_max;
-    }
-
-    const std::vector<double>& RenderFrameData::Get_Iterations()
+    const PlotSeries& RenderFrameData::GetIterations()
     {
         return _iterations;
     }
 
-    const std::vector<double>& RenderFrameData::Get_MaxErrors()
+    const PlotSeries& RenderFrameData::GetConvergence(ConvergenceMetric metric,
+                                                      Core::TrackingMetric statistic)
     {
-        return _maxErrors;
-    }
+        const bool isResidual = metric == ConvergenceMetric::RESIDUAL;
 
-    const std::vector<double>& RenderFrameData::Get_MeanErrors()
-    {
-        return _meanErrors;
-    }
-
-    const std::vector<double>& RenderFrameData::Get_RMS_Errors()
-    {
-        return _RMS_Errors;
-    }
-
-    const std::vector<double>& RenderFrameData::Get_MaxResiduals()
-    {
-        return _maxResiduals;
-    }
-
-    const std::vector<double>& RenderFrameData::Get_MeanResiduals()
-    {
-        return _meanResiduals;
-    }
-
-    const std::vector<double>& RenderFrameData::Get_RMS_Residuals()
-    {
-        return _RMS_Residuals;
-    }
-
-    double RenderFrameData::Get_Iterations_Min()
-    {
-        return _iterations_min;
-    }
-
-    double RenderFrameData::Get_Iterations_Max()
-    {
-        return _iterations_max;
-    }
-
-    double RenderFrameData::Get_MaxErrors_Min()
-    {
-        return _maxErrors_min;
-    }
-
-    double RenderFrameData::Get_MaxErrors_Max()
-    {
-        return _maxErrors_max;
-    }
-
-    double RenderFrameData::Get_MeanErrors_Min()
-    {
-        return _meanErrors_min;
-    }
-
-    double RenderFrameData::Get_MeanErrors_Max()
-    {
-        return _meanErrors_max;
-    }
-
-    double RenderFrameData::Get_RMS_Errors_Min()
-    {
-        return _RMS_Errors_min;
-    }
-
-    double RenderFrameData::Get_RMS_Errors_Max()
-    {
-        return _RMS_Errors_max;
-    }
-
-    double RenderFrameData::Get_MaxResiduals_Min()
-    {
-        return _maxResiduals_min;
-    }
-
-    double RenderFrameData::Get_MaxResiduals_Max()
-    {
-        return _maxResiduals_max;
-    }
-
-    double RenderFrameData::Get_MeanResiduals_Min()
-    {
-        return _meanResiduals_min;
-    }
-
-    double RenderFrameData::Get_MeanResiduals_Max()
-    {
-        return _meanResiduals_max;
-    }
-
-    double RenderFrameData::Get_RMS_Residuals_Min()
-    {
-        return _RMS_Residuals_min;
-    }
-
-    double RenderFrameData::Get_RMS_Residuals_Max()
-    {
-        return _RMS_Residuals_max;
+        switch (statistic)
+        {
+            case Core::TrackingMetric::MAX:
+                return isResidual ? _maxResiduals : _maxErrors;
+            case Core::TrackingMetric::MEAN:
+                return isResidual ? _meanResiduals : _meanErrors;
+            case Core::TrackingMetric::RMS:
+                return isResidual ? _rmsResiduals : _rmsErrors;
+            default:
+                throw std::runtime_error("Invalid tracking metric");
+        }
     }
 }

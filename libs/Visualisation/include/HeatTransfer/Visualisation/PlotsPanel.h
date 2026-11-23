@@ -9,7 +9,6 @@
 #include "HeatTransfer/Visualisation/SliceState.h"
 #include "HeatTransfer/Visualisation/SurfacePlotState.h"
 #include "HeatTransfer/Visualisation/VolumeMeshCache.h"
-#include "HeatTransfer/Visualisation/VolumeScaleState.h"
 #include "HeatTransfer/Visualisation/VolumeViewState.h"
 
 namespace HeatTransfer::Visualisation
@@ -54,7 +53,6 @@ namespace HeatTransfer::Visualisation
         std::shared_ptr<VolumeViewState> _volumeViewState;
         std::shared_ptr<VolumeMeshCache> _temperatureVolumeMeshCache;
         std::shared_ptr<VolumeMeshCache> _residualVolumeMeshCache;
-        std::shared_ptr<VolumeScaleState> _volumeScaleState;
 
         std::shared_ptr<SurfacePlotState> _temperatureSurfacePlotState;
         std::shared_ptr<SurfacePlotState> _residualSurfacePlotState;
@@ -72,10 +70,7 @@ namespace HeatTransfer::Visualisation
         SliceData CreateSliceSelector(const Core::Tensor3d& field);
         void CreateConvergencePlots(ConvergencePlotsState& state);
         void CreateConvergencePlot(const ConvergencePlotsState& state,
-                                   const std::string& statistic,
-                                   const std::string& metric,
-                                   const std::vector<double>& values,
-                                   double valuesMin,
-                                   double valuesMax);
+                                   Core::TrackingMetric statistic,
+                                   const std::string& statisticLabel);
     };
 }

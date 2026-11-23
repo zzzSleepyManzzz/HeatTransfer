@@ -17,7 +17,6 @@ namespace HeatTransfer::Visualisation
         , _volumeViewState(std::make_shared<VolumeViewState>())
         , _temperatureVolumeMeshCache(std::make_shared<VolumeMeshCache>())
         , _residualVolumeMeshCache(std::make_shared<VolumeMeshCache>())
-        , _volumeScaleState(std::make_shared<VolumeScaleState>())
         , _sliceState(std::make_shared<SliceState>())
         , _temperatureSurfacePlotState(std::make_shared<SurfacePlotState>())
         , _residualSurfacePlotState(
@@ -120,8 +119,9 @@ namespace HeatTransfer::Visualisation
 
         const bool isResidual = field == PlotField::RESIDUAL;
         auto& meshCache = isResidual ? *_residualVolumeMeshCache : *_temperatureVolumeMeshCache;
-        const auto& T = isResidual ? data->GetResidual() : data->GetTemperature();
-        int& colorMap = state.SelectedColorMap[(int)field];
+        const auto& T = data->GetField(field);
+        const char* valueLabel = isResidual ? "Residual" : "Temperature [K]";
+        int& colorMap = isResidual ? state.ResidualColorMap : state.TemperatureColorMap;
 
         if (ImGui::Button("Reset view"))
         {
@@ -131,7 +131,7 @@ namespace HeatTransfer::Visualisation
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
 
-        ImGui::SliderFloat("View scale", &_volumeScaleState->ViewScale, 0.5f, 3.0f, "%.2f");
+        ImGui::SliderFloat("View scale", &state.ViewScale, 0.5f, 3.0f, "%.2f");
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
 
@@ -175,7 +175,7 @@ namespace HeatTransfer::Visualisation
         const double longest = std::max({xMax, yMax, zMax});
 
         ImPlot3D::PushColormap(colorMap);
-        ImPlot3D::PushStyleVar(ImPlot3DStyleVar_ViewScaleFactor, _volumeScaleState->ViewScale);
+        ImPlot3D::PushStyleVar(ImPlot3DStyleVar_ViewScaleFactor, state.ViewScale);
 
         auto plotWindowWidth = ImGui::GetWindowSize().x;
 
@@ -262,18 +262,8 @@ namespace HeatTransfer::Visualisation
         ImGui::SameLine();
         ImPlot::PushColormap(colorMap);
 
-        if (isResidual)
-        {
-            ImPlot::ColormapScale(
-                "Residual", data->Get_Residual_Min(), data->Get_Residual_Max(), ImVec2(-1, -1));
-        }
-        else
-        {
-            ImPlot::ColormapScale("Temperature [K]",
-                                  data->Get_Temperature_Min(),
-                                  data->Get_Temperature_Max(),
-                                  ImVec2(-1, -1));
-        }
+        ImPlot::ColormapScale(
+            valueLabel, data->GetFieldMin(field), data->GetFieldMax(field), ImVec2(-1, -1));
 
         ImPlot::PopColormap();
     }
@@ -325,7 +315,7 @@ namespace HeatTransfer::Visualisation
         auto plotData = _model->GetRenderFrameData();
 
         const bool isResidual = state.Field == PlotField::RESIDUAL;
-        const auto& T = isResidual ? plotData->GetResidual() : plotData->GetTemperature();
+        const auto& T = plotData->GetField(state.Field);
         const char* valueLabel = isResidual ? "Residual" : "Temperature [K]";
         const char* plotId = isResidual ? "## Residual" : "## Temperature";
 
@@ -469,34 +459,16 @@ namespace HeatTransfer::Visualisation
 
     void PlotsPanel::CreateConvergencePlots(ConvergencePlotsState& state)
     {
+        using enum Core::TrackingMetric;
+
         auto plotData = _model->GetRenderFrameData();
 
         const bool isResidual = state.Metric == ConvergenceMetric::RESIDUAL;
-        const std::string metric = isResidual ? "residual" : "error";
 
-        const auto& iterations = plotData->Get_Iterations();
-
-        const auto& maxValues =
-            isResidual ? plotData->Get_MaxResiduals() : plotData->Get_MaxErrors();
-        const auto& meanValues =
-            isResidual ? plotData->Get_MeanResiduals() : plotData->Get_MeanErrors();
-        const auto& rmsValues =
-            isResidual ? plotData->Get_RMS_Residuals() : plotData->Get_RMS_Errors();
-
-        auto maxValues_min =
-            isResidual ? plotData->Get_MaxResiduals_Min() : plotData->Get_MaxErrors_Min();
-        auto maxValues_max =
-            isResidual ? plotData->Get_MaxResiduals_Max() : plotData->Get_MaxErrors_Max();
-
-        auto meanValues_min =
-            isResidual ? plotData->Get_MeanResiduals_Min() : plotData->Get_MeanErrors_Min();
-        auto meanValues_max =
-            isResidual ? plotData->Get_MeanResiduals_Max() : plotData->Get_MeanErrors_Max();
-
-        auto rmsValues_min =
-            isResidual ? plotData->Get_RMS_Residuals_Min() : plotData->Get_RMS_Errors_Min();
-        auto rmsValues_max =
-            isResidual ? plotData->Get_RMS_Residuals_Max() : plotData->Get_RMS_Errors_Max();
+        const auto& iterations = plotData->GetIterations().Values;
+        const auto& maxValues = plotData->GetConvergence(state.Metric, MAX).Values;
+        const auto& meanValues = plotData->GetConvergence(state.Metric, MEAN).Values;
+        const auto& rmsValues = plotData->GetConvergence(state.Metric, RMS).Values;
 
         // Reset zoom
 
@@ -507,7 +479,7 @@ namespace HeatTransfer::Visualisation
 
         // Print history button
 
-        if (ImGui::Button(std::format("Print {} history", metric).c_str()))
+        if (ImGui::Button(isResidual ? "Print residual history" : "Print error history"))
         {
             _logger->AddSpace();
             _logger->Add(isResidual ? "================ Residuals ================"
@@ -530,30 +502,28 @@ namespace HeatTransfer::Visualisation
 
         // Create line plots
 
-        CreateConvergencePlot(state, "Max", metric, maxValues, maxValues_min, maxValues_max);
-        CreateConvergencePlot(state, "Mean", metric, meanValues, meanValues_min, meanValues_max);
-        CreateConvergencePlot(state, "RMS", metric, rmsValues, rmsValues_min, rmsValues_max);
+        CreateConvergencePlot(state, MAX, "Max");
+        CreateConvergencePlot(state, MEAN, "Mean");
+        CreateConvergencePlot(state, RMS, "RMS");
 
         state.ResetZoom = false;
     }
 
     void PlotsPanel::CreateConvergencePlot(const ConvergencePlotsState& state,
-                                           const std::string& statistic,
-                                           const std::string& metric,
-                                           const std::vector<double>& values,
-                                           double valuesMin,
-                                           double valuesMax)
+                                           Core::TrackingMetric statistic,
+                                           const std::string& statisticLabel)
     {
         auto plotData = _model->GetRenderFrameData();
 
-        const auto& iterations = plotData->Get_Iterations();
+        const auto& iterations = plotData->GetIterations();
+        const auto& series = plotData->GetConvergence(state.Metric, statistic);
 
-        auto iterations_min = plotData->Get_Iterations_Min();
-        auto iterations_max = plotData->Get_Iterations_Max();
+        const std::string metric =
+            state.Metric == ConvergenceMetric::RESIDUAL ? "residual" : "error";
 
-        const auto title = std::format("{} {}s against iterations", statistic, metric);
-        const auto yLabel = std::format("{} {}", statistic, metric);
-        const auto lineLabel = std::format("## {} {}", statistic, metric);
+        const auto title = std::format("{} {}s against iterations", statisticLabel, metric);
+        const auto yLabel = std::format("{} {}", statisticLabel, metric);
+        const auto lineLabel = std::format("## {} {}", statisticLabel, metric);
 
         const ImPlotSpec lineSpec(ImPlotProp_LineWeight, 3.0f);
 
@@ -564,13 +534,16 @@ namespace HeatTransfer::Visualisation
             if (state.ResetZoom)
             {
                 ImPlot::SetupAxisLimits(
-                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
-                ImPlot::SetupAxisLimits(ImAxis_Y1, valuesMin, valuesMax, ImPlotCond_Always);
+                    ImAxis_X1, iterations.Min, iterations.Max, ImPlotCond_Always);
+                ImPlot::SetupAxisLimits(ImAxis_Y1, series.Min, series.Max, ImPlotCond_Always);
             }
 
             ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            ImPlot::PlotLine(
-                lineLabel.c_str(), iterations.data(), values.data(), iterations.size(), lineSpec);
+            ImPlot::PlotLine(lineLabel.c_str(),
+                             iterations.Values.data(),
+                             series.Values.data(),
+                             iterations.Values.size(),
+                             lineSpec);
             ImPlot::EndPlot();
         }
     }

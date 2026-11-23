@@ -2,14 +2,15 @@
 
 #include <array>
 
-#include "HeatTransfer/Visualisation/PlotField.h"
-
 namespace HeatTransfer::Visualisation
 {
     struct VolumeViewState
     {
         bool ResetZoom = false;
-        std::array<int, 2> SelectedColorMap = {6, 6}; // One per PlotField, Hot by default
+        float ViewScale = 1.1f;
+
+        int TemperatureColorMap = 6; // Hot by default
+        int ResidualColorMap = 6;
 
         bool ShowOuterFaces = true;
 
