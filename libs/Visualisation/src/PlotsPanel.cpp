@@ -278,6 +278,9 @@ namespace HeatTransfer::Visualisation
 
     void PlotsPanel::RebuildVolumeMeshIfNeeded(VolumeViewState& state)
     {
+        // Slices up to 3 planes and the 6 outer faces, downsamples them, and builds coloured meshes
+        // Only rebuilds on a new simulation result or a change to the colour map, planes or faces
+
         auto data = _model->GetRenderFrameData();
 
         const bool isResidual = state.Field == PlotField::RESIDUAL;
@@ -310,8 +313,10 @@ namespace HeatTransfer::Visualisation
         for (int axis = 0; axis < 3; axis++)
         {
             if (state.ShowPlane[axis])
+            {
                 state.SliceMesh.AddSlice(
                     slice((SliceAxis)axis, planeIndex[axis]), tMin, tMax, colormap);
+            }
         }
 
         // The outer faces, ordered as Core::Faces::ALL (left, right, top, bottom, front, back)
@@ -328,8 +333,10 @@ namespace HeatTransfer::Visualisation
             state.FaceMeshes[i].Clear();
 
             if (state.ShowOuterFaces)
+            {
                 state.FaceMeshes[i].AddSlice(
                     slice(faces[i].first, faces[i].second), tMin, tMax, colormap);
+            }
         }
 
         state.MeshSource = data;
