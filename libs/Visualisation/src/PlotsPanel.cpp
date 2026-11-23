@@ -14,15 +14,17 @@ namespace HeatTransfer::Visualisation
 {
     PlotsPanel::PlotsPanel(std::shared_ptr<ConsoleLogger> logger)
         : IPanel(logger)
-        , _volumeViewState(std::make_shared<VolumeViewState>())
+        , _temperatureVolumeViewState(std::make_shared<VolumeViewState>())
         , _residualVolumeViewState(
-              std::make_shared<VolumeViewState>(VolumeViewState{.Field = VolumeField::RESIDUAL}))
+              std::make_shared<VolumeViewState>(VolumeViewState{.Field = PlotField::RESIDUAL}))
         , _volumeScaleState(std::make_shared<VolumeScaleState>())
         , _sliceState(std::make_shared<SliceState>())
-        , _temperatureSurfacePlotState(std::make_shared<TemperatureSurfacePlotState>())
-        , _residualSurfacePlotState(std::make_shared<ResidualSurfacePlotState>())
-        , _errorConvergencePlotsState(std::make_shared<ErrorConvergencePlotsState>())
-        , _residualConvergencePlotsState(std::make_shared<ResidualConvergencePlotsState>())
+        , _temperatureSurfacePlotState(std::make_shared<SurfacePlotState>())
+        , _residualSurfacePlotState(
+              std::make_shared<SurfacePlotState>(SurfacePlotState{.Field = PlotField::RESIDUAL}))
+        , _errorConvergencePlotsState(std::make_shared<ConvergencePlotsState>())
+        , _residualConvergencePlotsState(std::make_shared<ConvergencePlotsState>(
+              ConvergencePlotsState{.Metric = ConvergenceMetric::RESIDUAL}))
     {
     }
 
@@ -42,7 +44,7 @@ namespace HeatTransfer::Visualisation
 
         _shownRenderFrameData = data;
 
-        _volumeViewState->ResetZoom = true;
+        _temperatureVolumeViewState->ResetZoom = true;
         _residualVolumeViewState->ResetZoom = true;
         _temperatureSurfacePlotState->ResetZoom = true;
         _residualSurfacePlotState->ResetZoom = true;
@@ -65,7 +67,7 @@ namespace HeatTransfer::Visualisation
             {
                 if (ImGui::BeginTabItem("3D Temperature"))
                 {
-                    CreateVolumeView(*_volumeViewState);
+                    CreateVolumeView(*_temperatureVolumeViewState);
 
                     ImGui::EndTabItem();
                 }
@@ -79,28 +81,28 @@ namespace HeatTransfer::Visualisation
 
                 if (ImGui::BeginTabItem("Temperature surface"))
                 {
-                    CreateTemperatureSurfacePlot();
+                    CreateSurfacePlot(*_temperatureSurfacePlotState);
 
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("Residual surface"))
                 {
-                    CreateResidualSurfacePlot();
+                    CreateSurfacePlot(*_residualSurfacePlotState);
 
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("Error convergence"))
                 {
-                    CreateErrorConvergencePlots();
+                    CreateConvergencePlots(*_errorConvergencePlotsState);
 
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("Residual convergence"))
                 {
-                    CreateResidualConvergencePlots();
+                    CreateConvergencePlots(*_residualConvergencePlotsState);
 
                     ImGui::EndTabItem();
                 }
@@ -110,496 +112,11 @@ namespace HeatTransfer::Visualisation
         ImGui::End();
     }
 
-    void PlotsPanel::CreateTemperatureSurfacePlot()
-    {
-        auto plotData = _model->GetRenderFrameData();
-        const auto slice = CreateSliceSelector(plotData->GetTemperature());
-
-        ImPlot3DSurfaceFlags surfacePlotFlags = ImPlot3DSurfaceFlags_None;
-
-        // Reset zoom button
-
-        if (ImGui::Button("Reset zoom"))
-        {
-            _temperatureSurfacePlotState->ResetZoom = true;
-        }
-
-        // ColorMap combo box, hide lines and remove lines checkboxes
-
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
-
-        ImGui::Combo("Color map type",
-                     &_temperatureSurfacePlotState->SelectedColorMap,
-                     COLOR_MAP_OPTIONS,
-                     IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
-
-        ImGui::SameLine();
-
-        if (ImGui::Checkbox("Hide lines", &_temperatureSurfacePlotState->HideLinesOn))
-        {
-        }
-        if (_temperatureSurfacePlotState->HideLinesOn)
-        {
-            surfacePlotFlags |= ImPlot3DSurfaceFlags_NoLines;
-        }
-
-        ImGui::SameLine();
-
-        if (ImGui::Checkbox("Remove fill", &_temperatureSurfacePlotState->RemoveFillOn))
-        {
-        }
-        if (_temperatureSurfacePlotState->RemoveFillOn)
-        {
-            surfacePlotFlags |= ImPlot3DSurfaceFlags_NoFill;
-        }
-
-        // Create surface plot
-
-        ImPlot3D::PushColormap(_temperatureSurfacePlotState->SelectedColorMap);
-
-        ImPlot3DFlags plot3DFlags = ImPlot3DFlags_NoPan;
-        auto plotWindowWidth = ImGui::GetWindowSize().x;
-
-        if (ImPlot3D::BeginPlot("## Temperature", ImVec2(plotWindowWidth * 0.93, -1), plot3DFlags))
-        {
-            ImPlot3D::SetupAxes(slice.ULabel, slice.VLabel, "Temperature [K]");
-            SetupLengthAxisTicks(ImAxis3D_X, slice.UMax, GetGridSpacing());
-            SetupLengthAxisTicks(ImAxis3D_Y, slice.VMax, GetGridSpacing());
-
-            if (_temperatureSurfacePlotState->ResetZoom)
-            {
-                ImPlot3D::SetupAxesLimits(slice.UMin,
-                                          slice.UMax,
-                                          slice.VMin,
-                                          slice.VMax,
-                                          slice.ValueMin,
-                                          slice.ValueMax,
-                                          ImPlot3DCond_Always);
-                _temperatureSurfacePlotState->ResetZoom = false;
-                ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Always);
-            }
-            else
-            {
-                const auto cond = _temperatureSurfacePlotState->FitToSlice ? ImPlot3DCond_Always
-                                                                           : ImPlot3DCond_Once;
-                _temperatureSurfacePlotState->FitToSlice = false;
-
-                ImPlot3D::SetupAxesLimits(slice.UMin,
-                                          slice.UMax,
-                                          slice.VMin,
-                                          slice.VMax,
-                                          slice.ValueMin,
-                                          slice.ValueMax,
-                                          cond);
-                ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Once);
-            }
-
-            ImPlot3DSpec spec;
-            spec.FillAlpha = 1.0f;
-            spec.Flags = surfacePlotFlags;
-            spec.LineColor = ImPlot3D::GetColormapColor(1);
-
-            ImPlot3D::PlotSurface("## Temperature Surface Plot",
-                                  slice.U.data(),
-                                  slice.V.data(),
-                                  slice.Values.data(),
-                                  slice.UCount,
-                                  slice.VCount,
-                                  0.0,
-                                  0.0,
-                                  spec);
-
-            ImPlot3D::EndPlot();
-        }
-
-        ImPlot3D::PopColormap();
-
-        // Create color bar
-
-        ImGui::SameLine();
-        ImPlot::PushColormap(_temperatureSurfacePlotState->SelectedColorMap);
-        ImPlot::ColormapScale("Temperature [K]", slice.ValueMin, slice.ValueMax, ImVec2(-1, -1));
-        ImPlot::PopColormap();
-    }
-
-    SliceData PlotsPanel::CreateSliceSelector(const Core::Tensor3d& field)
-    {
-        auto& state = *_sliceState;
-
-        auto fitToSlice = [&]()
-        {
-            _temperatureSurfacePlotState->FitToSlice = true;
-            _residualSurfacePlotState->FitToSlice = true;
-        };
-
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
-
-        if (ImGui::Combo("Slice axis", &state.Axis, AXIS_OPTIONS, IM_ARRAYSIZE(AXIS_OPTIONS)))
-        {
-            fitToSlice();
-        }
-
-        const auto axis = (SliceAxis)state.Axis;
-        int index = Slicer::ClampIndex(field, axis, state.Index);
-
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.4f);
-
-        if (ImGui::SliderInt("Slice index", &index, 0, Slicer::AxisSize(field, axis) - 1))
-        {
-            state.Index = index;
-            fitToSlice();
-        }
-
-        return Slicer::Slice(field, axis, index, SLICE_PLOT_POINTS);
-    }
-
-    void PlotsPanel::CreateResidualSurfacePlot()
-    {
-        auto plotData = _model->GetRenderFrameData();
-        const auto slice = CreateSliceSelector(plotData->GetResidual());
-
-        ImPlot3DSurfaceFlags surfacePlotFlags = ImPlot3DSurfaceFlags_None;
-
-        // Reset zoom button
-
-        if (ImGui::Button("Reset zoom"))
-        {
-            _residualSurfacePlotState->ResetZoom = true;
-        }
-
-        // ColorMap combo box, hide lines and remove lines checkboxes
-
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
-
-        ImGui::Combo("Color map type",
-                     &_residualSurfacePlotState->SelectedColorMap,
-                     COLOR_MAP_OPTIONS,
-                     IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
-
-        ImGui::SameLine();
-
-        if (ImGui::Checkbox("Hide lines", &_residualSurfacePlotState->HideLinesOn))
-        {
-        }
-        if (_residualSurfacePlotState->HideLinesOn)
-        {
-            surfacePlotFlags |= ImPlot3DSurfaceFlags_NoLines;
-        }
-
-        ImGui::SameLine();
-
-        if (ImGui::Checkbox("Remove fill", &_residualSurfacePlotState->RemoveFillOn))
-        {
-        }
-        if (_residualSurfacePlotState->RemoveFillOn)
-        {
-            surfacePlotFlags |= ImPlot3DSurfaceFlags_NoFill;
-        }
-
-        // Create surface plot
-
-        ImPlot3D::PushColormap(_residualSurfacePlotState->SelectedColorMap);
-
-        ImPlot3DFlags plot3DFlags = ImPlot3DFlags_NoPan;
-        auto plotWindowWidth = ImGui::GetWindowSize().x;
-
-        if (ImPlot3D::BeginPlot("## Temperature", ImVec2(plotWindowWidth * 0.93, -1), plot3DFlags))
-        {
-            ImPlot3D::SetupAxes(slice.ULabel, slice.VLabel, "Residual");
-            SetupLengthAxisTicks(ImAxis3D_X, slice.UMax, GetGridSpacing());
-            SetupLengthAxisTicks(ImAxis3D_Y, slice.VMax, GetGridSpacing());
-
-            if (_residualSurfacePlotState->ResetZoom)
-            {
-                ImPlot3D::SetupAxesLimits(slice.UMin,
-                                          slice.UMax,
-                                          slice.VMin,
-                                          slice.VMax,
-                                          slice.ValueMin,
-                                          slice.ValueMax,
-                                          ImPlot3DCond_Always);
-                _residualSurfacePlotState->ResetZoom = false;
-                ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Always);
-            }
-            else
-            {
-                const auto cond =
-                    _residualSurfacePlotState->FitToSlice ? ImPlot3DCond_Always : ImPlot3DCond_Once;
-                _residualSurfacePlotState->FitToSlice = false;
-
-                ImPlot3D::SetupAxesLimits(slice.UMin,
-                                          slice.UMax,
-                                          slice.VMin,
-                                          slice.VMax,
-                                          slice.ValueMin,
-                                          slice.ValueMax,
-                                          cond);
-                ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Once);
-            }
-
-            ImPlot3DSpec spec;
-            spec.FillAlpha = 1.0f;
-            spec.Flags = surfacePlotFlags;
-            spec.LineColor = ImPlot3D::GetColormapColor(1);
-
-            ImPlot3D::PlotSurface("## Residual Surface Plot",
-                                  slice.U.data(),
-                                  slice.V.data(),
-                                  slice.Values.data(),
-                                  slice.UCount,
-                                  slice.VCount,
-                                  0.0,
-                                  0.0,
-                                  spec);
-
-            ImPlot3D::EndPlot();
-        }
-
-        ImPlot3D::PopColormap();
-
-        // Create color bar
-
-        ImGui::SameLine();
-        ImPlot::PushColormap(_residualSurfacePlotState->SelectedColorMap);
-        ImPlot::ColormapScale("Residual", slice.ValueMin, slice.ValueMax, ImVec2(-1, -1));
-        ImPlot::PopColormap();
-    }
-
-    void PlotsPanel::CreateErrorConvergencePlots()
-    {
-        auto plotData = _model->GetRenderFrameData();
-
-        const auto& iterations = plotData->Get_Iterations();
-        const auto& maxErrors = plotData->Get_MaxErrors();
-        const auto& meanErrors = plotData->Get_MeanErrors();
-        const auto& rmsErrors = plotData->Get_RMS_Errors();
-
-        auto iterations_min = plotData->Get_Iterations_Min();
-        auto iterations_max = plotData->Get_Iterations_Max();
-
-        auto maxErrors_min = plotData->Get_MaxErrors_Min();
-        auto maxErrors_max = plotData->Get_MaxErrors_Max();
-
-        auto meanErrors_min = plotData->Get_MeanErrors_Min();
-        auto meanErrors_max = plotData->Get_MeanErrors_Max();
-
-        auto rmsErrors_min = plotData->Get_RMS_Errors_Min();
-        auto rmsErrors_max = plotData->Get_RMS_Errors_Max();
-
-        // Reset zoom
-
-        if (ImGui::Button("Reset zoom"))
-        {
-            _errorConvergencePlotsState->ResetZoom = true;
-        }
-
-        // Print error history button
-
-        if (ImGui::Button("Print error history"))
-        {
-            _logger->AddSpace();
-            _logger->Add("================ Errors ================");
-            _logger->AddSpace();
-
-            for (auto i = 0u; i < iterations.size(); i++)
-            {
-                _logger->Add(std::format("Iter {:4}  |  Max {:.4e}  |  Mean {:.4e}  |  RMS {:.4e}",
-                                         (int)iterations[i],
-                                         maxErrors[i],
-                                         meanErrors[i],
-                                         rmsErrors[i]));
-            }
-
-            _logger->AddSpace();
-            _logger->Add("========================================");
-            _logger->AddSpace();
-        }
-
-        // Create line plots
-
-        const ImPlotSpec lineSpec(ImPlotProp_LineWeight, 3.0f);
-
-        if (ImPlot::BeginPlot("Max errors against iterations"))
-        {
-            ImPlot::SetupAxes("Iterations", "Max error");
-
-            if (_errorConvergencePlotsState->ResetZoom)
-            {
-                ImPlot::SetupAxisLimits(
-                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
-                ImPlot::SetupAxisLimits(ImAxis_Y1, maxErrors_min, maxErrors_max, ImPlotCond_Always);
-            }
-
-            ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            ImPlot::PlotLine(
-                "## Max Error", iterations.data(), maxErrors.data(), iterations.size(), lineSpec);
-            ImPlot::EndPlot();
-        }
-
-        if (ImPlot::BeginPlot("Mean errors against iteration"))
-        {
-            ImPlot::SetupAxes("Iterations", "Mean error");
-
-            if (_errorConvergencePlotsState->ResetZoom)
-            {
-                ImPlot::SetupAxisLimits(
-                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
-                ImPlot::SetupAxisLimits(
-                    ImAxis_Y1, meanErrors_min, meanErrors_max, ImPlotCond_Always);
-            }
-
-            ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            ImPlot::PlotLine(
-                "## Mean Error", iterations.data(), meanErrors.data(), iterations.size(), lineSpec);
-            ImPlot::EndPlot();
-        }
-
-        if (ImPlot::BeginPlot("RMS errors against iteration"))
-        {
-            ImPlot::SetupAxes("Iterations", "RMS error");
-
-            if (_errorConvergencePlotsState->ResetZoom)
-            {
-                ImPlot::SetupAxisLimits(
-                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
-                ImPlot::SetupAxisLimits(ImAxis_Y1, rmsErrors_min, rmsErrors_max, ImPlotCond_Always);
-            }
-
-            ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            ImPlot::PlotLine(
-                "## RMS Error", iterations.data(), rmsErrors.data(), iterations.size(), lineSpec);
-            ImPlot::EndPlot();
-        }
-
-        _errorConvergencePlotsState->ResetZoom = false;
-    }
-
-    void PlotsPanel::CreateResidualConvergencePlots()
-    {
-        auto plotData = _model->GetRenderFrameData();
-
-        const auto& iterations = plotData->Get_Iterations();
-        const auto& maxResiduals = plotData->Get_MaxResiduals();
-        const auto& meanResiduals = plotData->Get_MeanResiduals();
-        const auto& rmsResiduals = plotData->Get_RMS_Residuals();
-
-        auto iterations_min = plotData->Get_Iterations_Min();
-        auto iterations_max = plotData->Get_Iterations_Max();
-
-        auto maxResiduals_min = plotData->Get_MaxResiduals_Min();
-        auto maxResiduals_max = plotData->Get_MaxResiduals_Max();
-
-        auto meanResiduals_min = plotData->Get_MeanResiduals_Min();
-        auto meanResiduals_max = plotData->Get_MeanResiduals_Max();
-
-        auto rmsResiduals_min = plotData->Get_RMS_Residuals_Min();
-        auto rmsResiduals_max = plotData->Get_RMS_Residuals_Max();
-
-        // Reset zoom
-
-        if (ImGui::Button("Reset zoom"))
-        {
-            _residualConvergencePlotsState->ResetZoom = true;
-        }
-
-        // Print residual metrics history button
-
-        if (ImGui::Button("Print residual history"))
-        {
-            _logger->AddSpace();
-            _logger->Add("================ Residuals ================");
-            _logger->AddSpace();
-
-            for (auto i = 0u; i < iterations.size(); i++)
-            {
-                _logger->Add(std::format("Iter {:4}  |  Max {:.4e}  |  Mean {:.4e}  |  RMS {:.4e}",
-                                         (int)iterations[i],
-                                         maxResiduals[i],
-                                         meanResiduals[i],
-                                         rmsResiduals[i]));
-            }
-
-            _logger->AddSpace();
-            _logger->Add("========================================");
-            _logger->AddSpace();
-        }
-
-        // Create line plots
-
-        const ImPlotSpec lineSpec(ImPlotProp_LineWeight, 3.0f);
-
-        if (ImPlot::BeginPlot("Max residual against iterations"))
-        {
-            ImPlot::SetupAxes("Iterations", "Max residual");
-
-            if (_residualConvergencePlotsState->ResetZoom)
-            {
-                ImPlot::SetupAxisLimits(
-                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
-                ImPlot::SetupAxisLimits(
-                    ImAxis_Y1, maxResiduals_min, maxResiduals_max, ImPlotCond_Always);
-            }
-
-            ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            ImPlot::PlotLine("## Max Residual",
-                             iterations.data(),
-                             maxResiduals.data(),
-                             iterations.size(),
-                             lineSpec);
-            ImPlot::EndPlot();
-        }
-
-        if (ImPlot::BeginPlot("Mean residuals against iteration"))
-        {
-            ImPlot::SetupAxes("Iterations", "Mean residual");
-
-            if (_residualConvergencePlotsState->ResetZoom)
-            {
-                ImPlot::SetupAxisLimits(
-                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
-                ImPlot::SetupAxisLimits(
-                    ImAxis_Y1, meanResiduals_min, meanResiduals_max, ImPlotCond_Always);
-            }
-
-            ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            ImPlot::PlotLine("## Mean Residual",
-                             iterations.data(),
-                             meanResiduals.data(),
-                             iterations.size(),
-                             lineSpec);
-            ImPlot::EndPlot();
-        }
-
-        if (ImPlot::BeginPlot("RMS residuals against iteration"))
-        {
-            ImPlot::SetupAxes("Iterations", "RMS residual");
-
-            if (_residualConvergencePlotsState->ResetZoom)
-            {
-                ImPlot::SetupAxisLimits(
-                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
-                ImPlot::SetupAxisLimits(
-                    ImAxis_Y1, rmsResiduals_min, rmsResiduals_max, ImPlotCond_Always);
-            }
-
-            ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            ImPlot::PlotLine("## RMS Residual",
-                             iterations.data(),
-                             rmsResiduals.data(),
-                             iterations.size(),
-                             lineSpec);
-            ImPlot::EndPlot();
-        }
-
-        _residualConvergencePlotsState->ResetZoom = false;
-    }
-
     void PlotsPanel::CreateVolumeView(VolumeViewState& state)
     {
         auto data = _model->GetRenderFrameData();
 
-        const bool isResidual = state.Field == VolumeField::RESIDUAL;
+        const bool isResidual = state.Field == PlotField::RESIDUAL;
         const auto& T = isResidual ? data->GetResidual() : data->GetTemperature();
 
         // Reset view button (rotation), view scale, color map and display options
@@ -760,7 +277,7 @@ namespace HeatTransfer::Visualisation
     {
         auto data = _model->GetRenderFrameData();
 
-        const bool isResidual = state.Field == VolumeField::RESIDUAL;
+        const bool isResidual = state.Field == PlotField::RESIDUAL;
         const auto& T = isResidual ? data->GetResidual() : data->GetTemperature();
 
         std::array<int, 3> planeIndex;
@@ -860,5 +377,260 @@ namespace HeatTransfer::Visualisation
     double PlotsPanel::GetGridSpacing()
     {
         return _model->GetSimulationConfig()->Parameters.GridSpacing;
+    }
+
+    void PlotsPanel::CreateSurfacePlot(SurfacePlotState& state)
+    {
+        auto plotData = _model->GetRenderFrameData();
+
+        const bool isResidual = state.Field == PlotField::RESIDUAL;
+        const auto& T = isResidual ? plotData->GetResidual() : plotData->GetTemperature();
+        const char* valueLabel = isResidual ? "Residual" : "Temperature [K]";
+        const char* plotId = isResidual ? "## Residual" : "## Temperature";
+
+        const auto slice = CreateSliceSelector(T);
+
+        ImPlot3DSurfaceFlags surfacePlotFlags = ImPlot3DSurfaceFlags_None;
+
+        // Reset zoom button
+
+        if (ImGui::Button("Reset zoom"))
+        {
+            state.ResetZoom = true;
+        }
+
+        // ColorMap combo box, hide lines and remove lines checkboxes
+
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
+
+        ImGui::Combo("Color map type",
+                     &state.SelectedColorMap,
+                     COLOR_MAP_OPTIONS,
+                     IM_ARRAYSIZE(COLOR_MAP_OPTIONS));
+
+        ImGui::SameLine();
+
+        ImGui::Checkbox("Hide lines", &state.HideLinesOn);
+
+        if (state.HideLinesOn)
+        {
+            surfacePlotFlags |= ImPlot3DSurfaceFlags_NoLines;
+        }
+
+        ImGui::SameLine();
+
+        ImGui::Checkbox("Remove fill", &state.RemoveFillOn);
+
+        if (state.RemoveFillOn)
+        {
+            surfacePlotFlags |= ImPlot3DSurfaceFlags_NoFill;
+        }
+
+        // Create surface plot
+
+        ImPlot3D::PushColormap(state.SelectedColorMap);
+
+        ImPlot3DFlags plot3DFlags = ImPlot3DFlags_NoPan;
+        auto plotWindowWidth = ImGui::GetWindowSize().x;
+
+        if (ImPlot3D::BeginPlot(plotId, ImVec2(plotWindowWidth * 0.93, -1), plot3DFlags))
+        {
+            ImPlot3D::SetupAxes(slice.ULabel, slice.VLabel, valueLabel);
+            SetupLengthAxisTicks(ImAxis3D_X, slice.UMax, GetGridSpacing());
+            SetupLengthAxisTicks(ImAxis3D_Y, slice.VMax, GetGridSpacing());
+
+            if (state.ResetZoom)
+            {
+                ImPlot3D::SetupAxesLimits(slice.UMin,
+                                          slice.UMax,
+                                          slice.VMin,
+                                          slice.VMax,
+                                          slice.ValueMin,
+                                          slice.ValueMax,
+                                          ImPlot3DCond_Always);
+                state.ResetZoom = false;
+                ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Always);
+            }
+            else
+            {
+                const auto cond = state.FitToSlice ? ImPlot3DCond_Always : ImPlot3DCond_Once;
+                state.FitToSlice = false;
+
+                ImPlot3D::SetupAxesLimits(slice.UMin,
+                                          slice.UMax,
+                                          slice.VMin,
+                                          slice.VMax,
+                                          slice.ValueMin,
+                                          slice.ValueMax,
+                                          cond);
+                ImPlot3D::SetupBoxRotation(30, -45, true, ImPlot3DCond_Once);
+            }
+
+            ImPlot3DSpec spec;
+            spec.FillAlpha = 1.0f;
+            spec.Flags = surfacePlotFlags;
+            spec.LineColor = ImPlot3D::GetColormapColor(1);
+
+            ImPlot3D::PlotSurface("## Surface Plot",
+                                  slice.U.data(),
+                                  slice.V.data(),
+                                  slice.Values.data(),
+                                  slice.UCount,
+                                  slice.VCount,
+                                  0.0,
+                                  0.0,
+                                  spec);
+
+            ImPlot3D::EndPlot();
+        }
+
+        ImPlot3D::PopColormap();
+
+        // Create color bar
+
+        ImGui::SameLine();
+        ImPlot::PushColormap(state.SelectedColorMap);
+        ImPlot::ColormapScale(valueLabel, slice.ValueMin, slice.ValueMax, ImVec2(-1, -1));
+        ImPlot::PopColormap();
+    }
+
+    SliceData PlotsPanel::CreateSliceSelector(const Core::Tensor3d& field)
+    {
+        auto& state = *_sliceState;
+
+        auto fitToSlice = [&]()
+        {
+            _temperatureSurfacePlotState->FitToSlice = true;
+            _residualSurfacePlotState->FitToSlice = true;
+        };
+
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.25f);
+
+        if (ImGui::Combo("Slice axis", &state.Axis, AXIS_OPTIONS, IM_ARRAYSIZE(AXIS_OPTIONS)))
+        {
+            fitToSlice();
+        }
+
+        const auto axis = (SliceAxis)state.Axis;
+        int index = Slicer::ClampIndex(field, axis, state.Index);
+
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.4f);
+
+        if (ImGui::SliderInt("Slice index", &index, 0, Slicer::AxisSize(field, axis) - 1))
+        {
+            state.Index = index;
+            fitToSlice();
+        }
+
+        return Slicer::Slice(field, axis, index, SLICE_PLOT_POINTS);
+    }
+
+    void PlotsPanel::CreateConvergencePlots(ConvergencePlotsState& state)
+    {
+        auto plotData = _model->GetRenderFrameData();
+
+        const bool isResidual = state.Metric == ConvergenceMetric::RESIDUAL;
+        const std::string metric = isResidual ? "residual" : "error";
+
+        const auto& iterations = plotData->Get_Iterations();
+
+        const auto& maxValues =
+            isResidual ? plotData->Get_MaxResiduals() : plotData->Get_MaxErrors();
+        const auto& meanValues =
+            isResidual ? plotData->Get_MeanResiduals() : plotData->Get_MeanErrors();
+        const auto& rmsValues =
+            isResidual ? plotData->Get_RMS_Residuals() : plotData->Get_RMS_Errors();
+
+        auto maxValues_min =
+            isResidual ? plotData->Get_MaxResiduals_Min() : plotData->Get_MaxErrors_Min();
+        auto maxValues_max =
+            isResidual ? plotData->Get_MaxResiduals_Max() : plotData->Get_MaxErrors_Max();
+
+        auto meanValues_min =
+            isResidual ? plotData->Get_MeanResiduals_Min() : plotData->Get_MeanErrors_Min();
+        auto meanValues_max =
+            isResidual ? plotData->Get_MeanResiduals_Max() : plotData->Get_MeanErrors_Max();
+
+        auto rmsValues_min =
+            isResidual ? plotData->Get_RMS_Residuals_Min() : plotData->Get_RMS_Errors_Min();
+        auto rmsValues_max =
+            isResidual ? plotData->Get_RMS_Residuals_Max() : plotData->Get_RMS_Errors_Max();
+
+        // Reset zoom
+
+        if (ImGui::Button("Reset zoom"))
+        {
+            state.ResetZoom = true;
+        }
+
+        // Print history button
+
+        if (ImGui::Button(std::format("Print {} history", metric).c_str()))
+        {
+            _logger->AddSpace();
+            _logger->Add(isResidual ? "================ Residuals ================"
+                                    : "================ Errors ================");
+            _logger->AddSpace();
+
+            for (auto i = 0u; i < iterations.size(); i++)
+            {
+                _logger->Add(std::format("Iter {:4}  |  Max {:.4e}  |  Mean {:.4e}  |  RMS {:.4e}",
+                                         (int)iterations[i],
+                                         maxValues[i],
+                                         meanValues[i],
+                                         rmsValues[i]));
+            }
+
+            _logger->AddSpace();
+            _logger->Add("========================================");
+            _logger->AddSpace();
+        }
+
+        // Create line plots
+
+        CreateConvergencePlot(state, "Max", metric, maxValues, maxValues_min, maxValues_max);
+        CreateConvergencePlot(state, "Mean", metric, meanValues, meanValues_min, meanValues_max);
+        CreateConvergencePlot(state, "RMS", metric, rmsValues, rmsValues_min, rmsValues_max);
+
+        state.ResetZoom = false;
+    }
+
+    void PlotsPanel::CreateConvergencePlot(const ConvergencePlotsState& state,
+                                           const std::string& statistic,
+                                           const std::string& metric,
+                                           const std::vector<double>& values,
+                                           double valuesMin,
+                                           double valuesMax)
+    {
+        auto plotData = _model->GetRenderFrameData();
+
+        const auto& iterations = plotData->Get_Iterations();
+
+        auto iterations_min = plotData->Get_Iterations_Min();
+        auto iterations_max = plotData->Get_Iterations_Max();
+
+        const auto title = std::format("{} {}s against iterations", statistic, metric);
+        const auto yLabel = std::format("{} {}", statistic, metric);
+        const auto lineLabel = std::format("## {} {}", statistic, metric);
+
+        const ImPlotSpec lineSpec(ImPlotProp_LineWeight, 3.0f);
+
+        if (ImPlot::BeginPlot(title.c_str()))
+        {
+            ImPlot::SetupAxes("Iterations", yLabel.c_str());
+
+            if (state.ResetZoom)
+            {
+                ImPlot::SetupAxisLimits(
+                    ImAxis_X1, iterations_min, iterations_max, ImPlotCond_Always);
+                ImPlot::SetupAxisLimits(ImAxis_Y1, valuesMin, valuesMax, ImPlotCond_Always);
+            }
+
+            ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
+            ImPlot::PlotLine(
+                lineLabel.c_str(), iterations.data(), values.data(), iterations.size(), lineSpec);
+            ImPlot::EndPlot();
+        }
     }
 }
