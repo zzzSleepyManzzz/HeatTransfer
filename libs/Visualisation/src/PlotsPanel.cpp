@@ -311,7 +311,6 @@ namespace HeatTransfer::Visualisation
         for (const auto& label : labels)
             labelPointers.push_back(label.c_str());
 
-        // ImPlot3D copies the labels, so the temporary strings are fine
         ImPlot3D::SetupAxisTicks(
             axis, positions.data(), (int)positions.size(), labelPointers.data());
     }
