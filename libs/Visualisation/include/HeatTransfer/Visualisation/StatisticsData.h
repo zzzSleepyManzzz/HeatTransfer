@@ -21,11 +21,11 @@ namespace HeatTransfer::Visualisation
         int GetNumIterations();
         double GetFinalMaxError();
         double GetFinalMeanError();
-        double GetFinal_RMS_Error();
+        double GetFinalRMSError();
 
         double GetFinalMaxResidual();
         double GetFinalMeanResidual();
-        double GetFinal_RMS_Residual();
+        double GetFinalRMSResidual();
 
         bool IsConverged();
 
@@ -39,11 +39,11 @@ namespace HeatTransfer::Visualisation
         int _numIterations;
         double _finalMaxError;
         double _finalMeanError;
-        double _final_RMS_Error;
+        double _finalRMSError;
 
         double _finalMaxResidual;
         double _finalMeanResidual;
-        double _final_RMS_Residual;
+        double _finalRMSResidual;
 
         bool _isConverged;
     };

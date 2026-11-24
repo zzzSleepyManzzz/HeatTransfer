@@ -481,11 +481,11 @@ namespace HeatTransfer::Visualisation
 
             auto finalMaxError = statisticsData->GetFinalMaxError();
             auto finalMeanError = statisticsData->GetFinalMeanError();
-            auto finalRMSError = statisticsData->GetFinal_RMS_Error();
+            auto finalRMSError = statisticsData->GetFinalRMSError();
 
             auto finalMaxResidual = statisticsData->GetFinalMaxResidual();
             auto finalMeanResidual = statisticsData->GetFinalMeanResidual();
-            auto finalRMSResidual = statisticsData->GetFinal_RMS_Residual();
+            auto finalRMSResidual = statisticsData->GetFinalRMSResidual();
 
             const char* convergenceStatement =
                 statisticsData->IsConverged()

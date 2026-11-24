@@ -10,25 +10,35 @@ namespace HeatTransfer::Visualisation
         : _durationInSeconds(durationInSeconds)
     {
         const auto T = Core::Tensor3dMapper::AsVector(*output->TemperatureTensor);
-        const auto& errorMetrics = output->ErrorMetrics;
 
         _minTemperature = T.minCoeff();
         _maxTemperature = T.maxCoeff();
         _meanTemperature = T.mean();
 
-        auto finalError = errorMetrics.back();
+        // A run cancelled before its first iteration has no metrics, so keep the zero defaults
 
-        _numIterations = finalError->Iteration;
-        _finalMaxError = finalError->ErrorMax;
-        _finalMeanError = finalError->ErrorMean;
-        _final_RMS_Error = finalError->ErrorRMS;
+        const auto& errorMetrics = output->ErrorMetrics;
+
+        if (!errorMetrics.empty())
+        {
+            auto finalError = errorMetrics.back();
+
+            _numIterations = finalError->Iteration;
+            _finalMaxError = finalError->ErrorMax;
+            _finalMeanError = finalError->ErrorMean;
+            _finalRMSError = finalError->ErrorRMS;
+        }
 
         const auto& residualMetrics = output->ResidualMetrics;
-        auto finalResidual = residualMetrics.back();
 
-        _finalMaxResidual = finalResidual->ResidualMax;
-        _finalMeanResidual = finalResidual->ResidualMean;
-        _final_RMS_Residual = finalResidual->ResidualRMS;
+        if (!residualMetrics.empty())
+        {
+            auto finalResidual = residualMetrics.back();
+
+            _finalMaxResidual = finalResidual->ResidualMax;
+            _finalMeanResidual = finalResidual->ResidualMean;
+            _finalRMSResidual = finalResidual->ResidualRMS;
+        }
 
         _isConverged = output->IsConverged;
     }
@@ -68,9 +78,9 @@ namespace HeatTransfer::Visualisation
         return _finalMeanError;
     }
 
-    double StatisticsData::GetFinal_RMS_Error()
+    double StatisticsData::GetFinalRMSError()
     {
-        return _final_RMS_Error;
+        return _finalRMSError;
     }
 
     double StatisticsData::GetFinalMaxResidual()
@@ -83,9 +93,9 @@ namespace HeatTransfer::Visualisation
         return _finalMeanResidual;
     }
 
-    double StatisticsData::GetFinal_RMS_Residual()
+    double StatisticsData::GetFinalRMSResidual()
     {
-        return _final_RMS_Residual;
+        return _finalRMSResidual;
     }
 
     bool StatisticsData::IsConverged()
