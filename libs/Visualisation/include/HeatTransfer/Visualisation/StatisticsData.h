@@ -2,6 +2,9 @@
 
 #include <memory>
 
+#include "HeatTransfer/Core/ErrorMetric.h"
+#include "HeatTransfer/Core/ResidualMetric.h"
+
 #include "HeatTransfer/SimulationRunner/SimulationOutput.h"
 
 namespace HeatTransfer::Visualisation
@@ -18,14 +21,8 @@ namespace HeatTransfer::Visualisation
         double GetMinTemperature();
         double GetMeanTemperature();
 
-        int GetNumIterations();
-        double GetFinalMaxError();
-        double GetFinalMeanError();
-        double GetFinalRMSError();
-
-        double GetFinalMaxResidual();
-        double GetFinalMeanResidual();
-        double GetFinalRMSResidual();
+        const Core::ErrorMetric& GetFinalError();
+        const Core::ResidualMetric& GetFinalResidual();
 
         bool IsConverged();
 
@@ -36,14 +33,8 @@ namespace HeatTransfer::Visualisation
         double _minTemperature;
         double _meanTemperature;
 
-        int _numIterations;
-        double _finalMaxError;
-        double _finalMeanError;
-        double _finalRMSError;
-
-        double _finalMaxResidual;
-        double _finalMeanResidual;
-        double _finalRMSResidual;
+        Core::ErrorMetric _finalError;
+        Core::ResidualMetric _finalResidual;
 
         bool _isConverged;
     };

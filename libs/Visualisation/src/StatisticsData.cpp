@@ -25,18 +25,8 @@ namespace HeatTransfer::Visualisation
             throw std::runtime_error("Simulation output has no metrics");
         }
 
-        auto finalError = errorMetrics.back();
-
-        _numIterations = finalError->Iteration;
-        _finalMaxError = finalError->ErrorMax;
-        _finalMeanError = finalError->ErrorMean;
-        _finalRMSError = finalError->ErrorRMS;
-
-        auto finalResidual = residualMetrics.back();
-
-        _finalMaxResidual = finalResidual->ResidualMax;
-        _finalMeanResidual = finalResidual->ResidualMean;
-        _finalRMSResidual = finalResidual->ResidualRMS;
+        _finalError = *errorMetrics.back();
+        _finalResidual = *residualMetrics.back();
 
         _isConverged = output->IsConverged;
     }
@@ -61,39 +51,14 @@ namespace HeatTransfer::Visualisation
         return _meanTemperature;
     }
 
-    int StatisticsData::GetNumIterations()
+    const Core::ErrorMetric& StatisticsData::GetFinalError()
     {
-        return _numIterations;
+        return _finalError;
     }
 
-    double StatisticsData::GetFinalMaxError()
+    const Core::ResidualMetric& StatisticsData::GetFinalResidual()
     {
-        return _finalMaxError;
-    }
-
-    double StatisticsData::GetFinalMeanError()
-    {
-        return _finalMeanError;
-    }
-
-    double StatisticsData::GetFinalRMSError()
-    {
-        return _finalRMSError;
-    }
-
-    double StatisticsData::GetFinalMaxResidual()
-    {
-        return _finalMaxResidual;
-    }
-
-    double StatisticsData::GetFinalMeanResidual()
-    {
-        return _finalMeanResidual;
-    }
-
-    double StatisticsData::GetFinalRMSResidual()
-    {
-        return _finalRMSResidual;
+        return _finalResidual;
     }
 
     bool StatisticsData::IsConverged()
