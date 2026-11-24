@@ -144,7 +144,9 @@ namespace HeatTransfer::Visualisation
         ImGui::SameLine();
         ImGui::Checkbox("Show surface", &state.ShowOuterFaces);
 
-        // One checkbox and slider per slicing plane
+        // One checkbox and slider per slicing plane, disabled while the surface hides the slices
+
+        ImGui::BeginDisabled(state.ShowOuterFaces);
 
         for (int axis = 0; axis < 3; axis++)
         {
@@ -164,6 +166,8 @@ namespace HeatTransfer::Visualisation
 
             ImGui::PopID();
         }
+
+        ImGui::EndDisabled();
 
         meshCache.Update(data, field, state); // Only updates when needed
 
@@ -249,7 +253,7 @@ namespace HeatTransfer::Visualisation
                     plotMesh(FACE_LABELS[i], faceMeshes[i]);
             }
 
-            plotMesh("##Slices", meshCache.GetSliceMesh());
+            plotMesh("##Slices", meshCache.GetSliceMesh()); // Empty when outer faces are shown
 
             ImPlot3D::EndPlot();
         }
