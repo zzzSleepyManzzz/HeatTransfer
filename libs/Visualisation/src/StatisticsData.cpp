@@ -1,5 +1,7 @@
 #include "HeatTransfer/Visualisation/StatisticsData.h"
 
+#include <stdexcept>
+
 #include "HeatTransfer/Core/Tensor3dMapper.h"
 
 namespace HeatTransfer::Visualisation
@@ -10,25 +12,21 @@ namespace HeatTransfer::Visualisation
         : _durationInSeconds(durationInSeconds)
     {
         const auto T = Core::Tensor3dMapper::AsVector(*output->TemperatureTensor);
-        const auto& errorMetrics = output->ErrorMetrics;
 
         _minTemperature = T.minCoeff();
         _maxTemperature = T.maxCoeff();
         _meanTemperature = T.mean();
 
-        auto finalError = errorMetrics.back();
-
-        _numIterations = finalError->Iteration;
-        _finalMaxError = finalError->ErrorMax;
-        _finalMeanError = finalError->ErrorMean;
-        _final_RMS_Error = finalError->ErrorRMS;
-
+        const auto& errorMetrics = output->ErrorMetrics;
         const auto& residualMetrics = output->ResidualMetrics;
-        auto finalResidual = residualMetrics.back();
 
-        _finalMaxResidual = finalResidual->ResidualMax;
-        _finalMeanResidual = finalResidual->ResidualMean;
-        _final_RMS_Residual = finalResidual->ResidualRMS;
+        if (errorMetrics.empty() || residualMetrics.empty())
+        {
+            throw std::runtime_error("Simulation output has no metrics");
+        }
+
+        _finalError = *errorMetrics.back();
+        _finalResidual = *residualMetrics.back();
 
         _isConverged = output->IsConverged;
     }
@@ -53,39 +51,14 @@ namespace HeatTransfer::Visualisation
         return _meanTemperature;
     }
 
-    int StatisticsData::GetNumIterations()
+    const Core::ErrorMetric& StatisticsData::GetFinalError()
     {
-        return _numIterations;
+        return _finalError;
     }
 
-    double StatisticsData::GetFinalMaxError()
+    const Core::ResidualMetric& StatisticsData::GetFinalResidual()
     {
-        return _finalMaxError;
-    }
-
-    double StatisticsData::GetFinalMeanError()
-    {
-        return _finalMeanError;
-    }
-
-    double StatisticsData::GetFinal_RMS_Error()
-    {
-        return _final_RMS_Error;
-    }
-
-    double StatisticsData::GetFinalMaxResidual()
-    {
-        return _finalMaxResidual;
-    }
-
-    double StatisticsData::GetFinalMeanResidual()
-    {
-        return _finalMeanResidual;
-    }
-
-    double StatisticsData::GetFinal_RMS_Residual()
-    {
-        return _final_RMS_Residual;
+        return _finalResidual;
     }
 
     bool StatisticsData::IsConverged()

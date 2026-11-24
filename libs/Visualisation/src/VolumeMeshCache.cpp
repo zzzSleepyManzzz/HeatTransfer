@@ -43,7 +43,7 @@ namespace HeatTransfer::Visualisation
 
         for (int axis = 0; axis < 3; axis++)
         {
-            if (state.ShowPlane[axis])
+            if (state.ShowPlane[axis] && !state.ShowOuterFaces)
             {
                 _sliceMesh.AddSlice(slice((SliceAxis)axis, planeIndex[axis]), tMin, tMax, colormap);
             }
