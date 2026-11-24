@@ -1,5 +1,7 @@
 #include "HeatTransfer/Visualisation/StatisticsData.h"
 
+#include <stdexcept>
+
 #include "HeatTransfer/Core/Tensor3dMapper.h"
 
 namespace HeatTransfer::Visualisation
@@ -15,30 +17,26 @@ namespace HeatTransfer::Visualisation
         _maxTemperature = T.maxCoeff();
         _meanTemperature = T.mean();
 
-        // A run cancelled before its first iteration has no metrics, so keep the zero defaults
-
         const auto& errorMetrics = output->ErrorMetrics;
-
-        if (!errorMetrics.empty())
-        {
-            auto finalError = errorMetrics.back();
-
-            _numIterations = finalError->Iteration;
-            _finalMaxError = finalError->ErrorMax;
-            _finalMeanError = finalError->ErrorMean;
-            _finalRMSError = finalError->ErrorRMS;
-        }
-
         const auto& residualMetrics = output->ResidualMetrics;
 
-        if (!residualMetrics.empty())
+        if (errorMetrics.empty() || residualMetrics.empty())
         {
-            auto finalResidual = residualMetrics.back();
-
-            _finalMaxResidual = finalResidual->ResidualMax;
-            _finalMeanResidual = finalResidual->ResidualMean;
-            _finalRMSResidual = finalResidual->ResidualRMS;
+            throw std::runtime_error("Simulation output has no metrics");
         }
+
+        auto finalError = errorMetrics.back();
+
+        _numIterations = finalError->Iteration;
+        _finalMaxError = finalError->ErrorMax;
+        _finalMeanError = finalError->ErrorMean;
+        _finalRMSError = finalError->ErrorRMS;
+
+        auto finalResidual = residualMetrics.back();
+
+        _finalMaxResidual = finalResidual->ResidualMax;
+        _finalMeanResidual = finalResidual->ResidualMean;
+        _finalRMSResidual = finalResidual->ResidualRMS;
 
         _isConverged = output->IsConverged;
     }
