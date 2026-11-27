@@ -17,7 +17,9 @@ namespace HeatTransfer::Core
         TrackingMetric ResidualTrackingMetric;
         TrackingMetric ErrorTrackingMetric;
         Core::Smoother Smoother = Core::Smoother::RED_BLACK_SOR;
-        double GridSpacing = 0.01;
+        double GridSpacing;
+        double TimeStep;
+        int NumberOfTimeSteps;
 
         static SimulationParameters Default();
     };

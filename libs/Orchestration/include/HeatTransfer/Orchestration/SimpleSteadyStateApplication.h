@@ -9,10 +9,10 @@
 
 namespace HeatTransfer::Orchestration
 {
-    class SimpleApplication
+    class SimpleSteadyStateApplication
     {
     public:
-        SimpleApplication();
+        SimpleSteadyStateApplication();
         void Run();
     };
 }

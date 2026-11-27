@@ -1,6 +1,7 @@
 #include "HeatTransfer/Solver/ISolver.h"
 
 #include <algorithm>
+#include <stdexcept>
 
 #include <tracy/Tracy.hpp>
 
@@ -13,14 +14,16 @@ namespace HeatTransfer::Solver
 {
     ISolver::ISolver(const Core::SimulationParameters& parameters,
                      const Core::MaterialProperties& materialProperties,
-                     const Core::BoundaryConditions& boundaryCondition)
+                     const Core::BoundaryConditions& boundaryCondition,
+                     const std::optional<Core::InitialConditions>& initialConditions)
         : _parameters(parameters)
         , _materialProperties(materialProperties)
         , _boundaryCondition(boundaryCondition)
+        , _initialConditions(initialConditions)
     {
     }
 
-    void ISolver::ComputeSimulation(std::stop_token stopToken)
+    void ISolver::ComputeSteadyStateSimulation(std::stop_token stopToken)
     {
         ZoneScoped;
 
@@ -41,11 +44,66 @@ namespace HeatTransfer::Solver
 
         _system = std::make_shared<SystemMatrix>(geometry->BuildFixedTemperatureMask(),
                                                  geometry->BuildBiotNumbers());
-        _rhs = geometry->BuildRhs();
+        _rhs = geometry->BuildSteadyStateRhs();
 
         Initialise();
 
         IterateTemperature(stopToken);
+    }
+
+    void ISolver::ComputeTransientSimulation(std::stop_token stopToken)
+    {
+        ZoneScoped;
+
+        if (!_initialConditions.has_value())
+            throw std::invalid_argument("Transient simulation needs initial conditions");
+
+        const int rows = _parameters.Rows;
+        const int columns = _parameters.Columns;
+        const int layers = _parameters.Layers;
+
+        _temperatureTensor = std::make_shared<Core::Tensor3d>(rows, columns, layers);
+        _temperatureTensor->setConstant(_initialConditions.value().Temperature);
+
+        _residualTensor = std::make_shared<Core::Tensor3d>(rows, columns, layers);
+        _residualTensor->setZero();
+
+        const auto geometry =
+            std::make_shared<Geometry>(_parameters, _materialProperties, _boundaryCondition);
+
+        geometry->ApplyFixedTemperatures(*_temperatureTensor);
+
+        _system = std::make_shared<SystemMatrix>(geometry->BuildFixedTemperatureMask(),
+                                                 geometry->BuildBiotNumbers(),
+                                                 geometry->BuildInverseFourierNumber());
+
+        const auto steadyStateRhs = geometry->BuildSteadyStateRhs();
+        const auto heatCapacity = geometry->BuildHeatCapacity();
+
+        for (auto timeStep = 1; timeStep <= _parameters.NumberOfTimeSteps; timeStep++)
+        {
+            if (stopToken.stop_requested())
+                return;
+
+            // b = steady-state rhs + heat capacity * previous temperature / 6
+            _rhs = steadyStateRhs + heatCapacity * (*_temperatureTensor) / Stencil::SCALE;
+
+            Initialise();
+
+            IterateTemperature(stopToken);
+
+            const auto T = Core::Tensor3dMapper::AsVector(*_temperatureTensor);
+
+            auto timeStepMetric =
+                std::make_shared<Core::TimeStepMetric>(timeStep,
+                                                       timeStep * _parameters.TimeStep,
+                                                       GetCurrentIteration(),
+                                                       T.maxCoeff(),
+                                                       T.mean(),
+                                                       T.minCoeff());
+
+            _timeStepMetrics.push_back(timeStepMetric);
+        }
     }
 
     void ISolver::PrintResidual()
@@ -56,6 +114,23 @@ namespace HeatTransfer::Solver
             std::cout << std::format("Max residual  : {}", residual->ResidualMax) << std::endl;
             std::cout << std::format("Mean residual : {}", residual->ResidualMean) << std::endl;
             std::cout << std::format("RMS residual  : {}", residual->ResidualRMS) << std::endl;
+            std::cout << std::endl;
+        }
+    }
+
+    void ISolver::PrintTimeSteps()
+    {
+        for (const auto& timeStep : _timeStepMetrics)
+        {
+            std::cout << std::format("Step              : {}", timeStep->TimeStep) << std::endl;
+            std::cout << std::format("Time              : {} s", timeStep->Time) << std::endl;
+            std::cout << std::format("Num of Iterations : {}", timeStep->Iterations) << std::endl;
+            std::cout << std::format("Min Temperature   : {} K", timeStep->TemperatureMin)
+                      << std::endl;
+            std::cout << std::format("Mean Temperature  : {} K", timeStep->TemperatureMean)
+                      << std::endl;
+            std::cout << std::format("Max Temperature   : {} K", timeStep->TemperatureMax)
+                      << std::endl;
             std::cout << std::endl;
         }
     }

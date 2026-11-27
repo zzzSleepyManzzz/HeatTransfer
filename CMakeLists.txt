@@ -20,7 +20,8 @@ add_subdirectory(libs/Solver)
 add_subdirectory(libs/Visualisation)
 add_subdirectory(libs/Orchestration)
 
-add_subdirectory(apps/HeatTransferRunner)
+add_subdirectory(apps/HeatTransferSteadyStateRunner)
+add_subdirectory(apps/HeatTransferTransientRunner)
 add_subdirectory(apps/HeatTransferApp)
 
 enable_testing()

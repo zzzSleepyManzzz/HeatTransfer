@@ -1,6 +1,7 @@
 add_library(Orchestration 
     src/Application.cpp
-    src/SimpleApplication.cpp
+    src/SimpleSteadyStateApplication.cpp
+    src/SimpleTransientApplication.cpp
 )
 
 target_include_directories(Orchestration

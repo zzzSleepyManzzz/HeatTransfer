@@ -18,7 +18,9 @@ namespace HeatTransfer::Solver
 
         Core::Tensor3d BuildFixedTemperatureMask() const;
         SystemMatrix::BiotNumbers BuildBiotNumbers() const;
-        Core::Tensor3d BuildRhs() const;
+        double BuildInverseFourierNumber() const;
+        Core::Tensor3d BuildSteadyStateRhs() const;
+        Core::Tensor3d BuildHeatCapacity() const;
 
         void ApplyFixedTemperatures(Core::Tensor3d& temperature) const;
 

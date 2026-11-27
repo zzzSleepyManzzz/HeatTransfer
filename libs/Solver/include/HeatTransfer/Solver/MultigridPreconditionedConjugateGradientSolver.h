@@ -13,12 +13,14 @@ namespace HeatTransfer::Solver
         MultigridPreconditionedConjugateGradientSolver(
             const Core::SimulationParameters& parameters,
             const Core::MaterialProperties& materialProperties,
-            const Core::BoundaryConditions& boundaryCondition);
+            const Core::BoundaryConditions& boundaryCondition,
+            const std::optional<Core::InitialConditions>& initialConditions = std::nullopt);
 
         virtual ~MultigridPreconditionedConjugateGradientSolver() = default;
 
     private:
         std::shared_ptr<MultigridPreconditioner> _preconditioner;
+        std::shared_ptr<SystemMatrix> _levelsSystem;
 
         Core::Tensor3d _gradient;                // grad f_k
         Core::Tensor3d _preconditionedGradient;  // d_k = B * grad f_k

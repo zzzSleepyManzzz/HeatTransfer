@@ -1,10 +1,10 @@
-#include "HeatTransfer/Orchestration/SimpleApplication.h"
+#include "HeatTransfer/Orchestration/SimpleSteadyStateApplication.h"
 
 namespace HeatTransfer::Orchestration
 {
-    SimpleApplication::SimpleApplication() {}
+    SimpleSteadyStateApplication::SimpleSteadyStateApplication() {}
 
-    void SimpleApplication::Run()
+    void SimpleSteadyStateApplication::Run()
     {
         auto start = std::chrono::steady_clock::now();
 
@@ -32,8 +32,8 @@ namespace HeatTransfer::Orchestration
         auto durationInSeconds = std::chrono::duration<double>(duration).count();
         auto durationInMilliseconds = std::chrono::duration<double, std::milli>(duration).count();
 
-        std::cout << std::format("Elasped time: {} seconds", durationInSeconds) << std::endl;
-        std::cout << std::format("Elasped time: {} milliseconds", durationInMilliseconds)
+        std::cout << std::format("Elapsed time: {} seconds", durationInSeconds) << std::endl;
+        std::cout << std::format("Elapsed time: {} milliseconds", durationInMilliseconds)
                   << std::endl;
     }
 }

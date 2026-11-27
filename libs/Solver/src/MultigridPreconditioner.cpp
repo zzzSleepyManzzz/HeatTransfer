@@ -150,9 +150,12 @@ namespace HeatTransfer::Solver
             for (auto& biotNumber : biotNumbers)
                 biotNumber *= 2.0;
 
+            // 1 / Fo = pow(h, 2) / (alpha * dt), so the coarse grid multiplies it by 2^2 = 4
+            const double inverseFourierNumber = fine.GetInverseFourierNumber() * 4.0;
+
             auto coarseMask = CoarsenMask(fine.GetFixedTemperatureMask());
 
-            return SystemMatrix(coarseMask, biotNumbers);
+            return SystemMatrix(coarseMask, biotNumbers, inverseFourierNumber);
         }
     }
 

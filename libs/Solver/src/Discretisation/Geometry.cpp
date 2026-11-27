@@ -183,7 +183,22 @@ namespace HeatTransfer::Solver
         return biotNumbers;
     }
 
-    Core::Tensor3d Geometry::BuildRhs() const
+    double Geometry::BuildInverseFourierNumber() const
+    {
+        // 1 / Fo = pow(h, 2) / (alpha * dt), where alpha = k_coeff / (rho * c)
+
+        auto h = _parameters.GridSpacing;
+        auto dt = _parameters.TimeStep;
+        auto k_coeff = _materialProperties.ThermalConductivity;
+        auto rho = _materialProperties.Density;
+        auto c = _materialProperties.SpecificHeatCapacity;
+
+        auto alpha = k_coeff / (rho * c);
+
+        return pow(h, 2) / (alpha * dt);
+    }
+
+    Core::Tensor3d Geometry::BuildSteadyStateRhs() const
     {
         // b = (heat generation term + heat flux term + convection term) / 6
 
@@ -252,5 +267,35 @@ namespace HeatTransfer::Solver
         }
 
         return rhs;
+    }
+
+    Core::Tensor3d Geometry::BuildHeatCapacity() const
+    {
+        // Capacity = w / Fo, the scaled heat capacity of each point for one time step
+
+        ZoneScoped;
+
+        const Eigen::Index rows = _parameters.Rows;
+        const Eigen::Index cols = _parameters.Columns;
+        const Eigen::Index layers = _parameters.Layers;
+
+        const double inverseFourierNumber = BuildInverseFourierNumber();
+
+        auto capacity = Core::Tensor3d(rows, cols, layers);
+
+#pragma omp parallel for collapse(2) schedule(static)
+        for (Eigen::Index k = 0; k < layers; k++)
+        {
+            for (Eigen::Index j = 0; j < cols; j++)
+            {
+                for (Eigen::Index i = 0; i < rows; i++)
+                {
+                    capacity(i, j, k) =
+                        Stencil::ControlVolume(_dimensions, i, j, k) * inverseFourierNumber;
+                }
+            }
+        }
+
+        return capacity;
     }
 }
