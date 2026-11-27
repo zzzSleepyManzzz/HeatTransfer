@@ -45,7 +45,7 @@ namespace HeatTransfer::Orchestration
 
             if (rendererModel->NeedsSimulationUpdate())
             {
-                asyncSimulation->Start(rendererModel->GetSimulationConfig());
+                asyncSimulation->Start(rendererModel->GetPendingSimulationConfig());
                 rendererModel->ClearSimulationUpdate();
             }
 

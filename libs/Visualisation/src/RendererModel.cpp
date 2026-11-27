@@ -13,7 +13,7 @@ namespace HeatTransfer::Visualisation
     {
     }
 
-    std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig>
+    std::shared_ptr<const HeatTransfer::SimulationRunner::SimulationConfig>
     RendererModel::GetSimulationConfig()
     {
         return _simulationConfig;
@@ -29,9 +29,17 @@ namespace HeatTransfer::Visualisation
         return _statisticsData;
     }
 
-    void RendererModel::UpdateModel()
+    void RendererModel::UpdateModel(
+        std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig> config)
     {
+        _pendingSimulationConfig = config;
         _needsSimulationUpdate = true;
+    }
+
+    std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig>
+    RendererModel::GetPendingSimulationConfig()
+    {
+        return _pendingSimulationConfig;
     }
 
     bool RendererModel::NeedsSimulationUpdate()
