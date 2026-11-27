@@ -16,6 +16,6 @@ namespace HeatTransfer::Core
                 .Smoother = Core::Smoother::RED_BLACK_SOR,
                 .GridSpacing = 0.01,
                 .TimeStep = 100.0,
-                .NumberOfTimeSteps = 20};
+                .NumberOfTimeSteps = 5};
     }
 }
