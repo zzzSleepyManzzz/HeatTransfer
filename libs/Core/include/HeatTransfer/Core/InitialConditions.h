@@ -4,7 +4,7 @@ namespace HeatTransfer::Core
 {
     struct InitialConditions
     {
-        double Temperature; // Uniform temperature at t = 0 [K]
+        double Temperature;
 
         static InitialConditions Default();
     };
