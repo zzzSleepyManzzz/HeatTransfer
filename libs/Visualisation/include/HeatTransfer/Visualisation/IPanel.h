@@ -23,7 +23,7 @@ namespace HeatTransfer::Visualisation
     {
     public:
         IPanel() = delete;
-        ~IPanel() = default;
+        virtual ~IPanel() = default;
 
         virtual void Render(std::shared_ptr<RendererModel> model) = 0;
 
