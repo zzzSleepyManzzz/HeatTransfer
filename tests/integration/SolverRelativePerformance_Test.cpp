@@ -21,7 +21,7 @@ namespace
             std::make_shared<HeatTransfer::Solver::MultigridPreconditionedConjugateGradientSolver>(
                 parameters, materialProperties, boundaryCondition);
 
-        solver->ComputeSimulation();
+        solver->ComputeSteadyStateSimulation();
         return solver->GetResidualMetrics().size();
     }
 }

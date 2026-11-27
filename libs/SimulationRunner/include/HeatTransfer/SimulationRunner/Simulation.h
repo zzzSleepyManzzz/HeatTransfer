@@ -1,9 +1,11 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <stop_token>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
+#include "HeatTransfer/Core/InitialConditions.h"
 #include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
@@ -28,6 +30,7 @@ namespace HeatTransfer::SimulationRunner
         Core::SimulationParameters _parameters;
         Core::MaterialProperties _materialProperties;
         Core::BoundaryConditions _boundaryCondition;
+        std::optional<Core::InitialConditions> _initialConditions;
         std::shared_ptr<Solver::ISolver> _solver;
     };
 }

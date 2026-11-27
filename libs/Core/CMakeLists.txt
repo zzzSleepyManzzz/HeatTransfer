@@ -2,6 +2,7 @@ add_library(Core
     src/BoundaryConditions.cpp
     src/FaceBoundaryCondition.cpp
     src/Glyph.cpp
+    src/InitialConditions.cpp
     src/MaterialProperties.cpp
     src/SimulationParameters.cpp
     src/Tensor3dMapper.cpp

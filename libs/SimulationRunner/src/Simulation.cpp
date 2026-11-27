@@ -10,8 +10,9 @@ namespace HeatTransfer::SimulationRunner
         : _parameters(config->Parameters)
         , _materialProperties(config->MaterialProperties)
         , _boundaryCondition(config->BoundaryConditions)
+        , _initialConditions(config->InitialConditions)
         , _solver(std::make_shared<Solver::MultigridPreconditionedConjugateGradientSolver>(
-              _parameters, _materialProperties, _boundaryCondition))
+              _parameters, _materialProperties, _boundaryCondition, _initialConditions))
     {
     }
 
@@ -19,7 +20,10 @@ namespace HeatTransfer::SimulationRunner
     {
         ZoneScoped;
 
-        _solver->ComputeSimulation(stopToken);
+        if (_initialConditions.has_value())
+            _solver->ComputeTransientSimulation(stopToken);
+        else
+            _solver->ComputeSteadyStateSimulation(stopToken);
     }
 
     int Simulation::GetCurrentIteration() const
@@ -29,7 +33,10 @@ namespace HeatTransfer::SimulationRunner
 
     void Simulation::Print()
     {
-        _solver->PrintResidual();
+        if (_initialConditions.has_value())
+            _solver->PrintTimeSteps();
+        else
+            _solver->PrintResidual();
     }
 
     std::shared_ptr<SimulationOutput> Simulation::GetOutput()

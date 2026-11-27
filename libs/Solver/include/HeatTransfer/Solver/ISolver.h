@@ -5,15 +5,18 @@
 #include <format>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <stop_token>
 #include <vector>
 
 #include "HeatTransfer/Core/BoundaryConditions.h"
 #include "HeatTransfer/Core/ErrorMetric.h"
+#include "HeatTransfer/Core/InitialConditions.h"
 #include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/ResidualMetric.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 #include "HeatTransfer/Core/Tensor3d.h"
+#include "HeatTransfer/Core/TimeStepMetric.h"
 
 #include "HeatTransfer/Solver/Discretisation/SystemMatrix.h"
 
@@ -25,8 +28,10 @@ namespace HeatTransfer::Solver
         ISolver() = delete;
         virtual ~ISolver() = default;
 
-        void ComputeSimulation(std::stop_token stopToken = {});
+        void ComputeSteadyStateSimulation(std::stop_token stopToken = {});
+        void ComputeTransientSimulation(std::stop_token stopToken = {});
         void PrintResidual();
+        void PrintTimeSteps();
 
         bool IsConverged();
 
@@ -42,8 +47,10 @@ namespace HeatTransfer::Solver
         Core::SimulationParameters _parameters;
         Core::MaterialProperties _materialProperties;
         Core::BoundaryConditions _boundaryCondition;
+        std::optional<Core::InitialConditions> _initialConditions;
         std::vector<std::shared_ptr<Core::ErrorMetric>> _errorMetrics;
         std::vector<std::shared_ptr<Core::ResidualMetric>> _residualMetrics;
+        std::vector<std::shared_ptr<Core::TimeStepMetric>> _timeStepMetrics;
         std::shared_ptr<Core::Tensor3d> _temperatureTensor;
         std::shared_ptr<Core::Tensor3d> _residualTensor;
 
@@ -54,7 +61,8 @@ namespace HeatTransfer::Solver
 
         ISolver(const Core::SimulationParameters& parameters,
                 const Core::MaterialProperties& materialProperties,
-                const Core::BoundaryConditions& boundaryCondition);
+                const Core::BoundaryConditions& boundaryCondition,
+                const std::optional<Core::InitialConditions>& initialConditions);
 
         void IterateTemperature(std::stop_token stopToken);
 

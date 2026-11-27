@@ -8,16 +8,21 @@
 
 namespace HeatTransfer::Solver
 {
-    SystemMatrix::SystemMatrix(Core::Tensor3d fixedTemperatureMask, const BiotNumbers& biotNumbers)
-        : _fixedTemperatureMask(std::move(fixedTemperatureMask)), _biotNumbers(biotNumbers)
+    SystemMatrix::SystemMatrix(Core::Tensor3d fixedTemperatureMask,
+                               const BiotNumbers& biotNumbers,
+                               double inverseFourierNumber)
+        : _fixedTemperatureMask(std::move(fixedTemperatureMask))
+        , _biotNumbers(biotNumbers)
+        , _inverseFourierNumber(inverseFourierNumber)
     {
         BuildDiagonal();
     }
 
     void SystemMatrix::BuildDiagonal()
     {
-        // Diagonal = sum of neighbour coefficients + convection terms, zero on fixed points
+        // Diagonal = sum of neighbour coefficients + convection + capacity, zero on fixed points
         // Convection term = Bi * area of face, for each convective face
+        // Capacity term = w / Fo, zero for steady state
 
         ZoneScoped;
 
@@ -53,6 +58,8 @@ namespace HeatTransfer::Solver
                         diagonal += _biotNumbers[(size_t)face] * area;
                     }
 
+                    diagonal += Stencil::ControlVolume(dimensions, i, j, k) * _inverseFourierNumber;
+
                     _diagonal(i, j, k) = diagonal;
                 }
             }
@@ -72,5 +79,10 @@ namespace HeatTransfer::Solver
     const SystemMatrix::BiotNumbers& SystemMatrix::GetBiotNumbers() const
     {
         return _biotNumbers;
+    }
+
+    double SystemMatrix::GetInverseFourierNumber() const
+    {
+        return _inverseFourierNumber;
     }
 }

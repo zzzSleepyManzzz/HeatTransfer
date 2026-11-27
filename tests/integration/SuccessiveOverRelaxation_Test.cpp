@@ -33,7 +33,7 @@ namespace HeatTransfer::Tests
             std::make_shared<HeatTransfer::Solver::MultigridPreconditionedConjugateGradientSolver>(
                 parameters, materialProperties, boundaryCondition);
 
-        solver->ComputeSimulation();
+        solver->ComputeSteadyStateSimulation();
 
         const auto& residuals = solver->GetResidualMetrics();
 

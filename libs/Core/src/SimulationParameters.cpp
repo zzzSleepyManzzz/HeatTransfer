@@ -14,6 +14,8 @@ namespace HeatTransfer::Core
                 .ResidualTrackingMetric = Core::TrackingMetric::MAX,
                 .ErrorTrackingMetric = Core::TrackingMetric::MAX,
                 .Smoother = Core::Smoother::RED_BLACK_SOR,
-                .GridSpacing = 0.01};
+                .GridSpacing = 0.01,
+                .TimeStep = 100.0,
+                .NumberOfTimeSteps = 20};
     }
 }

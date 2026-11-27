@@ -12,8 +12,9 @@ namespace HeatTransfer::Solver
     MultigridPreconditionedConjugateGradientSolver::MultigridPreconditionedConjugateGradientSolver(
         const Core::SimulationParameters& parameters,
         const Core::MaterialProperties& materialProperties,
-        const Core::BoundaryConditions& boundaryCondition)
-        : ISolver(parameters, materialProperties, boundaryCondition)
+        const Core::BoundaryConditions& boundaryCondition,
+        const std::optional<Core::InitialConditions>& initialConditions)
+        : ISolver(parameters, materialProperties, boundaryCondition, initialConditions)
         , _preconditioner(std::make_shared<MultigridPreconditioner>(
               Smoothers::SmootherFactory(parameters.Smoother, parameters.RelaxationFactor)
                   .Create()))
@@ -24,7 +25,11 @@ namespace HeatTransfer::Solver
     {
         ZoneScoped;
 
-        _preconditioner->BuildLevels(*_system);
+        if (_levelsSystem != _system)
+        {
+            _preconditioner->BuildLevels(*_system);
+            _levelsSystem = _system;
+        }
 
         InitialiseConjugateGradientVariables();
     }
