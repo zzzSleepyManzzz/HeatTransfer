@@ -6,6 +6,8 @@
 #include "HeatTransfer/Core/MaterialProperties.h"
 #include "HeatTransfer/Core/SimulationParameters.h"
 
+#include "HeatTransfer/SimulationRunner/SimulationConfig.h"
+
 namespace HeatTransfer::Visualisation
 {
     struct SettingsState
@@ -15,6 +17,12 @@ namespace HeatTransfer::Visualisation
         int Smoother = 3;               // Red-Black SOR by default
         int ResidualTrackingMetric = 0; // MAX by default
         int ErrorTrackingMetric = 0;    // MAX by default
+
+        HeatTransfer::SimulationRunner::SimulationConfig SimulationConfig = {
+            .Parameters = Core::SimulationParameters::Default(),
+            .MaterialProperties = Core::MaterialProperties::Default(),
+            .BoundaryConditions = Core::BoundaryConditions::Default()};
+
         Core::SimulationParameters TemporaryParameters = Core::SimulationParameters::Default();
         Core::MaterialProperties TemporaryMaterialProperties = Core::MaterialProperties::Default();
         Core::BoundaryConditions TemporaryBoundaryConditions = Core::BoundaryConditions::Default();

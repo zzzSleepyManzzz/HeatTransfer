@@ -202,7 +202,7 @@ namespace HeatTransfer::Visualisation
 
             if (ImGui::Button("OK", ImVec2(displaySize.x * 1.0f / 6.0f, 0)))
             {
-                _model->GetSimulationConfig()->Parameters = _settingsState->TemporaryParameters;
+                _settingsState->SimulationConfig.Parameters = _settingsState->TemporaryParameters;
 
                 ImGui::CloseCurrentPopup();
             }
@@ -211,12 +211,13 @@ namespace HeatTransfer::Visualisation
 
             if (ImGui::Button("Cancel", ImVec2(-1, 0)))
             {
-                _settingsState->TemporaryParameters = _model->GetSimulationConfig()->Parameters;
-                _settingsState->Smoother = (int)_model->GetSimulationConfig()->Parameters.Smoother;
+                _settingsState->TemporaryParameters = _settingsState->SimulationConfig.Parameters;
+                _settingsState->Smoother =
+                    (int)_settingsState->SimulationConfig.Parameters.Smoother;
                 _settingsState->ResidualTrackingMetric =
-                    (int)_model->GetSimulationConfig()->Parameters.ResidualTrackingMetric;
+                    (int)_settingsState->SimulationConfig.Parameters.ResidualTrackingMetric;
                 _settingsState->ErrorTrackingMetric =
-                    (int)_model->GetSimulationConfig()->Parameters.ErrorTrackingMetric;
+                    (int)_settingsState->SimulationConfig.Parameters.ErrorTrackingMetric;
 
                 ImGui::CloseCurrentPopup();
             }
@@ -272,7 +273,7 @@ namespace HeatTransfer::Visualisation
 
             if (ImGui::Button("OK", ImVec2(displaySize.x * 1.0f / 6.0f, 0)))
             {
-                _model->GetSimulationConfig()->MaterialProperties =
+                _settingsState->SimulationConfig.MaterialProperties =
                     _settingsState->TemporaryMaterialProperties;
 
                 ImGui::CloseCurrentPopup();
@@ -283,7 +284,7 @@ namespace HeatTransfer::Visualisation
             if (ImGui::Button("Cancel", ImVec2(-1, 0)))
             {
                 _settingsState->TemporaryMaterialProperties =
-                    _model->GetSimulationConfig()->MaterialProperties;
+                    _settingsState->SimulationConfig.MaterialProperties;
 
                 ImGui::CloseCurrentPopup();
             }
@@ -413,7 +414,7 @@ namespace HeatTransfer::Visualisation
 
             if (ImGui::Button("OK", ImVec2(displaySize.x * 1.0f / 6.0f, 0)))
             {
-                _model->GetSimulationConfig()->BoundaryConditions =
+                _settingsState->SimulationConfig.BoundaryConditions =
                     _settingsState->TemporaryBoundaryConditions;
 
                 ImGui::CloseCurrentPopup();
@@ -426,7 +427,7 @@ namespace HeatTransfer::Visualisation
             if (ImGui::Button("Cancel", ImVec2(-1, 0)))
             {
                 _settingsState->TemporaryBoundaryConditions =
-                    _model->GetSimulationConfig()->BoundaryConditions;
+                    _settingsState->SimulationConfig.BoundaryConditions;
 
                 ImGui::CloseCurrentPopup();
             }
@@ -450,13 +451,10 @@ namespace HeatTransfer::Visualisation
                 _model->CancelSimulation();
             else
             {
-                auto config = _model->GetSimulationConfig();
+                auto config = std::make_shared<HeatTransfer::SimulationRunner::SimulationConfig>(
+                    _settingsState->SimulationConfig);
 
-                config->Parameters = _settingsState->TemporaryParameters;
-                config->MaterialProperties = _settingsState->TemporaryMaterialProperties;
-                config->BoundaryConditions = _settingsState->TemporaryBoundaryConditions;
-
-                _model->UpdateModel();
+                _model->UpdateModel(config);
             }
         }
 

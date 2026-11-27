@@ -17,11 +17,14 @@ namespace HeatTransfer::Visualisation
                       std::shared_ptr<HeatTransfer::SimulationRunner::SimulationOutput> output,
                       double durationInSeconds);
 
-        std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig> GetSimulationConfig();
+        std::shared_ptr<const HeatTransfer::SimulationRunner::SimulationConfig>
+        GetSimulationConfig();
         std::shared_ptr<RenderFrameData> GetRenderFrameData();
         std::shared_ptr<StatisticsData> GetStatisticsData();
 
-        void UpdateModel();
+        void UpdateModel(std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig> config);
+        std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig>
+        GetPendingSimulationConfig();
         bool NeedsSimulationUpdate();
         void ClearSimulationUpdate();
 
@@ -35,6 +38,7 @@ namespace HeatTransfer::Visualisation
 
     private:
         std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig> _simulationConfig;
+        std::shared_ptr<HeatTransfer::SimulationRunner::SimulationConfig> _pendingSimulationConfig;
         std::shared_ptr<RenderFrameData> _renderFrameData;
         std::shared_ptr<StatisticsData> _statisticsData;
 
